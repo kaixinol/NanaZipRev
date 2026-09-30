@@ -2,6 +2,8 @@
 #include "ProgressPage.h"
 #include "ProgressPage.g.cpp"
 
+#include <K7Base.h>
+
 #include <Mile.Helpers.CppBase.h>
 #include <Mile.Helpers.CppWinRT.h>
 
@@ -24,45 +26,15 @@ namespace
     std::wstring ConvertByteSizeToString(
         std::uint64_t ByteSize)
     {
-        const wchar_t* Units[] =
-        {
-            L"Byte",
-            L"Bytes",
-            L"KiB",
-            L"MiB",
-            L"GiB",
-            L"TiB",
-            L"PiB",
-            L"EiB"
-        };
-        const std::size_t UnitsCount = sizeof(Units) / sizeof(*Units);
+        // 32 characters are enough for the longest result "1023.99 EiB".
+        wchar_t TextBuffer[32] = {};
 
-        // Output Format:
-        // For ByteSize is 0 or 1: x Byte
-        // For ByteSize is from 2 to 1023: x Bytes
-        // For ByteSize is larger than 1023: x.xx {KiB, MiB, GiB, TiB, PiB, EiB}
+        ::K7BaseConvertByteSizeToString(
+            ByteSize,
+            TextBuffer,
+            ARRAYSIZE(TextBuffer));
 
-        std::size_t UnitIndex = 0;
-        double Result = static_cast<double>(ByteSize);
-
-        if (ByteSize > 1)
-        {
-            for (UnitIndex = 1; UnitIndex < UnitsCount; ++UnitIndex)
-            {
-                if (1024.0 > Result)
-                    break;
-
-                Result /= 1024.0;
-            }
-
-            // Keep two digits after the decimal point.
-            Result = static_cast<std::uint64_t>(Result * 100) / 100.0;
-        }
-
-        return Mile::FormatWideString(
-            (UnitIndex > 1) ? L"%.2f %s" : L"%.0f %s",
-            Result,
-            Units[UnitIndex]);
+        return TextBuffer;
     }
 
     std::wstring ConvertSecondsToTimeString(

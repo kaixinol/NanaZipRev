@@ -13,6 +13,8 @@
 #include "../Common/PropIDUtils.h"
 #include "../../PropID.h"
 
+#include <K7Base.h>
+
 #include "App.h"
 #include "Panel.h"
 #include "FormatUtils.h"
@@ -513,7 +515,16 @@ LRESULT CPanel::SetItemText(LVITEMW &item)
   {
     UInt64 v = 0;
     ConvertPropVariantToUInt64(prop, v);
-    ConvertSizeToString(v, text);
+    // **************** NanaZip Modification Start ****************
+    if (this->m_ShowFileSizeUnits)
+    {
+      ::K7BaseConvertByteSizeToString(v, text, (UINT32)item.cchTextMax);
+    }
+    else
+    {
+      ConvertSizeToString(v, text);
+    }
+    // **************** NanaZip Modification End ****************
   }
   else if (prop.vt == VT_BSTR)
   {

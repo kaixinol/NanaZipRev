@@ -309,4 +309,26 @@ EXTERN_C BOOL WINAPI K7BaseModernLocalFileTimeToFileTime(
 
 #endif // !K7_BASE_MODERN
 
+#ifndef K7_BASE_FORMAT
+#define K7_BASE_FORMAT
+
+/**
+ * @brief Converts a byte size to the human-readable string with the IEC
+ *        binary prefix units.
+ * @param ByteSize The byte size to be converted.
+ * @param TextBuffer The buffer to receive the converted string.
+ * @param TextBufferSize The size of the TextBuffer parameter, in characters.
+ * @remark The converted string is "x Byte" when the byte size is 0 or 1,
+ *         "x Bytes" when the byte size is from 2 to 1023, and "x.xx KiB",
+ *         "x.xx MiB", "x.xx GiB", "x.xx TiB", "x.xx PiB" or "x.xx EiB" when
+ *         the byte size is larger than 1023. Nothing will be written if the
+ *         TextBuffer parameter is nullptr or TextBufferSize is zero.
+ */
+EXTERN_C VOID WINAPI K7BaseConvertByteSizeToString(
+    _In_ UINT64 ByteSize,
+    _Out_writes_z_(TextBufferSize) PWSTR TextBuffer,
+    _In_ UINT32 TextBufferSize);
+
+#endif // !K7_BASE_FORMAT
+
 #endif // !K7_BASE

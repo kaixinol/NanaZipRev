@@ -37,6 +37,7 @@
     <ClCompile Include="K7BaseModern.cpp" />
     <ClCompile Include="K7BasePolicies.cpp" />
     <ClCompile Include="K7BaseHash.cpp" />
+    <ClCompile Include="K7BaseFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="K7Base.h" />
