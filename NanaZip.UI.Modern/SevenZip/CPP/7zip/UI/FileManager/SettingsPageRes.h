@@ -18,6 +18,12 @@
 #define IDX_SETTINGS_SHOW_FILE_SIZE_UNITS   2515
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+// 2102 is the legacy string resource identifier of "Language:", so the label
+// is localized without adding any new string resources.
+#define IDT_SETTINGS_LANGUAGE               2102
+#define IDC_SETTINGS_LANGUAGE               2514
+// **************** NanaZip Modification End ****************
 
 // #define IDT_SETTINGS_MEM     100
 // #define IDC_SETTINGS_MEM     101
