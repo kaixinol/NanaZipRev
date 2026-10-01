@@ -237,6 +237,9 @@ public:
   // **************** 7-Zip ZS Modification Start ****************
   void ComprMethodChanged();
   // **************** 7-Zip ZS Modification End ****************
+  // **************** NanaZip Modification Start ****************
+  void ShowMethodCompatibilityWarning();
+  // **************** NanaZip Modification End ****************
   void MethodChanged()
   {
     SetDictionary2();
@@ -244,6 +247,9 @@ public:
     // EnableMultiCombo(IDC_COMPRESS_DICTIONARY2);
     SetOrder2();
     EnableMultiCombo(IDC_COMPRESS_ORDER);
+    // **************** NanaZip Modification Start ****************
+    ShowMethodCompatibilityWarning();
+    // **************** NanaZip Modification End ****************
   }
   
   int GetMethodID_RAW();

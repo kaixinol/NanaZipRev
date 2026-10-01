@@ -1097,6 +1097,9 @@ Do you want to update it in the archive?</value>
   <data name="Resource4091" xml:space="preserve">
     <value>ns</value>
   </data>
+  <data name="Resource4096" xml:space="preserve">
+    <value>Warning: {0} is not supported by upstream 7-Zip or most other archive software.</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>Copy</value>
   </data>

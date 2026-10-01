@@ -1094,6 +1094,9 @@
   <data name="Resource4091" xml:space="preserve">
     <value>ns</value>
   </data>
+  <data name="Resource4096" xml:space="preserve">
+    <value>警告：上游 7-Zip 及大多数其他压缩软件都不支持 {0}。</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>复制</value>
   </data>

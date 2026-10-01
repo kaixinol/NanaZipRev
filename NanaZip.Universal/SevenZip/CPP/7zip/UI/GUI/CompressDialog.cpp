@@ -536,6 +536,26 @@ static bool IsMethodSupportedBySfx(int methodID)
   return false;
 }
 
+// **************** NanaZip Modification Start ****************
+static bool IsMethodSupportedByUpstream7Zip(int methodID)
+{
+  switch (methodID)
+  {
+    case kFLZMA2:
+    case kZSTD:
+    case kBROTLI:
+    case kLZ4:
+    case kLZ5:
+    case kLIZARD_M1:
+    case kLIZARD_M2:
+    case kLIZARD_M3:
+    case kLIZARD_M4:
+      return false;
+  }
+  return true;
+}
+// **************** NanaZip Modification End ****************
+
 
 static const
   // NCompressDialog::NUpdateMode::EEnum
@@ -2117,6 +2137,26 @@ void CCompressDialog::ComprMethodChanged()
   }
 }
 // **************** 7-Zip ZS Modification End ****************
+
+// **************** NanaZip Modification Start ****************
+void CCompressDialog::ShowMethodCompatibilityWarning()
+{
+  UString warningText;
+  const int methodID = GetMethodID();
+
+  if (Get_ArcInfoEx().Is_7z() && !IsMethodSupportedByUpstream7Zip(methodID))
+  {
+    if ((unsigned)methodID < Z7_ARRAY_SIZE(kMethodsNamesLong))
+    {
+      warningText = MyFormatNew(
+          IDS_COMPRESS_METHOD_UNSUPPORTED,
+          GetUnicodeString(kMethodsNamesLong[methodID]));
+    }
+  }
+
+  SetItemText(IDT_COMPRESS_METHOD_WARNING, warningText);
+}
+// **************** NanaZip Modification End ****************
 
 
 
