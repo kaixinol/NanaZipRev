@@ -10,9 +10,14 @@ on:
       - 'Documents/**'
       - '**/*.md'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 120
     env:
       POWERSHELL_TELEMETRY_OPTOUT: 1
     steps:
@@ -22,6 +27,14 @@ jobs:
       - uses: microsoft/setup-msbuild@v3
       - name: Clear local NuGet cache (workaround for failed restores on windows-latest)
         run: dotnet nuget locals all --clear
+      - name: Cache NuGet packages
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ~\.nuget\packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'NanaZip.Project/*.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
       - name: Build
         run: MSBuild -binaryLogger:Output\BuildAllTargets.binlog -m BuildAllTargets.proj
       - name: Upload MSIX Bundle
@@ -29,29 +42,35 @@ jobs:
         with:
           name: NanaZip_Mainline_ApplicationPackages
           path: Output/Binaries/AppPackages
+          compression-level: 0
       - name: Upload Extension Package Installer
         uses: actions/upload-artifact@v7.0.1
         with:
           name: NanaZip_Mainline_ExtensionPackageInstaller
           path: Output/NanaZip.ExtensionPackage_*.exe
+          compression-level: 0
       - name: Upload MSBuild Build Process Binary Log
         uses: actions/upload-artifact@v7.0.1
         if: "!cancelled()"
         with:
           name: NanaZip_Mainline_BuildBinaryLog
           path: Output/BuildAllTargets.binlog
+          compression-level: 0
       - name: Upload Portable Binaries
         uses: actions/upload-artifact@v7.0.1
         with:
           name: NanaZip_Mainline_PortableBinaries
           path: Output/Binaries/Root/Binaries
+          compression-level: 0
       - name: Upload Debug Symbols
         uses: actions/upload-artifact@v7.0.1
         with:
           name: NanaZip_Mainline_DebugSymbols
           path: Output/Binaries/Root/Symbols
+          compression-level: 0
   test-x64:
     runs-on: windows-latest
+    timeout-minutes: 30
     needs:
       - build
     steps:
@@ -68,6 +87,7 @@ jobs:
             -Verbose
   test-arm64:
     runs-on: windows-11-arm
+    timeout-minutes: 30
     needs:
       - build
     steps:
