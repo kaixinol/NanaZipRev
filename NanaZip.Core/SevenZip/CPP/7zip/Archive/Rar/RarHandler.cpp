@@ -19,6 +19,7 @@
 #include "../../Common/FilterCoder.h"
 #include "../../Common/LimitedStreams.h"
 #include "../../Common/MethodId.h"
+#include "../../Common/MethodProps.h"
 #include "../../Common/ProgressUtils.h"
 #include "../../Common/RegisterArc.h"
 #include "../../Common/StreamUtils.h"
@@ -1000,7 +1001,13 @@ Z7_COM7F_IMF(CHandler::GetProperty(UInt32 index, PROPID propID, PROPVARIANT *val
         u = mainItem->GetName();
       u += item.GetName();
       */
-      prop = (const wchar_t *)NItemName::WinPathToOsPath(item.GetName());
+      // **************** NanaZip Modification Start ****************
+      /* Honour a "cp" open property for entries that carry no Unicode name.
+         RAR4 stores those as plain bytes, so the code page decides what the
+         name actually reads as. */
+      prop = (const wchar_t *)NItemName::WinPathToOsPath(
+          item.GetName(_specifiedCodePage, false));
+      // **************** NanaZip Modification End ****************
       break;
     }
     case kpidIsDir: prop = item.IsDir(); break;
@@ -1296,12 +1303,48 @@ Z7_COM7F_IMF(CHandler::Close())
   _errorFlags = 0;
   _warningFlags = 0;
   _isArc = false;
+  // **************** NanaZip Modification Start ****************
+  /* Reset to the OEM default on every open. A reopen that carries a "cp" open
+     property sets it again afterwards, and an ordinary open must not inherit
+     the code page of whatever was opened before it. */
+  _specifiedCodePage = CP_OEMCP;
+  // **************** NanaZip Modification End ****************
   _refItems.Clear();
   _items.Clear();
   _arcs.Clear();
   return S_OK;
   COM_TRY_END
 }
+
+// **************** NanaZip Modification Start ****************
+Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names,
+    const PROPVARIANT *values, UInt32 numProps))
+{
+  COM_TRY_BEGIN
+  for (UInt32 i = 0; i < numProps; i++)
+  {
+    UString name = names[i];
+    name.MakeLower_Ascii();
+    if (name.IsEmpty())
+      return E_INVALIDARG;
+
+    const PROPVARIANT &prop = values[i];
+
+    /* RAR5 names are UTF-16 by format definition, so there is nothing to
+       decode there and "cp" is accepted only for symmetry with the other
+       handlers. RAR4 entries without a Unicode name are plain bytes and do
+       need it. */
+    if (name.IsEqualTo("cp"))
+    {
+      UInt32 cp = CP_OEMCP;
+      RINOK(ParsePropToUInt32(L"", prop, cp))
+      _specifiedCodePage = cp;
+    }
+  }
+  return S_OK;
+  COM_TRY_END
+}
+// **************** NanaZip Modification End ****************
 
 struct CMethodItem
 {

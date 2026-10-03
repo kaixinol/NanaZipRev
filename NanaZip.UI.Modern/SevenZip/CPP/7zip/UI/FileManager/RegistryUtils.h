@@ -17,6 +17,14 @@ void ReadRegDiff(UString &path);
 
 void ReadReg_VerCtrlPath(UString &path);
 
+// **************** NanaZip Modification Start ****************
+/* Remembers the filename code page the user last chose for archive names. Zero
+   means "no explicit choice", which leaves the handler to decode names as it
+   sees fit. */
+void SaveRegCodePage(unsigned codePage);
+void ReadRegCodePage(unsigned &codePage);
+// **************** NanaZip Modification End ****************
+
 struct CFmSettings
 {
   bool ShowDots;

@@ -132,7 +132,9 @@ public:
      the old path, decoded with the old code page, and the panel holds other
      CAgentFolder objects for the same agent, so nothing here may be repaired
      in place. */
-  HRESULT ReOpenWithCodePage(unsigned codePage, CMyComPtr<IFolderFolder> &resultFolder);
+  HRESULT ReOpenWithCodePage(
+      unsigned codePage,
+      CMyComPtr<IFolderFolder> &resultFolder);
   // **************** NanaZip Modification End ****************
 
   STDMETHOD(GetStream)(UInt32 index, ISequentialInStream **stream);
@@ -262,6 +264,12 @@ public:
   HRESULT ReOpenWithCodePage(unsigned codePage);
   unsigned GetCodePage() const { return _codePage; }
   // **************** NanaZip Modification End ****************
+  /* Code page applied to every archive opened from now on, or zero to leave the
+     handler to decode names as it sees fit. The FileManager sets this from the
+     user's last choice at startup, which keeps the registry read in the UI
+     layer where the other settings live. */
+  static unsigned g_DefaultCodePage;
+  void SetCodePage(unsigned codePage) { _codePage = codePage; }
   CProxyArc *_proxy;
   CProxyArc2 *_proxy2;
   CArchiveLink _archiveLink;

@@ -24,6 +24,11 @@
 #include "IFolder.h"
 #include "LangUtils.h"
 #include "MyLoadMenu.h"
+// **************** NanaZip Modification Start ****************
+// CAgent::g_DefaultCodePage carries the remembered filename code page down to
+// the Agent layer, which must not read the registry itself.
+#include "../Agent/Agent.h"
+// **************** NanaZip Modification End ****************
 #include "RegistryUtils.h"
 #include "ViewSettings.h"
 
@@ -325,6 +330,14 @@ HRESULT CApp::Create(HWND hwnd, const UString &mainPath, const UString &arcForma
     Panels[i].PanelCreated = false;
 
   AppState.Read();
+
+  // **************** NanaZip Modification Start ****************
+  /* Restore the remembered filename code page before any archive is opened, and
+     hand it to the Agent layer. Zero means no explicit choice, which leaves the
+     automatic detection in charge. */
+  ReadRegCodePage(AppState.CodePage);
+  CAgent::g_DefaultCodePage = AppState.CodePage;
+  // **************** NanaZip Modification End ****************
 
   SetListSettings();
 

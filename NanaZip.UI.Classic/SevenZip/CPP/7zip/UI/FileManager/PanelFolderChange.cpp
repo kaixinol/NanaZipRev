@@ -353,7 +353,8 @@ HRESULT CPanel::ReOpenWithCodePage(unsigned codePage)
     return E_INVALIDARG;
 
   CMyComPtr<IArchiveFolderInternal> archiveFolderInternal;
-  if (_folder.QueryInterface(IID_IArchiveFolderInternal, &archiveFolderInternal) != S_OK
+  if (_folder.QueryInterface(IID_IArchiveFolderInternal,
+      &archiveFolderInternal) != S_OK
       || !archiveFolderInternal)
     return E_INVALIDARG;   // not an archive folder
 
@@ -387,7 +388,8 @@ unsigned CPanel::GetCodePage() const
 {
   CMyComPtr<IArchiveFolderInternal> archiveFolderInternal;
   if (!_folder
-      || _folder.QueryInterface(IID_IArchiveFolderInternal, &archiveFolderInternal) != S_OK
+      || _folder.QueryInterface(IID_IArchiveFolderInternal,
+          &archiveFolderInternal) != S_OK
       || !archiveFolderInternal)
     return 0;
 

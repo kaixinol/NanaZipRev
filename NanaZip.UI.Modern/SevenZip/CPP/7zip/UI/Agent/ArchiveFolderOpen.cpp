@@ -31,7 +31,17 @@ STDMETHODIMP CArchiveFolderManager::OpenFolderFile(IInStream *inStream,
   }
   CAgent *agent = new CAgent();
   CMyComPtr<IInFolderArchive> archive = agent;
-  
+
+  // **************** NanaZip Modification Start ****************
+  /* Apply the code page the user last chose, so an archive opened after a
+     restart decodes its entry names the same way it did before. Zero leaves the
+     handler to decode names as it sees fit.
+
+     The value is injected by the FileManager rather than read here: the Agent
+     layer must not reach up into the UI layer's registry helpers. */
+  agent->SetCodePage(CAgent::g_DefaultCodePage);
+  // **************** NanaZip Modification End ****************
+
   HRESULT res = agent->Open(inStream, filePath, arcFormat, NULL, openArchiveCallback);
   
   if (res != S_OK)

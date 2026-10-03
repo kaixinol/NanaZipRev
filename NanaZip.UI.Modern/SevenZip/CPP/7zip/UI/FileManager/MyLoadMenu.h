@@ -45,8 +45,9 @@ bool CodePageFromMenuID(unsigned id, unsigned &codePage);
 // **************** NanaZip Modification End ****************
 
 // **************** NanaZip Modification Start ****************
-/* Code page number for a Code page submenu index, or the sentinel below when the
-   index is out of range. Shared with the menu builder in PanelMenu.cpp. */
+/* Code page number for a Code page submenu index, or the sentinel value below
+   when the index is out of range. Shared with the menu builder in
+   PanelMenu.cpp. */
 #define kCodePageNone ((unsigned)(-1))
 unsigned GetCodePageForMenuIndex(unsigned index);
 // **************** NanaZip Modification End ****************

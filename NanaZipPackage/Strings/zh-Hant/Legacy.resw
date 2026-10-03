@@ -1097,6 +1097,69 @@
   <data name="Resource4096" xml:space="preserve">
     <value>警告：上游 7-Zip 及大多數其他壓縮軟件都不支援 {0}。</value>
   </data>
+  <data name="Resource4120" xml:space="preserve">
+    <value>自動</value>
+  </data>
+  <data name="Resource4121" xml:space="preserve">
+    <value>UTF-8</value>
+  </data>
+  <data name="Resource4122" xml:space="preserve">
+    <value>Latin I，西歐</value>
+  </data>
+  <data name="Resource4123" xml:space="preserve">
+    <value>西里爾文</value>
+  </data>
+  <data name="Resource4124" xml:space="preserve">
+    <value>中歐</value>
+  </data>
+  <data name="Resource4125" xml:space="preserve">
+    <value>希臘文</value>
+  </data>
+  <data name="Resource4126" xml:space="preserve">
+    <value>土耳其文</value>
+  </data>
+  <data name="Resource4127" xml:space="preserve">
+    <value>希伯來文</value>
+  </data>
+  <data name="Resource4128" xml:space="preserve">
+    <value>阿拉伯文</value>
+  </data>
+  <data name="Resource4129" xml:space="preserve">
+    <value>波羅的海文</value>
+  </data>
+  <data name="Resource4130" xml:space="preserve">
+    <value>越南文</value>
+  </data>
+  <data name="Resource4131" xml:space="preserve">
+    <value>泰文</value>
+  </data>
+  <data name="Resource4132" xml:space="preserve">
+    <value>Shift-JIS，日文</value>
+  </data>
+  <data name="Resource4133" xml:space="preserve">
+    <value>GBK，簡體中文</value>
+  </data>
+  <data name="Resource4134" xml:space="preserve">
+    <value>EUC-KR，韓文</value>
+  </data>
+  <data name="Resource4135" xml:space="preserve">
+    <value>Big5，繁體中文</value>
+  </data>
+  <data name="Resource4136" xml:space="preserve">
+    <value>DOS 西里爾文，俄文</value>
+  </data>
+  <data name="Resource4137" xml:space="preserve">
+    <value>KOI8-R，俄文</value>
+  </data>
+  <data name="Resource4138" xml:space="preserve">
+    <value>ISO 8859-1，Latin I</value>
+  </data>
+  <data name="Resource4139" xml:space="preserve">
+    <value>ISO 8859-2，Latin II</value>
+  </data>
+  <data name="Resource4140" xml:space="preserve">
+    <value>代碼頁(&amp;C)</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>複製</value>
   </data>

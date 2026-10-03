@@ -1100,6 +1100,69 @@ Do you want to update it in the archive?</value>
   <data name="Resource4096" xml:space="preserve">
     <value>Warning: {0} is not supported by upstream 7-Zip or most other archive software.</value>
   </data>
+  <data name="Resource4120" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="Resource4121" xml:space="preserve">
+    <value>UTF-8</value>
+  </data>
+  <data name="Resource4122" xml:space="preserve">
+    <value>Latin I, Western European</value>
+  </data>
+  <data name="Resource4123" xml:space="preserve">
+    <value>Cyrillic</value>
+  </data>
+  <data name="Resource4124" xml:space="preserve">
+    <value>Central European</value>
+  </data>
+  <data name="Resource4125" xml:space="preserve">
+    <value>Greek</value>
+  </data>
+  <data name="Resource4126" xml:space="preserve">
+    <value>Turkish</value>
+  </data>
+  <data name="Resource4127" xml:space="preserve">
+    <value>Hebrew</value>
+  </data>
+  <data name="Resource4128" xml:space="preserve">
+    <value>Arabic</value>
+  </data>
+  <data name="Resource4129" xml:space="preserve">
+    <value>Baltic</value>
+  </data>
+  <data name="Resource4130" xml:space="preserve">
+    <value>Vietnamese</value>
+  </data>
+  <data name="Resource4131" xml:space="preserve">
+    <value>Thai</value>
+  </data>
+  <data name="Resource4132" xml:space="preserve">
+    <value>Shift-JIS, Japanese</value>
+  </data>
+  <data name="Resource4133" xml:space="preserve">
+    <value>GBK, Chinese Simplified</value>
+  </data>
+  <data name="Resource4134" xml:space="preserve">
+    <value>EUC-KR, Korean</value>
+  </data>
+  <data name="Resource4135" xml:space="preserve">
+    <value>Big5, Chinese Traditional</value>
+  </data>
+  <data name="Resource4136" xml:space="preserve">
+    <value>DOS Cyrillic, Russian</value>
+  </data>
+  <data name="Resource4137" xml:space="preserve">
+    <value>KOI8-R, Russian</value>
+  </data>
+  <data name="Resource4138" xml:space="preserve">
+    <value>ISO 8859-1, Latin I</value>
+  </data>
+  <data name="Resource4139" xml:space="preserve">
+    <value>ISO 8859-2, Latin II</value>
+  </data>
+  <data name="Resource4140" xml:space="preserve">
+    <value>&amp;Code page</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>Copy</value>
   </data>

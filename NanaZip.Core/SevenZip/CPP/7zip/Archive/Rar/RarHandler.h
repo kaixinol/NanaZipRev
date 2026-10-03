@@ -69,18 +69,26 @@ struct CRefItem
 
 class CHandler Z7_final:
   public IInArchive,
+  public ISetProperties,
   Z7_PUBLIC_ISetCompressCodecsInfo_IFEC
   public CMyUnknownImp
 {
   Z7_COM_QI_BEGIN2(IInArchive)
   Z7_COM_QI_ENTRY_ISetCompressCodecsInfo_IFEC
+  Z7_COM_QI_ENTRY(ISetProperties)
   Z7_COM_QI_END
   Z7_COM_ADDREF_RELEASE
   
   Z7_IFACE_COM7_IMP(IInArchive)
+  Z7_IFACE_COM7_IMP(ISetProperties)
   DECL_ISetCompressCodecsInfo
 
   bool _isArc;
+  // **************** NanaZip Modification Start ****************
+  /* Code page for entry names that carry no Unicode name. RAR4 stores those as
+     plain bytes, and this is what they used to be decoded with implicitly. */
+  UInt32 _specifiedCodePage;
+  // **************** NanaZip Modification End ****************
 
   CRecordVector<CRefItem> _refItems;
   CObjectVector<CItem> _items;

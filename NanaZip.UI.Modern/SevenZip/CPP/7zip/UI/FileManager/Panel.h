@@ -849,7 +849,7 @@ public:
   /* The code page currently in effect for this panel's archive, or zero if the
      panel is not showing an archive. Used to tick the Code page submenu. */
   unsigned GetCodePage() const;
-// **************** NanaZip Modification End ****************  // **************** NanaZip Modification End ****************
+// **************** NanaZip Modification End ****************
 
   void OpenFocusedItemAsInternal(const wchar_t *type = NULL);
   void OpenSelectedItems(bool internal);
