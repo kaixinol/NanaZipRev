@@ -30,6 +30,10 @@
 // **************** NanaZip Modification End ****************
 #include "Panel.h"
 #include "RootFolder.h"
+// **************** NanaZip Modification Start ****************
+// for CAgentFolder
+#include "../Agent/Agent.h"
+// **************** NanaZip Modification End ****************
 #include "ViewSettings.h"
 
 #include "resource.h"
@@ -349,6 +353,62 @@ void CPanel::OpenBookmark(unsigned index)
 {
   BindToPathAndRefresh(_appState->FastFolders.GetString(index));
 }
+
+// **************** NanaZip Modification Start ****************
+HRESULT CPanel::ReOpenWithCodePage(unsigned codePage)
+{
+  if (!_folder)
+    return E_INVALIDARG;
+
+  CMyComPtr<IArchiveFolderInternal> archiveFolderInternal;
+  if (_folder.QueryInterface(IID_IArchiveFolderInternal, &archiveFolderInternal) != S_OK
+      || !archiveFolderInternal)
+    return E_INVALIDARG;   // not an archive folder
+
+  CAgentFolder *agentFolder;
+  RINOK(archiveFolderInternal->GetAgentFolder(&agentFolder));
+  if (agentFolder == NULL)
+    return E_INVALIDARG;
+
+  CDisableTimerProcessing disableTimerProcessing(*this);
+  CDisableNotify disableNotify(*this);
+
+  /* The reopen rebuilds the agent's item tree, so the folder this panel holds
+     is stale the moment it returns and must not be reused. ReOpenWithCodePage
+     binds a replacement, and SetNewFolder is what installs it: it releases the
+     old folder and re-derives the six interfaces cached here, which a plain
+     RefreshListCtrl would leave pointing at the released tree. */
+  CMyComPtr<IFolderFolder> newFolder;
+  RINOK(agentFolder->ReOpenWithCodePage(codePage, newFolder));
+  if (!newFolder)
+    return E_FAIL;
+
+  SetNewFolder(newFolder);
+
+  LoadFullPathAndShow();
+  return RefreshListCtrl();
+}
+// **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
+unsigned CPanel::GetCodePage() const
+{
+  CMyComPtr<IArchiveFolderInternal> archiveFolderInternal;
+  if (!_folder
+      || _folder.QueryInterface(IID_IArchiveFolderInternal, &archiveFolderInternal) != S_OK
+      || !archiveFolderInternal)
+    return 0;
+
+  CAgentFolder *agentFolder;
+  if (archiveFolderInternal->GetAgentFolder(&agentFolder) != S_OK
+      || agentFolder == NULL
+      || agentFolder->_agentSpec == NULL)
+    return 0;
+
+  return agentFolder->_agentSpec->GetCodePage();
+}
+// **************** NanaZip Modification End ****************
+
 
 UString GetFolderPath(IFolderFolder *folder)
 {

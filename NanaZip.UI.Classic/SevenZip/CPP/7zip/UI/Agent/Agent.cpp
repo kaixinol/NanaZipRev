@@ -7,6 +7,10 @@
 #include "../../../../C/Sort.h"
 
 #include "../../../Common/ComTry.h"
+// **************** NanaZip Modification Start ****************
+// for ConvertUInt32ToString
+#include "../../../Common/IntToString.h"
+// **************** NanaZip Modification End ****************
 
 #include "../../../Windows/FileDir.h"
 #include "../../../Windows/FileName.h"
@@ -24,6 +28,13 @@
 using namespace NWindows;
 
 CCodecs *g_CodecsObj;
+
+// **************** NanaZip Modification Start ****************
+/* Zero until the FileManager seeds it from the user's last choice, so an
+   archive opened before that is decoded by the handler's own choice. */
+unsigned CAgent::g_DefaultCodePage = 0;
+// **************** NanaZip Modification End ****************
+
 
 static const bool k_keepEmptyDirPrefixes =
     false; // 22.00
@@ -104,6 +115,102 @@ STDMETHODIMP CAgentFolder::GetAgentFolder(CAgentFolder **agentFolder)
   *agentFolder = this;
   return S_OK;
 }
+
+// **************** NanaZip Modification Start ****************
+/* Reopens the archive so the handler decodes entry names with the given code
+   page, then binds a folder for the same path out of the rebuilt tree.
+
+   CAgent::ReOpen() deletes the agent's proxies before it opens the archive
+   again, so every CAgentFolder of that agent is left holding a dangling
+   _proxy. That is why this hands back a new folder instead of repairing
+   "this": the caller may be one of several folders of the same agent, and the
+   panel keeps its own copy plus the ones in _parentFolders. Mutating any of
+   them in place is what used to crash the switch, because a folder left
+   untouched by the repair still pointed into the released tree. */
+HRESULT CAgentFolder::ReOpenWithCodePage(unsigned codePage,
+    CMyComPtr<IFolderFolder> &resultFolder)
+{
+  resultFolder = NULL;
+  if (!_agentSpec)
+    return E_FAIL;
+
+  // Read the old path before the reopen, while _proxy is still the one this
+  // folder was created with.
+  UStringVector pathParts;
+  bool isAltStreamFolder = false;
+  GetPathParts(pathParts, isAltStreamFolder);
+
+  RINOK(_agentSpec->ReOpenWithCodePage(codePage));
+
+  CMyComPtr<IFolderFolder> newFolder;
+  RINOK(_agentSpec->BindToRootFolder(&newFolder));
+  if (!newFolder)
+    return E_FAIL;
+
+  CAgentFolder *newAgentFolder;
+  if (newFolder.QueryInterface(IID_IArchiveFolderInternal,
+      (void **)&newAgentFolder) != S_OK
+      || newAgentFolder == NULL)
+    return E_FAIL;
+
+  // The old path was decoded with the previous code page, so a part may no
+  // longer resolve. Stop at the deepest folder that still exists, which is
+  // what the update path does too.
+  if (newAgentFolder->_proxy)
+  {
+    FOR_VECTOR (i, pathParts)
+    {
+      int next = newAgentFolder->_proxy->FindSubDir(
+          newAgentFolder->_proxyDirIndex, pathParts[i]);
+      if (next == -1)
+        break;
+      newAgentFolder->_proxyDirIndex = next;
+    }
+  }
+
+  if (newAgentFolder->_proxy2)
+  {
+    if (pathParts.IsEmpty() && isAltStreamFolder)
+    {
+      newAgentFolder->_proxyDirIndex = k_Proxy2_AltRootDirIndex;
+    }
+    else FOR_VECTOR (i, pathParts)
+    {
+      bool dirOnly = (i + 1 < pathParts.Size() || !isAltStreamFolder);
+      int index = newAgentFolder->_proxy2->FindItem(
+          newAgentFolder->_proxyDirIndex, pathParts[i], dirOnly);
+      if (index == -1)
+        break;
+
+      const CProxyDir2 &dir =
+          newAgentFolder->_proxy2->Dirs[newAgentFolder->_proxyDirIndex];
+      const CProxyFile2 &file =
+          newAgentFolder->_proxy2->Files[dir.Items[index]];
+
+      if (dirOnly)
+        newAgentFolder->_proxyDirIndex = file.DirIndex;
+      else
+      {
+        if (file.AltDirIndex != -1)
+          newAgentFolder->_proxyDirIndex = file.AltDirIndex;
+        break;
+      }
+    }
+
+    newAgentFolder->_isAltStreamFolder =
+        newAgentFolder->_proxy2->IsAltDir(newAgentFolder->_proxyDirIndex);
+  }
+
+  /* CAgent::_agentFolder is the back-pointer the update and rename paths use to
+     reach the current folder. Reopening rebuilt the tree underneath the agent,
+     so it has to point at the folder the panel is going to adopt before
+     anything else touches the agent. */
+  RINOK(_agentSpec->SetFolder(newFolder));
+
+  resultFolder = newFolder;
+  return S_OK;
+}
+// **************** NanaZip Modification End ****************
 
 void CAgentFolder::LoadFolder(unsigned proxyDirIndex)
 {
@@ -1571,7 +1678,10 @@ CAgent::CAgent():
     _proxy2(NULL),
     _updatePathPrefix_is_AltFolder(false),
     _isDeviceFile(false),
-    _isHashHandler(false)
+    _isHashHandler(false),
+    // **************** NanaZip Modification Start ****************
+    _codePage(0)
+    // **************** NanaZip Modification End ****************
 {
 }
 
@@ -1677,6 +1787,7 @@ STDMETHODIMP CAgent::Open(
       _isHashHandler = true;
   }
 
+
   return res;
 
   COM_TRY_END
@@ -1701,7 +1812,37 @@ STDMETHODIMP CAgent::ReOpen(IArchiveOpenCallback *openArchiveCallback)
   CIntVector exl;
 
   COpenOptions options;
-  options.props = NULL;
+  // **************** NanaZip Modification Start ****************
+  /* A reopen used to pass no properties at all, which silently discarded
+     anything the caller had asked for.
+
+     The property is always sent, including for code page zero. A handler only
+     learns a code page through SetProperties, and SetProperties is never called
+     when there are no properties, so omitting it left the previous choice in
+     place and selecting Auto had no effect. Zero is passed explicitly as the
+     value that means "use your own default", which the handlers already accept
+     because it is the value they initialise themselves with.
+
+     The vector has to outlive the ReOpen call below, so it is declared here
+     rather than inside a block. Scoping it tightly leaves options.props
+     dangling and SetProperties copies freed memory. */
+  CObjectVector<CProperty> props;
+  {
+    wchar_t buf[16];
+    /* Code page zero means no explicit choice, and it is sent as an empty value
+       rather than as the number zero. Win32 reads zero as CP_ACP, which the
+       decoding path then treats as the system default, so a legacy archive came
+       out as replacement characters instead of the mojibake it started as. */
+    if (_codePage != 0)
+      ConvertUInt32ToString(_codePage, buf);
+    else
+      buf[0] = 0;
+    CProperty &prop = props.AddNew();
+    prop.Name = L"cp";
+    prop.Value = buf;
+  }
+  options.props = &props;
+  // **************** NanaZip Modification End ****************
   options.codecs = g_CodecsObj;
   options.types = &incl;
   options.excludedFormats = &exl;
@@ -1713,6 +1854,22 @@ STDMETHODIMP CAgent::ReOpen(IArchiveOpenCallback *openArchiveCallback)
   return ReadItems();
   COM_TRY_END
 }
+
+
+// **************** NanaZip Modification Start ****************
+/* Reopen the archive so its entry names are decoded with the given code page.
+
+   CAgent::ReOpen already sends the cp open property from _codePage, so
+   storing the new page and reopening is all this has to do. The caller is
+   CAgentFolder::ReOpenWithCodePage, which then binds a folder out of the new
+   tree, because this call deletes the proxies every folder of this agent still
+   points into. */
+HRESULT CAgent::ReOpenWithCodePage(unsigned codePage)
+{
+  _codePage = codePage;
+  return ReOpen(NULL);
+}
+// **************** NanaZip Modification End ****************
 
 STDMETHODIMP CAgent::Close()
 {

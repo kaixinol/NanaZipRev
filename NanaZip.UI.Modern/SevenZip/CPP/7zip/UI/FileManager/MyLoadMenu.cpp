@@ -605,6 +605,53 @@ void CFileMenu::Load(HMENU hMenu, unsigned startPos)
   destMenu.RemoveAllItemsFrom(numRealItems);
 }
 
+// **************** NanaZip Modification Start ****************
+/* The code pages offered by the Code page submenu, in the order they are shown.
+   Auto comes first but is deliberately not the default: the handlers already
+   probe UTF-8 on their own, so the first entry only has to be there for the
+   user who wants to turn that off. 0 means no cp property, which leaves the
+   handler at its own default. */
+static const unsigned kCodePages[IDM_CODE_PAGE_COUNT] =
+{
+  0,      // Auto
+  65001,  // UTF-8
+  1252,   // Latin I, Western European
+  1251,   // Cyrillic
+  1250,   // Central European
+  1253,   // Greek
+  1254,   // Turkish
+  1255,   // Hebrew
+  1256,   // Arabic
+  1257,   // Baltic
+  1258,   // Vietnamese
+  874,    // Thai
+  932,    // Shift-JIS, Japanese
+  936,    // GBK, Chinese Simplified
+  949,    // EUC-KR, Korean
+  950,    // Big5, Chinese Traditional
+  866,    // DOS Cyrillic, Russian
+  20866,  // KOI8-R, Russian
+  28591,  // ISO 8859-1, Latin I
+  28592,  // ISO 8859-2, Latin II
+};
+
+unsigned GetCodePageForMenuIndex(unsigned index)
+{
+  if (index >= IDM_CODE_PAGE_COUNT)
+    return kCodePageNone;
+  return kCodePages[index];
+}
+
+bool CodePageFromMenuID(unsigned id, unsigned &codePage)
+{
+  if (id < IDM_CODE_PAGE_BASE || id >= IDM_CODE_PAGE_BASE + IDM_CODE_PAGE_COUNT)
+    return false;
+  codePage = kCodePages[id - IDM_CODE_PAGE_BASE];
+  return true;
+}
+// **************** NanaZip Modification End ****************
+
+
 bool ExecuteFileCommand(unsigned id)
 {
   if (id >= kMenuCmdID_Plugin_Start)
@@ -614,6 +661,16 @@ bool ExecuteFileCommand(unsigned id)
     g_App.GetFocusedPanel()._systemContextMenu.Release();
     return true;
   }
+
+// **************** NanaZip Modification Start ****************
+    unsigned codePage;
+    if (CodePageFromMenuID(id, codePage))
+    {
+      g_App.GetFocusedPanel().ReOpenWithCodePage(codePage);
+      return true;
+    }
+// **************** NanaZip Modification End ****************
+
 
   switch (id)
   {

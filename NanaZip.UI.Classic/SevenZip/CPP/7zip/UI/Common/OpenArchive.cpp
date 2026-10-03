@@ -3472,6 +3472,19 @@ HRESULT CArc::ReOpen(const COpenOptions &op, IArchiveOpenCallback *openCallback_
   IArchiveOpenCallback *openCallback = openCallback_Additional;
   if (!openCallback)
     openCallback = op.callback;
+  // **************** NanaZip Modification Start ****************
+  #ifndef _SFX
+  /* Apply the open properties again. CArc::PrepareToOpen() does this before
+     the first Open() call, but a reopen dropped them, so any property-driven
+     behaviour was silently lost when the folder view refreshed. This has to
+     run before Open(), since a handler latches what it needs at the end of
+     its own Open(). */
+  if (op.props)
+  {
+    RINOK(SetProperties(Archive, *op.props));
+  }
+  #endif
+  // **************** NanaZip Modification End ****************
   HRESULT res = Archive->Open(stream2, &maxStartPosition, openCallback);
 
   if (res == S_OK)
