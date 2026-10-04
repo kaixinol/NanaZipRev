@@ -1094,70 +1094,70 @@
   <data name="Resource4091" xml:space="preserve">
     <value>ns</value>
   </data>
-  <data name="Resource4096" xml:space="preserve">
+  <data name="Resource4106" xml:space="preserve">
     <value>警告：上游 7-Zip 及大多数其他压缩软件都不支持 {0}。</value>
   </data>
-  <data name="Resource4120" xml:space="preserve">
+  <data name="Resource4108" xml:space="preserve">
     <value>自动</value>
   </data>
-  <data name="Resource4121" xml:space="preserve">
+  <data name="Resource4109" xml:space="preserve">
     <value>UTF-8</value>
   </data>
-  <data name="Resource4122" xml:space="preserve">
+  <data name="Resource4110" xml:space="preserve">
     <value>Latin I，西欧</value>
   </data>
-  <data name="Resource4123" xml:space="preserve">
+  <data name="Resource4111" xml:space="preserve">
     <value>西里尔文</value>
   </data>
-  <data name="Resource4124" xml:space="preserve">
+  <data name="Resource4112" xml:space="preserve">
     <value>中欧</value>
   </data>
-  <data name="Resource4125" xml:space="preserve">
+  <data name="Resource4113" xml:space="preserve">
     <value>希腊文</value>
   </data>
-  <data name="Resource4126" xml:space="preserve">
+  <data name="Resource4114" xml:space="preserve">
     <value>土耳其文</value>
   </data>
-  <data name="Resource4127" xml:space="preserve">
+  <data name="Resource4115" xml:space="preserve">
     <value>希伯来文</value>
   </data>
-  <data name="Resource4128" xml:space="preserve">
+  <data name="Resource4116" xml:space="preserve">
     <value>阿拉伯文</value>
   </data>
-  <data name="Resource4129" xml:space="preserve">
+  <data name="Resource4117" xml:space="preserve">
     <value>波罗的海文</value>
   </data>
-  <data name="Resource4130" xml:space="preserve">
+  <data name="Resource4118" xml:space="preserve">
     <value>越南文</value>
   </data>
-  <data name="Resource4131" xml:space="preserve">
+  <data name="Resource4119" xml:space="preserve">
     <value>泰文</value>
   </data>
-  <data name="Resource4132" xml:space="preserve">
+  <data name="Resource4120" xml:space="preserve">
     <value>Shift-JIS，日文</value>
   </data>
-  <data name="Resource4133" xml:space="preserve">
+  <data name="Resource4121" xml:space="preserve">
     <value>GBK，简体中文</value>
   </data>
-  <data name="Resource4134" xml:space="preserve">
+  <data name="Resource4122" xml:space="preserve">
     <value>EUC-KR，韩文</value>
   </data>
-  <data name="Resource4135" xml:space="preserve">
+  <data name="Resource4123" xml:space="preserve">
     <value>Big5，繁体中文</value>
   </data>
-  <data name="Resource4136" xml:space="preserve">
+  <data name="Resource4124" xml:space="preserve">
     <value>DOS 西里尔文，俄文</value>
   </data>
-  <data name="Resource4137" xml:space="preserve">
+  <data name="Resource4125" xml:space="preserve">
     <value>KOI8-R，俄文</value>
   </data>
-  <data name="Resource4138" xml:space="preserve">
+  <data name="Resource4126" xml:space="preserve">
     <value>ISO 8859-1，Latin I</value>
   </data>
-  <data name="Resource4139" xml:space="preserve">
+  <data name="Resource4127" xml:space="preserve">
     <value>ISO 8859-2，Latin II</value>
   </data>
-  <data name="Resource4140" xml:space="preserve">
+  <data name="Resource4128" xml:space="preserve">
     <value>代码页(&amp;C)</value>
   </data>
   <data name="Resource6000" xml:space="preserve">

@@ -15,17 +15,17 @@
 #define IDX_SETTINGS_WANT_FOLDER_HISTORY    2512
 #define IDX_SETTINGS_LOWERCASE_HASHES       2513
 // **************** NanaZip Modification Start ****************
-#define IDX_SETTINGS_SHOW_FILE_SIZE_UNITS   2515
+#define IDX_SETTINGS_SHOW_FILE_SIZE_UNITS 4098
 
 // 4200 to 4204 are the fork's own block of the settings page. The three
 // entries of IDC_SETTINGS_THEME_MODE follow its identifier, because the
 // string resources of a combo box are addressed by the identifier of the
 // control they belong to.
-#define IDT_SETTINGS_THEME_MODE              4200
-#define IDC_SETTINGS_THEME_MODE              4201
-#define IDS_SETTINGS_THEME_MODE_SYSTEM       4202
-#define IDS_SETTINGS_THEME_MODE_LIGHT        4203
-#define IDS_SETTINGS_THEME_MODE_DARK         4204
+#define IDT_SETTINGS_THEME_MODE 4101
+#define IDC_SETTINGS_THEME_MODE 4102
+#define IDS_SETTINGS_THEME_MODE_SYSTEM 4103
+#define IDS_SETTINGS_THEME_MODE_LIGHT 4104
+#define IDS_SETTINGS_THEME_MODE_DARK 4105
 // **************** NanaZip Modification End ****************
 
 
