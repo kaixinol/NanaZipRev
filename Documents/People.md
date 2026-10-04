@@ -47,7 +47,7 @@ and valuable contributions to the project.
 
 ## Contributors
 
-Read https://github.com/M2Team/NanaZip/graphs/contributors for getting the
+Read https://github.com/kaixinol/NanaZipRev/graphs/contributors for getting the
 contributors list.
 
 ## Special thanks

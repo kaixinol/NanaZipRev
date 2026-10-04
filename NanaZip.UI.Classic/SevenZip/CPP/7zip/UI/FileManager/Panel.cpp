@@ -756,7 +756,7 @@ void CPanel::MessageBox_Error_Caption(LPCWSTR message, LPCWSTR caption) const
   { ::MessageBoxW((HWND)*this, message, caption, MB_OK | MB_ICONSTOP); }
 
 void CPanel::MessageBox_Error(LPCWSTR message) const
-  { MessageBox_Error_Caption(message, L"NanaZip"); }
+  { MessageBox_Error_Caption(message, L"NanaZip Rev"); }
 
 static UString ErrorHResult_To_Message(HRESULT errorCode)
 {
@@ -771,7 +771,7 @@ void CPanel::MessageBox_Error_HRESULT_Caption(HRESULT errorCode, LPCWSTR caption
 }
 
 void CPanel::MessageBox_Error_HRESULT(HRESULT errorCode) const
-  { MessageBox_Error_HRESULT_Caption(errorCode, L"NanaZip"); }
+  { MessageBox_Error_HRESULT_Caption(errorCode, L"NanaZip Rev"); }
 
 void CPanel::MessageBox_Error_2Lines_Message_HRESULT(LPCWSTR message, HRESULT errorCode) const
 {
@@ -785,7 +785,7 @@ void CPanel::MessageBox_LastError(LPCWSTR caption) const
   { MessageBox_Error_HRESULT_Caption(::GetLastError(), caption); }
 
 void CPanel::MessageBox_LastError() const
-  { MessageBox_LastError(L"NanaZip"); }
+  { MessageBox_LastError(L"NanaZip Rev"); }
 
 void CPanel::MessageBox_Error_LangID(UINT resourceID) const
   { MessageBox_Error(LangString(resourceID)); }

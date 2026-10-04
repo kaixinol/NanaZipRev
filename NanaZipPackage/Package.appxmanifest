@@ -19,13 +19,13 @@
   IgnorableNamespaces="uap rescap desktop uap2 uap3 com desktop4 desktop5 desktop6 desktop10 uap8 uap10 uap16 uap17">
 
   <Identity
-    Name="40174MouriNaruto.NanaZipPreview"
-    Publisher="CN=E310A153-74A9-4D81-800B-857A8D58408A"
+    Name="Kaesinol.NanaZipRev"
+    Publisher="CN=23EBD860-A383-4AEA-836A-B041352C93FF"
     Version="7.0.1845.0" />
 
   <Properties>
-    <DisplayName>NanaZip Preview</DisplayName>
-    <PublisherDisplayName>Kenji Mouri</PublisherDisplayName>
+    <DisplayName>NanaZip Rev</DisplayName>
+    <PublisherDisplayName>Kaesinol</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
     <uap10:PackageIntegrity>
       <uap10:Content Enforcement="on" />
@@ -54,13 +54,13 @@
       Executable="NanaZip.Modern.FileManager.exe"
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="NanaZip Preview"
-        Description="NanaZip"
+        DisplayName="NanaZip Rev"
+        Description="NanaZip Rev"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
         <uap:DefaultTile
-          ShortName="NanaZip"
+          ShortName="NanaZip Rev"
           Wide310x150Logo="Assets\Wide310x150Logo.png"
           Square310x310Logo="Assets\LargeTile.png"
           Square71x71Logo="Assets\SmallTile.png">
@@ -159,20 +159,20 @@
               (https://github.com/MediaArea/MediaInfo/pull/998)
             -->
             <desktop4:ItemType Type="*">
-              <desktop4:Verb Id="0000NanaZipShellExtension" Clsid="469D94E9-6AF4-4395-B396-99B1308F8CE5" />
+              <desktop4:Verb Id="0000NanaZipShellExtension" Clsid="77EFEFF7-7FA2-479D-8390-B1E940488DC1" />
             </desktop4:ItemType>
             <desktop5:ItemType Type="Directory">
-              <desktop5:Verb Id="0000NanaZipShellExtension" Clsid="469D94E9-6AF4-4395-B396-99B1308F8CE5" />
+              <desktop5:Verb Id="0000NanaZipShellExtension" Clsid="77EFEFF7-7FA2-479D-8390-B1E940488DC1" />
             </desktop5:ItemType>
             <desktop10:ItemType Type="Drive">
-              <desktop10:Verb Id="0000NanaZipShellExtension" Clsid="469D94E9-6AF4-4395-B396-99B1308F8CE5" />
+              <desktop10:Verb Id="0000NanaZipShellExtension" Clsid="77EFEFF7-7FA2-479D-8390-B1E940488DC1" />
             </desktop10:ItemType>
           </desktop4:FileExplorerContextMenus>
         </desktop4:Extension>
         <com:Extension Category="windows.comServer">
           <com:ComServer>
-            <com:SurrogateServer DisplayName="NanaZip Shell Extension">
-              <com:Class Id="469D94E9-6AF4-4395-B396-99B1308F8CE5" Path="NanaZip.ShellExtension.dll" ThreadingModel="STA"/>
+            <com:SurrogateServer DisplayName="NanaZip Rev Shell Extension">
+              <com:Class Id="77EFEFF7-7FA2-479D-8390-B1E940488DC1" Path="NanaZip.ShellExtension.dll" ThreadingModel="STA"/>
             </com:SurrogateServer>
           </com:ComServer>
         </com:Extension>
@@ -184,8 +184,8 @@
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         AppListEntry="none"
-        DisplayName="NanaZip Preview"
-        Description="NanaZip"
+        DisplayName="NanaZip Rev"
+        Description="NanaZip Rev"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png" />
@@ -208,8 +208,8 @@
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         AppListEntry="none"
-        DisplayName="NanaZip Preview"
-        Description="NanaZip"
+        DisplayName="NanaZip Rev"
+        Description="NanaZip Rev"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png" />

@@ -13,7 +13,7 @@ using namespace NWindows;
 using namespace NFile;
 
 /*
-static LPCTSTR const kLMBasePath = TEXT("Software\\NanaZip\\FM");
+static LPCTSTR const kLMBasePath = TEXT("Software\\NanaZipRev\\FM");
 
 static LPCTSTR const kPluginsKeyName = TEXT("Plugins");
 static LPCTSTR const kPluginsOpenClassIDValue = TEXT("CLSID");
@@ -129,7 +129,7 @@ void ReadFileFolderPluginInfoList(CObjectVector<CPluginInfo> &plugins)
     CPluginInfo p;
     // p.FilePath.Empty();
     p.Type = kPluginTypeFF;
-    p.Name = "NanaZip";
+    p.Name = "NanaZip Rev";
     // p.ClassID = CLSID_CAgentArchiveHandler;
     p.ClassIDDefined = true;
     // p.OptionsClassID;

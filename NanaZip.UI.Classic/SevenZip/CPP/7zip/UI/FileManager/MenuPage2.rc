@@ -6,7 +6,10 @@
 
 CAPTION "Integration"
 BEGIN
-  PUSHBUTTON  "Open Windows Settings app to associate files with NanaZip", IDB_SYSTEM_ASSOCIATE, m, m, xc, bys
+  // **************** NanaZip Modification Start ****************
+  //  PUSHBUTTON  "Open Windows Settings app to associate files with NanaZip", IDB_SYSTEM_ASSOCIATE, m, m, xc, bys
+  PUSHBUTTON  "Open Windows Settings app to associate files with NanaZip Rev", IDB_SYSTEM_ASSOCIATE, m, m, xc, bys
+  // **************** NanaZip Modification End ****************
 
   CONTROL   "Eliminate duplication of root folder", IDX_EXTRACT_ELIM_DUP, MY_CHECKBOX, m, m + 24, xc, 10
 

@@ -130,7 +130,7 @@ DECLARE_AND_SET_CLIENT_VERSION_VAR
 //  PROG_POSTFIX_2
 //  " " MY_VERSION_CPU
 //  " : " MY_COPYRIGHT_DATE "\n";
-static const char * const kCopyrightString = "\nNanaZip"
+static const char * const kCopyrightString = "\nNanaZip Rev"
   PROG_POSTFIX_2
   " " MILE_PROJECT_VERSION_UTF8_STRING " (" MY_CPU_NAME ")"
   " : " "(c) M2-Team and Contributors. All rights reserved." "\n";
@@ -139,7 +139,7 @@ static const char * const kCopyrightString = "\nNanaZip"
 static const char * const kHelpString =
     // **************** NanaZip Modification Start ****************
     // "Usage: 7z"
-    "Usage: NanaZipC"
+    "Usage: NanaZipC Rev"
     // **************** NanaZip Modification End ****************
     PROG_POSTFIX
     " <command> [<switches>...] <archive_name> [<file_names>...] [@listfile]\n"
@@ -225,7 +225,8 @@ static const char * const kEverythingIsOk = "Everything is Ok";
 static const char * const kUserErrorMessage = "Incorrect command line";
 // **************** NanaZip Modification Start ****************
 //static const char* const kNoFormats = "7-Zip cannot find the code that works with archives.";
-static const char* const kNoFormats = "NanaZip cannot find the code that works with archives.";
+static const char* const kNoFormats =
+    "NanaZip Rev cannot find the code that works with archives.";
 // **************** NanaZip Modification End ****************
 static const char * const kUnsupportedArcTypeMessage = "Unsupported archive type";
 // static const char * const kUnsupportedUpdateArcType = "Can't create archive for that type";
@@ -928,7 +929,7 @@ int Main2(
     // **************** NanaZip Modification Start ****************
     // *g_StdStream << kVersionString;
     *g_StdStream <<
-      "NanaZip" PROG_POSTFIX_2 " "
+      "NanaZip Rev" PROG_POSTFIX_2 " "
       MILE_PROJECT_VERSION_UTF8_STRING " (" MY_CPU_NAME ")\n\n";
 
     CCodecs *Codecs = new CCodecs;

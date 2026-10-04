@@ -7,9 +7,9 @@ body:
       label: Prerequisite checks
       description: These items are required before submitting the bug report.
       options:
-      - label: My system fulfills [the minimum software requirements](https://github.com/M2Team/NanaZip?tab=readme-ov-file#system-requirements).
+      - label: My system fulfills [the minimum software requirements](https://github.com/kaixinol/NanaZipRev?tab=readme-ov-file#system-requirements).
         required: true
-      - label: I have downloaded NanaZip from an official source (GitHub, Microsoft Store, My Digital Life Forums, SourceForge, and Windows App Community)
+      - label: I have downloaded NanaZip Rev from an official source (GitHub, Microsoft Store, My Digital Life Forums, SourceForge, and Windows App Community)
         required: true
   - type: textarea
     attributes:
@@ -34,8 +34,8 @@ body:
       required: true
   - type: input
     attributes:
-      label: NanaZip veresion
-      description: What version of NanaZip are you using?
+      label: NanaZip Rev version
+      description: What version of NanaZip Rev are you using?
     validations:
       required: true
   - type: input

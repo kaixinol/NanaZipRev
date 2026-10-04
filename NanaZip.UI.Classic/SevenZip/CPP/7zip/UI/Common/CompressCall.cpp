@@ -95,7 +95,7 @@ done:
 
 static void ErrorMessage(LPCWSTR message)
 {
-  MessageBoxW(g_HWND, message, L"NanaZip", MB_ICONERROR | MB_OK);
+  MessageBoxW(g_HWND, message, L"NanaZip Rev", MB_ICONERROR | MB_OK);
 }
 
 static void ErrorMessageHRESULT(HRESULT res, LPCWSTR s = NULL)

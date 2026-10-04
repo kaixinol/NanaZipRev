@@ -59,7 +59,7 @@ static void MessageBox_Error_Global(HWND wnd, const wchar_t *message)
 {
   // **************** NanaZip Modification Start ****************
   //::MessageBoxW(wnd, message, L"7-Zip", MB_ICONERROR);
-  ::MessageBoxW(wnd, message, L"NanaZip", MB_ICONERROR);
+  ::MessageBoxW(wnd, message, L"NanaZip Rev", MB_ICONERROR);
   // **************** NanaZip Modification End ****************
 }
 

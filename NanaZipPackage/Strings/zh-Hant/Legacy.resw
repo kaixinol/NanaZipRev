@@ -40,7 +40,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Resource0" xml:space="preserve">
-    <value>NanaZip</value>
+    <value>NanaZip Rev</value>
   </data>
   <data name="Resource1" xml:space="preserve">
     <value>Chinese Traditional</value>
@@ -268,7 +268,7 @@
     <value>內容(&amp;C)...</value>
   </data>
   <data name="Resource961" xml:space="preserve">
-    <value>關於 NanaZip...</value>
+    <value>關於 NanaZip Rev...</value>
   </data>
   <data name="Resource1003" xml:space="preserve">
     <value>路徑</value>
@@ -550,13 +550,13 @@
     <value>系統</value>
   </data>
   <data name="Resource2201" xml:space="preserve">
-    <value>使 NanaZip 與之產生關聯:</value>
+    <value>使 NanaZip Rev 與之產生關聯:</value>
   </data>
   <data name="Resource2202" xml:space="preserve">
     <value>所有使用者</value>
   </data>
   <data name="Resource2301" xml:space="preserve">
-    <value>將 NanaZip 整合到快顯功能表中</value>
+    <value>將 NanaZip Rev 整合到快顯功能表中</value>
   </data>
   <data name="Resource2302" xml:space="preserve">
     <value>串聯式快顯功能表</value>
@@ -667,10 +667,10 @@
     <value>使用小寫字母驗證值</value>
   </data>
   <data name="Resource2900" xml:space="preserve">
-    <value>關於 NanaZip</value>
+    <value>關於 NanaZip Rev</value>
   </data>
   <data name="Resource2901" xml:space="preserve">
-    <value>NanaZip 為自由軟體</value>
+    <value>NanaZip Rev 為自由軟體</value>
   </data>
   <data name="Resource3000" xml:space="preserve">
     <value>系統未能提供所需記憶體空間</value>

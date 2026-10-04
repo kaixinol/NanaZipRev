@@ -96,7 +96,7 @@ static CFSTR const kMainDll =
 
 // **************** NanaZip Modification Start ****************
 //static LPCTSTR const kRegistryPath = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("7-zip");
-static LPCTSTR const kRegistryPath = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZip");
+static LPCTSTR const kRegistryPath = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZipRev");
 // **************** NanaZip Modification End ****************
 static LPCWSTR const kProgramPathValue = L"Path";
 static LPCWSTR const kProgramPath2Value = L"Path"

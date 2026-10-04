@@ -1,6 +1,6 @@
-# NanaZip Website
+# NanaZip Rev Website
 
-This folder contains the source code of the NanaZip website,
+This folder contains the source code of the NanaZip Rev website,
 built using [Astro](https://astro.build).
 
 ## Images

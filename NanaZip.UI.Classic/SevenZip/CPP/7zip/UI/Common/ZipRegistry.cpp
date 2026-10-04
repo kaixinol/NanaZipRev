@@ -27,7 +27,12 @@ using namespace NRegistry;
 static NSynchronization::CCriticalSection g_CS;
 #define CS_LOCK NSynchronization::CCriticalSectionLock lock(g_CS);
 
-static LPCTSTR const kCuPrefix = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZip") TEXT(STRING_PATH_SEPARATOR);
+// **************** NanaZip Modification Start ****************
+// The fork keeps its settings under its own key, so an installed
+// upstream package and this one never read each other's settings.
+//static LPCTSTR const kCuPrefix = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZip") TEXT(STRING_PATH_SEPARATOR);
+static LPCTSTR const kCuPrefix = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZipRev") TEXT(STRING_PATH_SEPARATOR);
+// **************** NanaZip Modification End ****************
 
 static CSysString GetKeyPath(LPCTSTR path) { return kCuPrefix + (CSysString)path; }
 

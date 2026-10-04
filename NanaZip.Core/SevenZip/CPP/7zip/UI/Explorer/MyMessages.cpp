@@ -18,7 +18,7 @@ void ShowErrorMessage(HWND window, LPCWSTR message)
   if (!g_DisableUserQuestions)
     // **************** NanaZip Modification Start ****************
     //::MessageBoxW(window, message, L"7-Zip", MB_OK | MB_ICONSTOP);
-    ::MessageBoxW(window, message, L"NanaZip", MB_OK | MB_ICONSTOP);
+    ::MessageBoxW(window, message, L"NanaZip Rev", MB_OK | MB_ICONSTOP);
     // **************** NanaZip Modification End ****************
 }
 

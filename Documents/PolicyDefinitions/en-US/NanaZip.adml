@@ -11,13 +11,13 @@
     <resources>
         <stringTable>
             <!-- Products -->
-            <string id="NanaZip">NanaZip</string>
-            <string id="NanaZip60P1">NanaZip 6.0 Preview 1</string>
-            <string id="NanaZip60P2">NanaZip 6.0 Preview 2</string>
+            <string id="NanaZip">NanaZip Rev</string>
+            <string id="NanaZip60P1">NanaZip Rev 6.0 Preview 1</string>
+            <string id="NanaZip60P2">NanaZip Rev 6.0 Preview 2</string>
 
             <!-- Definitions -->
-            <string id="SUPPORTED_NanaZip60P1Only">NanaZip 6.0 Preview 1 only</string>
-            <string id="SUPPORTED_NanaZip60P2">At least NanaZip 6.0 Preview 2</string>
+            <string id="SUPPORTED_NanaZip60P1Only">NanaZip Rev 6.0 Preview 1 only</string>
+            <string id="SUPPORTED_NanaZip60P2">At least NanaZip Rev 6.0 Preview 2</string>
 
             <!-- Categories -->
             <string id="NanaZipPolicies">NanaZip</string>

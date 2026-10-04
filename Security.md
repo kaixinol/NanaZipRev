@@ -29,7 +29,7 @@ scenarios.
   issue you have found will not be reproduced.
 - Prefer making a fix PR directly because we believe you may have a better
   workaround solution than us, but you need to follow the rules, which are
-  mentioned in https://github.com/M2Team/NanaZip/blob/main/CONTRIBUTING.md. You
+  mentioned in https://github.com/kaixinol/NanaZipRev/blob/nanazip-rev/CONTRIBUTING.md. You
   should read that word by word first.
   - To minimize the vulnerability window, please coordinate with the NanaZip
     maintainers to publish the fixed source code, fixed release and advisory

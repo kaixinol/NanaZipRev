@@ -32,7 +32,7 @@ static NSynchronization::CCriticalSection g_CS;
 
 // **************** NanaZip Modification Start ****************
 //static LPCTSTR const kCuPrefix = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("7-Zip") TEXT(STRING_PATH_SEPARATOR);
-static LPCTSTR const kCuPrefix = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZip") TEXT(STRING_PATH_SEPARATOR);
+static LPCTSTR const kCuPrefix = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZipRev") TEXT(STRING_PATH_SEPARATOR);
 // **************** NanaZip Modification End ****************
 
 static CSysString GetKeyPath(LPCTSTR path) { return kCuPrefix + (CSysString)path; }

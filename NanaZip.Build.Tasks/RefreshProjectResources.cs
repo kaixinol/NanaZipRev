@@ -45,11 +45,11 @@ namespace NanaZip.Build.Tasks
 
         static List<string> ReleaseStringList = new List<string>
         {
-            "DisplayName=\"NanaZip\"",
-            "Name=\"40174MouriNaruto.NanaZip\"",
-            "<DisplayName>NanaZip</DisplayName>",
-            "CAE3F1D4-7765-4D98-A060-52CD14D56EAB",
-            "return ::SHStrDupW(L\"NanaZip\", ppszName);",
+            "DisplayName=\"NanaZip Rev\"",
+            "Name=\"Kaesinol.NanaZipRev\"",
+            "<DisplayName>NanaZip Rev</DisplayName>",
+            "99D03F31-2E96-4D91-81DD-E378A99C06B8",
+            "return ::SHStrDupW(L\"NanaZip Rev\", ppszName);",
             "<Content Include=\"..\\Assets\\PackageAssets\\**\\*\">",
             "Assets/NanaZip.ico",
             "Assets/NanaZipSfx.ico",
@@ -57,11 +57,11 @@ namespace NanaZip.Build.Tasks
 
         static List<string> PreviewStringList = new List<string>
         {
-            "DisplayName=\"NanaZip Preview\"",
-            "Name=\"40174MouriNaruto.NanaZipPreview\"",
-            "<DisplayName>NanaZip Preview</DisplayName>",
-            "469D94E9-6AF4-4395-B396-99B1308F8CE5",
-            "return ::SHStrDupW(L\"NanaZip Preview\", ppszName);",
+            "DisplayName=\"NanaZip Rev\"",
+            "Name=\"Kaesinol.NanaZipRev\"",
+            "<DisplayName>NanaZip Rev</DisplayName>",
+            "77EFEFF7-7FA2-479D-8390-B1E940488DC1",
+            "return ::SHStrDupW(L\"NanaZip Rev\", ppszName);",
             "<Content Include=\"..\\Assets\\PreviewPackageAssets\\**\\*\">",
             "Assets/NanaZipPreview.ico",
             "Assets/NanaZipPreviewSfx.ico",

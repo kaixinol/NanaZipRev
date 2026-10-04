@@ -378,7 +378,7 @@ public:
   {
     // **************** NanaZip Modification Start ****************
     //MessageBoxW(*this, message, L"7-Zip", MB_ICONERROR);
-    MessageBoxW(*this, message, L"NanaZip", MB_ICONERROR);
+    MessageBoxW(*this, message, L"NanaZip Rev", MB_ICONERROR);
     // **************** NanaZip Modification End ****************
   }
   void MessageBoxError_Status(LPCWSTR message)
@@ -525,7 +525,7 @@ bool CBenchmarkDialog::OnInit()
 
     // **************** NanaZip Modification Start ****************
     //s = "7-Zip " MY_VERSION_CPU;
-    s = "NanaZip " MILE_PROJECT_VERSION_UTF8_STRING " (" MY_CPU_NAME ")";
+    s = "NanaZip Rev " MILE_PROJECT_VERSION_UTF8_STRING " (" MY_CPU_NAME ")";
     // **************** NanaZip Modification End ****************
     SetItemTextA(IDT_BENCH_VER, s);
   }
@@ -1908,7 +1908,8 @@ HRESULT Benchmark(
     // bd.Bench2Text.Empty();
     // **************** NanaZip Modification Start ****************
     //bd.Bench2Text = "7-Zip " MY_VERSION_CPU;
-    bd.Bench2Text = "NanaZip " MILE_PROJECT_VERSION_UTF8_STRING " (" MY_CPU_NAME ")";
+    bd.Bench2Text = "NanaZip Rev " MILE_PROJECT_VERSION_UTF8_STRING
+        " (" MY_CPU_NAME ")";
     // **************** NanaZip Modification End ****************
     // bd.Bench2Text.Add_Char((char)0xD);
     bd.Bench2Text.Add_LF();
