@@ -457,6 +457,15 @@ void NanaZipInitialize()
     }
 
     ::K7ModernInitialize();
+
+    // Initializing the XAML apartment resets the preferred app mode of
+    // uxtheme, which is what selects the theme data the surfaces of this
+    // process's own dialogs are painted with. K7UserInitializeDarkModeSupport
+    // runs before it and therefore cannot keep it, so the effective theme has
+    // to be applied again here. Without this the dialogs of the compress,
+    // extract, benchmark and hash windows keep the appearance of the system
+    // until the theme mode is changed once.
+    ::K7UserRefreshTheme();
 }
 // **************** NanaZip Modification End ****************
 

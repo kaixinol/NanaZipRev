@@ -1163,6 +1163,18 @@ Do you want to update it in the archive?</value>
   <data name="Resource4140" xml:space="preserve">
     <value>&amp;Code page</value>
   </data>
+  <data name="Resource4200" xml:space="preserve">
+    <value>&amp;Theme:</value>
+  </data>
+  <data name="Resource4202" xml:space="preserve">
+    <value>Follow the system</value>
+  </data>
+  <data name="Resource4203" xml:space="preserve">
+    <value>Always light</value>
+  </data>
+  <data name="Resource4204" xml:space="preserve">
+    <value>Always dark</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>Copy</value>
   </data>

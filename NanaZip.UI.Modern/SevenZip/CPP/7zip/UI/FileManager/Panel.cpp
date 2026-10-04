@@ -33,6 +33,7 @@
 // **************** NanaZip Modification Start ****************
 #include <K7Base.h>
 #include <K7User.h>
+#include <NanaZip.Modern.h>
 // **************** NanaZip Modification End ****************
 
 #include "PropertyNameRes.h"
@@ -594,6 +595,14 @@ bool CPanel::OnCreate(CREATESTRUCT * /* createStruct */)
   g_K7ControlList.push_back(_addressBarWindow);
   g_K7ControlList.push_back(_listView);
   g_K7ControlList.push_back(_statusBarWindow);
+
+  // **************** NanaZip Modification Start ****************
+  // A newly created XAML island starts with the default theme, so the
+  // address bar and the status bar have to be told the theme the user
+  // selected. K7ModernRefreshTheme applies it to this window and to every
+  // descendant, which covers both islands at once.
+  ::K7ModernRefreshTheme(static_cast<HWND>(*this));
+  // **************** NanaZip Modification End ****************
 
   // #ifndef UNDER_CE
   // if (g_ComCtl32Version >= MAKELONG(71, 4))

@@ -59,6 +59,10 @@ static LPCTSTR const kShowFileSizeUnits = TEXT("ShowFileSizeUnits");
 static LPCTSTR const kCodePage = TEXT("CodePage");
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+static LPCTSTR const kThemeMode = TEXT("ThemeMode");
+// **************** NanaZip Modification End ****************
+
 static void SaveCuString(LPCTSTR keyPath, LPCWSTR valuePath, LPCWSTR value)
 {
   CKey key;
@@ -121,6 +125,29 @@ void ReadRegCodePage(unsigned &codePage)
   if (*end != 0)   // a hand-edited or truncated value is not a code page
     return;
   codePage = value;
+}
+// **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
+void SaveRegThemeMode(UInt32 themeMode)
+{
+  CKey key;
+  key.Create(HKEY_CURRENT_USER, kCU_FMPath);
+  key.SetValue(kThemeMode, themeMode);
+}
+
+UInt32 ReadRegThemeMode()
+{
+  CKey key;
+  UInt32 themeMode = 0;
+  if (key.Open(HKEY_CURRENT_USER, kCU_FMPath, KEY_READ) == ERROR_SUCCESS)
+    key.QueryValue(kThemeMode, themeMode);
+  // A hand-edited value must not select an undefined theme. K7User and
+  // NanaZip Modern clamp the value again when they read it, so a stale one
+  // written by an older build cannot reach the drawing code either.
+  if (themeMode > static_cast<UInt32>(ThemeMode_Dark))
+    themeMode = static_cast<UInt32>(ThemeMode_System);
+  return themeMode;
 }
 // **************** NanaZip Modification End ****************
 

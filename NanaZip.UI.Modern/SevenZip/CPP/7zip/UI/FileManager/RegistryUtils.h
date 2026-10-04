@@ -25,6 +25,21 @@ void SaveRegCodePage(unsigned codePage);
 void ReadRegCodePage(unsigned &codePage);
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+/* The theme the application uses, in the order the settings page offers it.
+   The numbering is the one K7_USER_THEME_MODE declares, so the value can be
+   handed to K7User as it is. */
+enum EThemeMode
+{
+  ThemeMode_System = 0,
+  ThemeMode_Light = 1,
+  ThemeMode_Dark = 2
+};
+
+void SaveRegThemeMode(UInt32 themeMode);
+UInt32 ReadRegThemeMode();
+// **************** NanaZip Modification End ****************
+
 struct CFmSettings
 {
   bool ShowDots;

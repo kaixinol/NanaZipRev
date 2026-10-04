@@ -16,4 +16,15 @@ BEGIN
 
   IDS_OPENNING  "Opening..."
   IDS_SCANNING  "Scanning..."
+
+  // **************** NanaZip Modification Start ****************
+  // The three entries of IDC_SETTINGS_THEME_MODE, in the order of the theme
+  // modes the settings page offers. They are read through the Win32 string
+  // table, which is what LangString uses, so the copies in
+  // Strings/<language>/Legacy.resw localize them for the packaged build and
+  // these copies are the fallback for a process without package identity.
+  IDS_SETTINGS_THEME_MODE_SYSTEM   "Follow the system"
+  IDS_SETTINGS_THEME_MODE_LIGHT    "Always light"
+  IDS_SETTINGS_THEME_MODE_DARK     "Always dark"
+  // **************** NanaZip Modification End ****************
 END

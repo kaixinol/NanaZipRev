@@ -25,6 +25,18 @@
 #define IDC_SETTINGS_LANGUAGE               2514
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+// 4200 to 4204 are the fork's own block of the settings page. The three
+// entries of IDC_SETTINGS_THEME_MODE follow its identifier, because the
+// string resources of a combo box are addressed by the identifier of the
+// control they belong to.
+#define IDT_SETTINGS_THEME_MODE              4200
+#define IDC_SETTINGS_THEME_MODE              4201
+#define IDS_SETTINGS_THEME_MODE_SYSTEM       4202
+#define IDS_SETTINGS_THEME_MODE_LIGHT        4203
+#define IDS_SETTINGS_THEME_MODE_DARK         4204
+// **************** NanaZip Modification End ****************
+
 // #define IDT_SETTINGS_MEM     100
 // #define IDC_SETTINGS_MEM     101
 // #define IDT_SETTINGS_MEM_RAM 102
