@@ -227,7 +227,25 @@ Z7_COM7F_IMF(CHandler::GetArchiveProperty(PROPID propID, PROPVARIANT *value))
   switch (propID)
   {
     case kpidBit64:  if (m_Archive.IsZip64) prop = m_Archive.IsZip64; break;
+    // **************** NanaZip Modification Start ****************
+#if 0 // ******** Annotated 7-Zip Mainline Source Code snippet Start ********
     case kpidComment:  if (m_Archive.ArcInfo.Comment.Size() != 0) prop = MultiByteToUnicodeString(BytesToString(m_Archive.ArcInfo.Comment), CP_ACP); break;
+#endif // ******** Annotated 7-Zip Mainline Source Code snippet End ********
+    case kpidComment:
+    {
+      if (m_Archive.ArcInfo.Comment.Size() != 0)
+      {
+        // Decode the comment with the code page chosen for the entry names,
+        // so that one archive never shows correct names beside a garbled
+        // comment. The system ANSI code page remains the fallback, which is
+        // what the mainline code always used, when the user made no choice.
+        const UINT codePage = _forceCodePage ? _specifiedCodePage : CP_ACP;
+        prop = MultiByteToUnicodeString(
+            BytesToString(m_Archive.ArcInfo.Comment), codePage);
+      }
+      break;
+    }
+    // **************** NanaZip Modification End ****************
 
     case kpidPhySize:  prop = m_Archive.GetPhySize(); break;
     case kpidOffset:  prop = m_Archive.GetOffset(); break;
