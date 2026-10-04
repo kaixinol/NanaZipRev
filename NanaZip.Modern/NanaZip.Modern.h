@@ -62,6 +62,21 @@ EXTERN_C HRESULT WINAPI K7ModernSetLanguageOverride(
     _In_opt_ LPCWSTR LanguageTag);
 
 /**
+ * @brief Apply the current theme to the XAML islands which NanaZip Modern
+ *        Experience hosts in this process.
+ * @param WindowHandle The handle to the window which hosts the XAML island.
+ * @return If the function succeeds, it returns S_OK. Otherwise, it returns an
+ *         HRESULT error code.
+ * @remark The global Application.RequestedTheme cannot be changed after any
+ *         XAML content exists, so every island has to be told its own
+ *         RequestedTheme, and a newly created island starts with the default
+ *         theme again. Call this after creating an island and whenever the
+ *         theme of the process changes.
+ */
+EXTERN_C HRESULT WINAPI K7ModernRefreshTheme(
+    _In_opt_ HWND WindowHandle);
+
+/**
  * @brief Check whether NanaZip Modern Experience is available.
  * @return If NanaZip Modern Experience is available, it returns TRUE.
  *         Otherwise, it returns FALSE.

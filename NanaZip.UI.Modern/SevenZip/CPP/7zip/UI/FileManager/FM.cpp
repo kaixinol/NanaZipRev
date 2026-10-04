@@ -1135,6 +1135,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         ::SendMessageW(g_App.m_ToolBar, message, wParam, lParam);
 
+        // **************** NanaZip Modification Start ****************
+        // A theme mode which follows the system has to be re-read when the
+        // system changes it, because the islands are told their theme here
+        // rather than on their own. K7User is refreshed first on purpose:
+        // its window subclass reaches this handler through DefSubclassProc
+        // and only re-reads the color policy of the system after this window
+        // procedure returns, so the theme would otherwise be sampled from the
+        // state which was just replaced.
+        ::K7UserRefreshTheme();
+        ::K7ModernRefreshTheme(hWnd);
+        // **************** NanaZip Modification End ****************
+
         break;
     }
     default:

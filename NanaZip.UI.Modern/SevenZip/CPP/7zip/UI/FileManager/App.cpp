@@ -219,6 +219,14 @@ HRESULT CApp::Create(HWND hwnd, const UString &mainPath, const UString &arcForma
 
       XamlSource.Content().TabFocusNavigation(KeyboardNavigationMode::Local);
 
+      // **************** NanaZip Modification Start ****************
+      // A newly created XAML island starts with the default theme, so the
+      // tool bar has to be told the theme the user selected. The address bar
+      // and the status bar are covered by the same call on the panel, which
+      // is a child of this window.
+      ::K7ModernRefreshTheme(this->m_ToolBar);
+      // **************** NanaZip Modification End ****************
+
       XamlSource.TakeFocusRequested(
           [this](
               DesktopWindowXamlSource const& sender,
