@@ -816,10 +816,18 @@ public:
      list. codePage 0 means "no cp property", leaving the handler at its own
      default. Does nothing when the panel is not showing an archive. */
   HRESULT ReOpenWithCodePage(unsigned codePage);
-// **************** NanaZip Modification Start ****************
+// **************** NanaZip Modification End ****************
+
+  // **************** NanaZip Modification Start ****************
   /* The code page currently in effect for this panel's archive, or zero if the
      panel is not showing an archive. Used to tick the Code page submenu. */
   unsigned GetCodePage() const;
+// **************** NanaZip Modification End ****************
+
+  // **************** NanaZip Modification Start ****************
+  /* Whether the open archive has entry names a code page applies to, which is
+     what decides whether the Code page submenu is enabled at all. */
+  bool CanChangeCodePage() const;
 // **************** NanaZip Modification End ****************
 
   void OpenFocusedItemAsInternal(const wchar_t *type = NULL);
