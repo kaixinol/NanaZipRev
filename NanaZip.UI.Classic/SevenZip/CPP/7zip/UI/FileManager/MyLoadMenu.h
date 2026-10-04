@@ -52,4 +52,30 @@ bool CodePageFromMenuID(unsigned id, unsigned &codePage);
 unsigned GetCodePageForMenuIndex(unsigned index);
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+/* The formats whose entry names a code page can be applied to. Each of
+   them reads a "cp" open property and decodes the name with it: Zip
+   probes the name when the page is the automatic one, and Rar4, Tar and
+   gzip take a page literally. Rar5 keeps names as UTF-8 by format
+   definition and has nothing to apply a code page to.
+
+   This is a list rather than a test for the opposite case on purpose: a
+   format left out gets a menu that quietly does nothing, which is worse
+   than one that is plainly unavailable. The names are the ones the
+   handlers pass to REGISTER_ARC_I. Rar5 is not named here even though it
+   claims the .rar extension as well, because a RAR5 archive reaches a
+   different handler under a different name.
+
+   The helper is inline because two translation units need it:
+   PanelFolderChange.cpp answers whether the submenu can be enabled, and
+   PanelMenu.cpp is the one that builds it. */
+inline bool FormatAcceptsCodePage(const wchar_t *formatName)
+{
+  return StringsAreEqualNoCase_Ascii(formatName, "zip")
+      || StringsAreEqualNoCase_Ascii(formatName, "rar")
+      || StringsAreEqualNoCase_Ascii(formatName, "tar")
+      || StringsAreEqualNoCase_Ascii(formatName, "gzip");
+}
+// **************** NanaZip Modification End ****************
+
 #endif
