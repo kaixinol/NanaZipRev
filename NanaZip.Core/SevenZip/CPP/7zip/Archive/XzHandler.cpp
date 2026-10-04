@@ -1343,6 +1343,14 @@ HRESULT CHandler::SetProperty(const wchar_t *nameSpec, const PROPVARIANT &value)
   name.MakeLower_Ascii();
   if (name.IsEmpty())
     return E_INVALIDARG;
+// **************** NanaZip Modification Start ***************
+  /* An xz stream stores no entry name of its own, so there is no code
+     page to apply. CMultiMethodProps::SetProperty rejects a name it does
+     not know, which would fail the reopen that carries "cp", so the
+     request is accepted and dropped here. */
+  if (name.IsEqualTo("cp"))
+    return S_OK;
+// **************** NanaZip Modification End ***************
   
   #ifndef Z7_EXTRACT_ONLY
 

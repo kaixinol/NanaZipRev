@@ -3385,6 +3385,14 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
       RINOK(ParsePropToUInt32(name, prop, crcSize))
       _needChecksumCheck = (crcSize != 0);
     }
+// **************** NanaZip Modification Start ***************
+    /* RAR5 names are UTF-8 by format definition. The property is
+       accepted and ignored, because a reopen sends it unconditionally
+       and returning E_INVALIDARG here would fail that reopen. */
+    else if (name.IsEqualTo("cp"))
+    {
+    }
+// **************** NanaZip Modification End ***************
     else
     {
       return E_INVALIDARG;

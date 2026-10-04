@@ -473,9 +473,25 @@ Z7_CLASS_IMP_CHandler_IInArchive_3(
   CSingleMethodProps _props;
   CHandlerTimeOptions _timeOptions;
 
+// **************** NanaZip Modification Start ***************
+  /* The code page used to decode the stored name. gzip keeps the name as
+     plain bytes without saying what they are, so this starts at the
+     system ANSI page, which is what the handler used unconditionally.
+
+     The default lives in the constructor rather than in Close() because
+     Open() calls Close() before it reads anything, so a reset there would
+     discard the page that was just set for this very open. An open that
+     carries no "cp" property keeps the constructor value, which means an
+     ordinary open never inherits the page of an earlier archive. */
+  UInt32 _codePage;
+// **************** NanaZip Modification End ***************
+
 public:
   CHandler():
-      _isArc(false)
+// **************** NanaZip Modification Start ****************
+      _isArc(false),
+      _codePage(CP_ACP)
+// **************** NanaZip Modification End ****************
       {}
   
   void CreateDecoder()
@@ -527,7 +543,9 @@ Z7_COM7F_IMF(CHandler::GetArchiveProperty(PROPID propID, PROPVARIANT *value))
     case kpidName:
       if (_item.NameIsPresent())
       {
-        UString s = MultiByteToUnicodeString(_item.Name, CP_ACP);
+// **************** NanaZip Modification Start ***************
+        UString s = MultiByteToUnicodeString(_item.Name, _codePage);
+// **************** NanaZip Modification End ***************
         s += ".gz";
         prop = s;
       }
@@ -554,7 +572,9 @@ Z7_COM7F_IMF(CHandler::GetProperty(UInt32 /* index */, PROPID propID, PROPVARIAN
   {
     case kpidPath:
       if (_item.NameIsPresent())
-        prop = MultiByteToUnicodeString(_item.Name, CP_ACP);
+// **************** NanaZip Modification Start ***************
+        prop = MultiByteToUnicodeString(_item.Name, _codePage);
+// **************** NanaZip Modification End ***************
       break;
     // case kpidComment: if (_item.CommentIsPresent()) prop = MultiByteToUnicodeString(_item.Comment, CP_ACP); break;
     case kpidMTime:
@@ -1180,6 +1200,18 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
         continue;
       }
     }
+// **************** NanaZip Modification Start ***************
+    if (name.IsEqualTo("cp"))
+    {
+      /* An empty value means the menu is set back to automatic, which is
+         the page this handler used before one could be chosen at all. */
+      UInt32 cp = CP_ACP;
+      if (value.vt != VT_EMPTY)
+        RINOK(ParsePropToUInt32(L"", value, cp))
+      _codePage = cp;
+      continue;
+    }
+// **************** NanaZip Modification End ***************
     RINOK(_props.SetProperty(name, value))
   }
   return S_OK;
