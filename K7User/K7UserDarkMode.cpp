@@ -38,6 +38,9 @@ EXTERN_C HRESULT WINAPI GetThemeClass(
 #include <CommCtrl.h>
 #pragma comment(lib,"comctl32.lib")
 
+#include <winreg.h>
+#pragma comment(lib, "Advapi32.lib")
+
 // TODO: Move some workaround for NanaZip.UI.* to this.
 
 namespace
@@ -139,6 +142,155 @@ namespace
 
     static volatile bool g_GlobalInitialized = false;
 
+    // The theme mode is exposed by the File Manager settings and is stored as
+    // a REG_DWORD under HKCU\Software\NanaZip\FM\ThemeMode. The numbering is
+    // the one K7_USER_THEME_MODE declares.
+    static K7_USER_THEME_MODE K7UserReadThemeModeInternal()
+    {
+        DWORD Value = 0;
+        DWORD ValueSize = sizeof(Value);
+
+        HKEY KeyHandle = nullptr;
+        if (ERROR_SUCCESS == ::RegOpenKeyExW(
+            HKEY_CURRENT_USER,
+            L"Software\\NanaZip\\FM",
+            0,
+            KEY_READ,
+            &KeyHandle))
+        {
+            if (ERROR_SUCCESS != ::RegQueryValueExW(
+                KeyHandle,
+                L"ThemeMode",
+                nullptr,
+                nullptr,
+                reinterpret_cast<LPBYTE>(&Value),
+                &ValueSize))
+            {
+                Value = 0;
+            }
+            ::RegCloseKey(KeyHandle);
+        }
+
+        // A hand edited registry must not select an undefined theme.
+        if (Value > K7_USER_THEME_MODE_DARK)
+        {
+            Value = K7_USER_THEME_MODE_SYSTEM;
+        }
+        return static_cast<K7_USER_THEME_MODE>(Value);
+    }
+
+    // The preferred app mode uxtheme applies is process-wide, so the dark
+    // mode state the detours and the window subclasses consult has to be
+    // process-wide too. A per-thread mirror goes stale on the threads which
+    // never process a theme change notification and then render with the
+    // wrong colors after the theme mode was switched.
+    static volatile LONG g_ShouldAppsUseDarkMode = 0;
+
+    static bool ShouldAppsUseDarkMode()
+    {
+        return (0 != g_ShouldAppsUseDarkMode);
+    }
+
+    static void SetShouldAppsUseDarkMode(
+        _In_ bool Value)
+    {
+        ::InterlockedExchange(
+            &g_ShouldAppsUseDarkMode,
+            Value ? 1 : 0);
+    }
+
+    static bool SystemShouldAppsUseDarkMode()
+    {
+        return (::MileShouldAppsUseDarkMode() &&
+            !::MileShouldAppsUseHighContrastMode());
+    }
+
+    static bool ComputeShouldAppsUseDarkMode(
+        _In_ bool SystemShouldUseDarkMode)
+    {
+        switch (::K7UserReadThemeModeInternal())
+        {
+        case K7_USER_THEME_MODE_LIGHT:
+            return false;
+        case K7_USER_THEME_MODE_DARK:
+            return true;
+        default:
+            return SystemShouldUseDarkMode;
+        }
+    }
+
+    // Flushes the menu themes, so that a popup menu reads the preferred app
+    // mode again instead of keeping the appearance it was created with. It is
+    // an undocumented ordinal export of uxtheme, which is why it is resolved
+    // here rather than called directly, the same way the other undocumented
+    // ordinals of this library are resolved.
+    static void FlushMenuThemes()
+    {
+        typedef VOID(WINAPI* ProcType)();
+        ProcType ProcAddress = reinterpret_cast<ProcType>(
+            ::GetProcAddress(
+                ::GetModuleHandleW(L"uxtheme.dll"),
+                MAKEINTRESOURCEA(136)));
+        if (ProcAddress)
+        {
+            ProcAddress();
+        }
+    }
+
+    static void ApplyPreferredAppMode(
+        _In_ bool ShouldUseDarkMode,
+        _In_ bool SystemShouldUseDarkMode)
+    {
+        // K7UserInitializeDarkModeSupport allows dark mode for the app, and
+        // on Windows 10 1903 and later that is the preferred app mode Auto.
+        // Auto is what lets the classic control theme classes ("Explorer",
+        // "CFD", "ItemsView") resolve against the dark data at all, so it is
+        // what an effective theme agreeing with the system has to keep: the
+        // Default mode withdraws that permission again and leaves the
+        // controls on the light data. Default also undoes a force left over
+        // from a previous in-session change of the theme mode, so nothing is
+        // left behind when the user switches back to following the system.
+        //
+        // A theme mode which disagrees with the system has to force the mode
+        // process-wide instead, because the preferred app mode is the only
+        // thing which can select the data the system does not hand out.
+        if (ShouldUseDarkMode == SystemShouldUseDarkMode)
+        {
+            ::MileSetPreferredAppMode(MILE_PREFERRED_APP_MODE_AUTO);
+        }
+        else
+        {
+            ::MileSetPreferredAppMode(
+                ShouldUseDarkMode
+                    ? MILE_PREFERRED_APP_MODE_DARK
+                    : MILE_PREFERRED_APP_MODE_LIGHT);
+        }
+
+        // A popup menu is created by TrackPopupMenuEx and painted by the
+        // system, so it follows the preferred app mode only once the menu
+        // themes are flushed and read again. Without this a menu keeps the
+        // appearance it had when it was first created. This is the same call
+        // the Microsoft PowerToys theme switch uses after it forces a mode.
+        ::FlushMenuThemes();
+    }
+
+    static void RefreshEffectiveTheme()
+    {
+        // The immersive color policy state has to be refreshed before it is
+        // read, otherwise the system color policy this process cached when it
+        // started would be the one the new effective theme is derived from.
+        ::MileRefreshImmersiveColorPolicyState();
+
+        bool SystemShouldUseDarkMode = ::SystemShouldAppsUseDarkMode();
+        bool ShouldUseDarkMode =
+            ::ComputeShouldAppsUseDarkMode(SystemShouldUseDarkMode);
+
+        ::SetShouldAppsUseDarkMode(ShouldUseDarkMode);
+        ::ApplyPreferredAppMode(
+            ShouldUseDarkMode,
+            SystemShouldUseDarkMode);
+    }
+
     static LRESULT CALLBACK CallWndProcCallback(
         _In_ int nCode,
         _In_ WPARAM wParam,
@@ -151,7 +303,6 @@ namespace
         // Fields for all scenarios.
         // Should always be available if ShouldAppsUseDarkMode is true.
 
-        bool volatile ShouldAppsUseDarkMode = false;
         HHOOK volatile WindowsHookHandle = nullptr;
 
         // Fields for specific scenarios.
@@ -170,26 +321,10 @@ namespace
                 ::CallWndProcCallback,
                 nullptr,
                 ::GetCurrentThreadId());
-            if (!this->WindowsHookHandle)
-            {
-                return;
-            }
-
-            // Put this at the end of constructor to ensure that the dark mode
-            // support won't be enabled before the thread context is fully
-            // initialized to reduce the possibility of unintended behaviors.
-            this->ShouldAppsUseDarkMode =
-                ::MileShouldAppsUseDarkMode() &&
-                !::MileShouldAppsUseHighContrastMode();
         }
 
         ~ThreadContext()
         {
-            // Put this at the beginning of destructor to ensure that the dark
-            // mode support won't be enabled after the thread context starts to
-            // uninitialize to reduce the possibility of unintended behaviors.
-            this->ShouldAppsUseDarkMode = false;
-
             if (this->WindowsHookHandle)
             {
                 ::UnhookWindowsHookEx(this->WindowsHookHandle);
@@ -198,6 +333,40 @@ namespace
         }
     };
     thread_local ThreadContext g_ThreadContext;
+
+    // The classic control theme classes only resolve against the light data.
+    // Their dark counterparts carry a "DarkMode_" prefix, and which of the two
+    // a control gets is what decides whether it is painted light or dark. The
+    // preferred app mode does not take part in that decision at all, so the
+    // class name has to follow the effective theme.
+    static void SetControlThemeClass(
+        _In_ HWND WindowHandle,
+        _In_ const wchar_t* LightClass,
+        _In_ const wchar_t* DarkClass)
+    {
+        const wchar_t* ThemeClass =
+            (::ShouldAppsUseDarkMode() ? DarkClass : LightClass);
+
+        // Assigning the class name a window already has is a no-op, and the
+        // theme handle a control opened earlier survives a process wide
+        // policy change, so both stay on the light data until the association
+        // is detached. An empty class name closes the current handle, which
+        // makes the assignment below reopen it against the class and the
+        // current policy. A null class name resets the window to its default.
+        ::SetWindowTheme(WindowHandle, L"", nullptr);
+        ::SetWindowTheme(WindowHandle, ThemeClass, nullptr);
+
+        // Closing the handle is not enough on its own, because the control
+        // keeps the colors it painted last. Tell it the theme changed and
+        // repaint it synchronously, otherwise the change only shows up after
+        // the window is recreated.
+        ::SendMessageW(WindowHandle, WM_THEMECHANGED, 0, 0);
+        ::RedrawWindow(
+            WindowHandle,
+            nullptr,
+            nullptr,
+            RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_UPDATENOW);
+    }
 
     static void RefreshWindowTheme(
         _In_ HWND WindowHandle)
@@ -210,24 +379,34 @@ namespace
         {
             if (0 == std::wcscmp(ClassName, WC_BUTTONW))
             {
-                ::SetWindowTheme(WindowHandle, L"Explorer", nullptr);
+                ::SetControlThemeClass(
+                    WindowHandle, L"Explorer", L"DarkMode_Explorer");
             }
             else if (
                 (0 == std::wcscmp(ClassName, WC_COMBOBOXW)) ||
                 (0 == std::wcscmp(ClassName, WC_EDITW)))
             {
-                ::SetWindowTheme(WindowHandle, L"CFD", nullptr);
+                ::SetControlThemeClass(
+                    WindowHandle,
+                    (0 == std::wcscmp(ClassName, WC_COMBOBOXW))
+                        ? L"CFD"
+                        : L"Explorer",
+                    (0 == std::wcscmp(ClassName, WC_COMBOBOXW))
+                        ? L"DarkMode_CFD"
+                        : L"DarkMode_Explorer");
                 ::MileAllowDarkModeForWindow(WindowHandle, TRUE);
             }
             else if (0 == std::wcscmp(ClassName, WC_HEADERW))
             {
-                ::SetWindowTheme(WindowHandle, L"ItemsView", nullptr);
+                ::SetControlThemeClass(
+                    WindowHandle, L"ItemsView", L"DarkMode_ItemsView");
             }
             else if (0 == std::wcscmp(ClassName, WC_LISTVIEWW))
             {
-                ::SetWindowTheme(WindowHandle, L"ItemsView", nullptr);
+                ::SetControlThemeClass(
+                    WindowHandle, L"ItemsView", L"DarkMode_ItemsView");
 
-                if (g_ThreadContext.ShouldAppsUseDarkMode)
+                if (::ShouldAppsUseDarkMode())
                 {
                     ListView_SetTextBkColor(
                         WindowHandle,
@@ -289,7 +468,7 @@ namespace
                     ColorScheme.dwSize = sizeof(COLORSCHEME);
                     ColorScheme.clrBtnHighlight = CLR_DEFAULT;
                     ColorScheme.clrBtnShadow = CLR_DEFAULT;
-                    if (g_ThreadContext.ShouldAppsUseDarkMode)
+                    if (::ShouldAppsUseDarkMode())
                     {
                         ColorScheme.clrBtnHighlight = g_DarkModeBackgroundColor;
                         ColorScheme.clrBtnShadow = g_DarkModeBackgroundColor;
@@ -352,7 +531,7 @@ namespace
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         {
-            if (g_ThreadContext.ShouldAppsUseDarkMode)
+            if (::ShouldAppsUseDarkMode())
             {
                 HDC DeviceContextHandle = reinterpret_cast<HDC>(wParam);
                 if (DeviceContextHandle)
@@ -389,20 +568,17 @@ namespace
 
             if (Section && 0 == std::wcscmp(Section, L"ImmersiveColorSet"))
             {
-                ::MileRefreshImmersiveColorPolicyState();
-
-                g_ThreadContext.ShouldAppsUseDarkMode =
-                    ::MileShouldAppsUseDarkMode() &&
-                    !::MileShouldAppsUseHighContrastMode();
+                ::RefreshEffectiveTheme();
 
                 ::MileEnableImmersiveDarkModeForWindow(
                     hWnd,
-                    g_ThreadContext.ShouldAppsUseDarkMode);
+                    ::ShouldAppsUseDarkMode());
 
                 bool ShouldExtendFrame = (
-                    g_ThreadContext.ShouldAppsUseDarkMode &&
+                    ::ShouldAppsUseDarkMode() &&
                     ::IsStandardDynamicRangeMode() &&
                     g_ThreadContext.MicaBackdropAvailable);
+
                 MARGINS Margins = {};
                 if (ShouldExtendFrame)
                 {
@@ -449,10 +625,10 @@ namespace
             g_ThreadContext.MicaBackdropAvailable =
                 (S_OK == ::MileEnableImmersiveDarkModeForWindow(
                     hWnd,
-                    g_ThreadContext.ShouldAppsUseDarkMode));
+                    ::ShouldAppsUseDarkMode()));
 
             bool ShouldExtendFrame = (
-                g_ThreadContext.ShouldAppsUseDarkMode &&
+                ::ShouldAppsUseDarkMode() &&
                 ::IsStandardDynamicRangeMode() &&
                 g_ThreadContext.MicaBackdropAvailable);
             if (ShouldExtendFrame)
@@ -508,7 +684,7 @@ namespace
                 ClassName,
                 MO_ARRAY_SIZE(ClassName)))
             {
-                if (g_ThreadContext.ShouldAppsUseDarkMode &&
+                if (::ShouldAppsUseDarkMode() &&
                     0 == std::wcscmp(ClassName, STATUSCLASSNAMEW))
                 {
                     RECT ClientArea = {};
@@ -534,7 +710,7 @@ namespace
                             &ClientArea,
                             reinterpret_cast<HBRUSH>(
                                 ::GetStockObject(
-                                    g_ThreadContext.ShouldAppsUseDarkMode
+                                    ::ShouldAppsUseDarkMode()
                                     ? BLACK_BRUSH
                                     : WHITE_BRUSH)));
                         return TRUE;
@@ -547,7 +723,7 @@ namespace
         case WM_DPICHANGED:
         {
             bool ShouldExtendFrame = (
-                g_ThreadContext.ShouldAppsUseDarkMode &&
+                ::ShouldAppsUseDarkMode() &&
                 ::IsStandardDynamicRangeMode() &&
                 g_ThreadContext.MicaBackdropAvailable);
             if (!ShouldExtendFrame && ::IsFileManagerWindow(hWnd))
@@ -568,7 +744,7 @@ namespace
             break;
         }
 
-        if (g_ThreadContext.ShouldAppsUseDarkMode && ::GetMenu(hWnd))
+        if (::ShouldAppsUseDarkMode() && ::GetMenu(hWnd))
         {
             if (WM_UAHDRAWMENU == uMsg)
             {
@@ -1002,7 +1178,7 @@ namespace
     static DWORD WINAPI DetouredGetSysColor(
         _In_ int nIndex)
     {
-        if (!g_GlobalInitialized || !g_ThreadContext.ShouldAppsUseDarkMode)
+        if (!g_GlobalInitialized || !::ShouldAppsUseDarkMode())
         {
             return ::OriginalGetSysColor(nIndex);
         }
@@ -1015,6 +1191,18 @@ namespace
         case COLOR_WINDOWTEXT:
         case COLOR_BTNTEXT:
             return g_DarkModeForegroundColor;
+        // The edges and the shadows of the controls which are not drawn by
+        // uxtheme, such as the sunken frames of the edit controls and the
+        // client edges of the combo boxes, are drawn from these. They are not
+        // covered above, so on a light system they keep the light values and
+        // draw a light outline around a dark control. COLOR_3DSHADOW and
+        // COLOR_3DHILIGHT are the same values as the two button ones, so only
+        // the distinct ones are listed here.
+        case COLOR_BTNSHADOW:
+        case COLOR_3DDKSHADOW:
+        case COLOR_3DLIGHT:
+        case COLOR_BTNHILIGHT:
+            return g_DarkModeBorderColor;
         default:
             return ::OriginalGetSysColor(nIndex);
         }
@@ -1023,7 +1211,7 @@ namespace
     static HBRUSH WINAPI DetouredGetSysColorBrush(
         _In_ int nIndex)
     {
-        if (!g_GlobalInitialized || !g_ThreadContext.ShouldAppsUseDarkMode)
+        if (!g_GlobalInitialized || !::ShouldAppsUseDarkMode())
         {
             return ::OriginalGetSysColorBrush(nIndex);
         }
@@ -1034,6 +1222,11 @@ namespace
             return ::GetDarkModeBackgroundBrush();
         case COLOR_BTNTEXT:
             return ::GetDarkModeForegroundBrush();
+        case COLOR_BTNSHADOW:
+        case COLOR_3DDKSHADOW:
+        case COLOR_3DLIGHT:
+        case COLOR_BTNHILIGHT:
+            return ::GetDarkModeBorderBrush();
         default:
             return ::OriginalGetSysColorBrush(nIndex);
         }
@@ -1046,7 +1239,7 @@ namespace
         _In_ int iPropId,
         _Out_ COLORREF* pColor)
     {
-        if (!g_GlobalInitialized || !g_ThreadContext.ShouldAppsUseDarkMode)
+        if (!g_GlobalInitialized || !::ShouldAppsUseDarkMode())
         {
             return ::OriginalGetThemeColor(
                 hTheme,
@@ -1096,7 +1289,7 @@ namespace
         _In_ DWORD dwTextFlags2,
         _In_ LPCRECT pRect)
     {
-        if (!g_GlobalInitialized || !g_ThreadContext.ShouldAppsUseDarkMode)
+        if (!g_GlobalInitialized || !::ShouldAppsUseDarkMode())
         {
             return ::OriginalDrawThemeText(
                 hTheme,
@@ -1135,7 +1328,7 @@ namespace
         _In_ LPCRECT pRect,
         _In_opt_ LPCRECT pClipRect)
     {
-        if (!g_GlobalInitialized || !g_ThreadContext.ShouldAppsUseDarkMode)
+        if (!g_GlobalInitialized || !::ShouldAppsUseDarkMode())
         {
             return ::OriginalDrawThemeBackground(
                 hTheme,
@@ -1145,6 +1338,7 @@ namespace
                 pRect,
                 pClipRect);
         }
+
 
         if (hTheme == g_ThreadContext.TabControlThemeHandle)
         {
@@ -1269,7 +1463,7 @@ namespace
         _In_ LPCRECT pRect,
         _In_opt_ const DTBGOPTS* pOptions)
     {
-        if (!g_GlobalInitialized || !g_ThreadContext.ShouldAppsUseDarkMode)
+        if (!g_GlobalInitialized || !::ShouldAppsUseDarkMode())
         {
             return ::OriginalDrawThemeBackgroundEx(
                 hTheme,
@@ -1444,7 +1638,13 @@ EXTERN_C MO_RESULT MOAPI K7UserInitializeDarkModeSupport()
     }
 
     ::MileAllowDarkModeForApp(TRUE);
-    ::MileRefreshImmersiveColorPolicyState();
+
+    // The effective theme has to be known before the first window is created,
+    // because the window subclasses read it while handling WM_CREATE. The
+    // preferred app mode is applied here as well, so that a theme mode which
+    // disagrees with the system takes effect for this process from its very
+    // first window.
+    ::RefreshEffectiveTheme();
 
     ::K7BaseDetourTransactionBegin();
     ::K7BaseDetourUpdateThread(::GetCurrentThread());
@@ -1470,6 +1670,18 @@ EXTERN_C MO_RESULT MOAPI K7UserInitializeDarkModeSupport()
     return MO_RESULT_SUCCESS_OK;
 }
 
+EXTERN_C MO_RESULT MOAPI K7UserRefreshTheme()
+{
+    ::RefreshEffectiveTheme();
+
+    return MO_RESULT_SUCCESS_OK;
+}
+
+EXTERN_C K7_USER_THEME_MODE MOAPI K7UserReadThemeMode()
+{
+    return ::K7UserReadThemeModeInternal();
+}
+
 EXTERN_C MO_RESULT MOAPI K7UserUninitializeDarkModeSupport()
 {
     if (!g_GlobalInitialized)
@@ -1478,6 +1690,9 @@ EXTERN_C MO_RESULT MOAPI K7UserUninitializeDarkModeSupport()
     }
     g_GlobalInitialized = false;
 
+    ::SetShouldAppsUseDarkMode(false);
+    // MileAllowDarkModeForApp withdraws the permission again, which is the
+    // preferred app mode Auto on Windows 10 1903 and later.
     ::MileAllowDarkModeForApp(FALSE);
     ::MileRefreshImmersiveColorPolicyState();
 
