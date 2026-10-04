@@ -1143,8 +1143,19 @@ void CPanel::AddCodePageMenuItem(HMENU menuSpec)
   else
     menuLabel = L"&Code page";
   // MF_POPUP hands the submenu over to the parent menu, so the destroyer has
-  // to be released and the handle taken away from the wrapper.
-  menu.AppendItem(MF_POPUP, (UINT_PTR)subMenu.Detach(), menuLabel);
+  // to be released and the handle taken away from the wrapper. MF_GRAYED
+  // goes on the parent item, which is what dims the whole submenu; the
+  // entries inside are left alone so they keep their own checked state.
+  UINT popupFlags = MF_POPUP;
+// **************** NanaZip Modification Start ****************
+  /* Every reopen carries the code page property, and a handler that
+     cannot use one now accepts and ignores it. Choosing a page for such an
+     archive would be accepted and change nothing, so the submenu is
+     dimmed rather than left looking as though it worked. */
+  if (!CanChangeCodePage())
+    popupFlags |= MF_GRAYED;
+  menu.AppendItem(popupFlags, (UINT_PTR)subMenu.Detach(), menuLabel);
+// **************** NanaZip Modification End ****************
   subMenuDestroyer.Disable();
 
   menu.Detach();

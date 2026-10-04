@@ -29,6 +29,10 @@
 //#include "ListViewDialog.h"
 // **************** NanaZip Modification End ****************
 #include "Panel.h"
+
+// **************** NanaZip Modification Start ****************
+#include "MyLoadMenu.h"
+// **************** NanaZip Modification End ****************
 #include "RootFolder.h"
 // **************** NanaZip Modification Start ****************
 // for CAgentFolder
@@ -388,6 +392,36 @@ HRESULT CPanel::ReOpenWithCodePage(unsigned codePage)
 
   LoadFullPathAndShow();
   return RefreshListCtrl();
+}
+// **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
+/* Whether the open archive has entry names a code page applies to, and
+   so whether the code page submenu is worth enabling at all. The formats
+   that can take one are listed in MyLoadMenu.h. */
+bool CPanel::CanChangeCodePage() const
+{
+  if (!_folder)
+    return false;
+
+  CMyComPtr<IArchiveFolderInternal> archiveFolderInternal;
+  if (_folder.QueryInterface(IID_IArchiveFolderInternal,
+      &archiveFolderInternal) != S_OK
+      || !archiveFolderInternal)
+    return false;
+
+  CAgentFolder *agentFolder;
+  if (archiveFolderInternal->GetAgentFolder(&agentFolder) != S_OK
+      || agentFolder == NULL
+      || agentFolder->_agentSpec == NULL)
+    return false;
+
+  CAgent *agent = agentFolder->_agentSpec;
+  if (agent->_archiveLink.Arcs.Size() != 1)
+    return false;
+
+  const UString formatName = agent->GetTypeOfArc(agent->_archiveLink.Arcs[0]);
+  return FormatAcceptsCodePage(formatName);
 }
 // **************** NanaZip Modification End ****************
 
