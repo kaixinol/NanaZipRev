@@ -18,7 +18,7 @@
 // The three entries of IDC_SETTINGS_THEME_MODE, in the order of the theme
 // modes the settings page offers. They are declared here as well as in
 // SettingsPageRes.h because resourceGui.rc only includes this header.
-#define IDS_SETTINGS_THEME_MODE_SYSTEM   4202
-#define IDS_SETTINGS_THEME_MODE_LIGHT    4203
-#define IDS_SETTINGS_THEME_MODE_DARK     4204
+#define IDS_SETTINGS_THEME_MODE_SYSTEM 4103
+#define IDS_SETTINGS_THEME_MODE_LIGHT 4104
+#define IDS_SETTINGS_THEME_MODE_DARK 4105
 // **************** NanaZip Modification End ****************

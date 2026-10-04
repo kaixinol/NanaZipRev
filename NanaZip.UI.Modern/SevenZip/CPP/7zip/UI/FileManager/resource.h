@@ -115,8 +115,14 @@
    dispatchers test "id >= kMenuCmdID_Plugin_Start" and hand anything that high
    to the plugin path before any first party command is considered, so a base at
    or above 1100 makes the submenu inert: the click is swallowed and the
-   checkmark never moves. 962 is the lowest free id above IDM_ABOUT (961) and
-   962..1099 is unused in this file. */
+  checkmark never moves. The base sits at 962 because that is the lowest
+  id this file leaves free.
+
+  IDM_CODE_PAGE_COUNT is the number of code pages, and it is three things
+  at once: the array length of kCodePages, the loop bound that builds the
+  submenu, and the exclusive upper bound of the id range. It cannot be
+  inflated to reserve room, because a count larger than the initialiser
+  zero-fills the tail and every extra id reads an empty string. */
 #define IDM_CODE_PAGE_BASE        962
 #define IDM_CODE_PAGE_COUNT       20
 // **************** NanaZip Modification End ****************
@@ -127,27 +133,27 @@
    the submenu indexes them with the same 0-based order as IDM_CODE_PAGE_BASE.
    4120..4149 was verified free in every shipped language, so a translation can
    land in any of them without colliding with an existing entry. */
-#define IDS_CODE_PAGE_AUTO            4120
-#define IDS_CODE_PAGE_UTF8            4121
-#define IDS_CODE_PAGE_1252            4122
-#define IDS_CODE_PAGE_1251            4123
-#define IDS_CODE_PAGE_1250            4124
-#define IDS_CODE_PAGE_1253            4125
-#define IDS_CODE_PAGE_1254            4126
-#define IDS_CODE_PAGE_1255            4127
-#define IDS_CODE_PAGE_1256            4128
-#define IDS_CODE_PAGE_1257            4129
-#define IDS_CODE_PAGE_1258            4130
-#define IDS_CODE_PAGE_874             4131
-#define IDS_CODE_PAGE_932             4132
-#define IDS_CODE_PAGE_936             4133
-#define IDS_CODE_PAGE_949             4134
-#define IDS_CODE_PAGE_950             4135
-#define IDS_CODE_PAGE_866             4136
-#define IDS_CODE_PAGE_20866           4137
-#define IDS_CODE_PAGE_28591           4138
-#define IDS_CODE_PAGE_28592           4139
-#define IDS_CODE_PAGE_MENU            4140
+#define IDS_CODE_PAGE_AUTO 4108
+#define IDS_CODE_PAGE_UTF8 4109
+#define IDS_CODE_PAGE_1252 4110
+#define IDS_CODE_PAGE_1251 4111
+#define IDS_CODE_PAGE_1250 4112
+#define IDS_CODE_PAGE_1253 4113
+#define IDS_CODE_PAGE_1254 4114
+#define IDS_CODE_PAGE_1255 4115
+#define IDS_CODE_PAGE_1256 4116
+#define IDS_CODE_PAGE_1257 4117
+#define IDS_CODE_PAGE_1258 4118
+#define IDS_CODE_PAGE_874 4119
+#define IDS_CODE_PAGE_932 4120
+#define IDS_CODE_PAGE_936 4121
+#define IDS_CODE_PAGE_949 4122
+#define IDS_CODE_PAGE_950 4123
+#define IDS_CODE_PAGE_866 4124
+#define IDS_CODE_PAGE_20866 4125
+#define IDS_CODE_PAGE_28591 4126
+#define IDS_CODE_PAGE_28592 4127
+#define IDS_CODE_PAGE_MENU 4128
 // **************** NanaZip Modification End ****************
 
 #define IDS_OPTIONS                     2100

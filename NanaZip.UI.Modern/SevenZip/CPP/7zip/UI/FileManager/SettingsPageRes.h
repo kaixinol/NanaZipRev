@@ -15,14 +15,16 @@
 #define IDX_SETTINGS_WANT_FOLDER_HISTORY    2512
 #define IDX_SETTINGS_LOWERCASE_HASHES       2513
 // **************** NanaZip Modification Start ****************
-#define IDX_SETTINGS_SHOW_FILE_SIZE_UNITS   2515
+#define IDX_SETTINGS_SHOW_FILE_SIZE_UNITS 4098
 // **************** NanaZip Modification End ****************
 
 // **************** NanaZip Modification Start ****************
 // 2102 is the legacy string resource identifier of "Language:", so the label
-// is localized without adding any new string resources.
-#define IDT_SETTINGS_LANGUAGE               2102
-#define IDC_SETTINGS_LANGUAGE               2514
+// is localized without adding any new string resources. It stays at that
+// number: the language page it belonged to is gone, so nothing upstream
+// claims it, and every language file already carries the key.
+#define IDT_SETTINGS_LANGUAGE 2102
+#define IDC_SETTINGS_LANGUAGE 4100
 // **************** NanaZip Modification End ****************
 
 // **************** NanaZip Modification Start ****************
@@ -30,11 +32,11 @@
 // entries of IDC_SETTINGS_THEME_MODE follow its identifier, because the
 // string resources of a combo box are addressed by the identifier of the
 // control they belong to.
-#define IDT_SETTINGS_THEME_MODE              4200
-#define IDC_SETTINGS_THEME_MODE              4201
-#define IDS_SETTINGS_THEME_MODE_SYSTEM       4202
-#define IDS_SETTINGS_THEME_MODE_LIGHT        4203
-#define IDS_SETTINGS_THEME_MODE_DARK         4204
+#define IDT_SETTINGS_THEME_MODE 4101
+#define IDC_SETTINGS_THEME_MODE 4102
+#define IDS_SETTINGS_THEME_MODE_SYSTEM 4103
+#define IDS_SETTINGS_THEME_MODE_LIGHT 4104
+#define IDS_SETTINGS_THEME_MODE_DARK 4105
 // **************** NanaZip Modification End ****************
 
 // #define IDT_SETTINGS_MEM     100
