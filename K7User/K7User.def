@@ -3,6 +3,8 @@
 EXPORTS
 
 K7UserInitializeDarkModeSupport
+K7UserRefreshTheme
+K7UserReadThemeMode
 
 K7UserModernMessageBoxW
 K7UserModernSHBrowseForFolderW

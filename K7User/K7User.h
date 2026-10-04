@@ -20,11 +20,56 @@
 #define K7_USER_DARK_MODE
 
 /**
+ * @brief The theme mode selected by the user.
+ */
+typedef enum K7_USER_THEME_MODE
+{
+    /**
+     * @brief Follow the color policy of the system. This is the default.
+     */
+    K7_USER_THEME_MODE_SYSTEM = 0,
+
+    /**
+     * @brief Always use the light theme, whatever the color policy of the
+     *        system is.
+     */
+    K7_USER_THEME_MODE_LIGHT = 1,
+
+    /**
+     * @brief Always use the dark theme, whatever the color policy of the
+     *        system is.
+     */
+    K7_USER_THEME_MODE_DARK = 2
+
+} K7_USER_THEME_MODE, *PK7_USER_THEME_MODE;
+
+/**
  * @brief Initializes the dark mode support.
  * @return If the function succeeds, it returns MO_RESULT_SUCCESS_OK. Otherwise,
  *         it returns an MO_RESULT error code.
  */
 EXTERN_C MO_RESULT MOAPI K7UserInitializeDarkModeSupport();
+
+/**
+ * @brief Re-evaluates the effective theme from the current color policy of the
+ *        system and the theme mode selected by the user, then applies it to
+ *        the process. Used to apply a live change of the theme mode.
+ * @return If the function succeeds, it returns MO_RESULT_SUCCESS_OK. Otherwise,
+ *         it returns an MO_RESULT error code.
+ * @remark This only updates the state the detours and the window subclasses
+ *         consult. The already created windows are repainted by the
+ *         ImmersiveColorSet notification, which the caller raises by sending
+ *         WM_SETTINGCHANGE with "ImmersiveColorSet" to its own windows.
+ */
+EXTERN_C MO_RESULT MOAPI K7UserRefreshTheme();
+
+/**
+ * @brief Reads the theme mode selected by the user.
+ * @return The selected theme mode. A missing or malformed setting is reported
+ *         as K7_USER_THEME_MODE_SYSTEM, so an installation that never touched
+ *         the setting keeps following the system.
+ */
+EXTERN_C K7_USER_THEME_MODE MOAPI K7UserReadThemeMode();
 
 #endif // !K7_USER_DARK_MODE
 
