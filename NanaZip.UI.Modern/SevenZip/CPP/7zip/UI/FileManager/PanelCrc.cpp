@@ -397,7 +397,7 @@ HRESULT CApp::CalculateCrc2(const UString &methodName)
     UString title = LangString(IDS_CHECKSUM_CALCULATING);
 
     t.MainWindow = _window;
-    t.MainTitle = "NanaZip"; // LangString(IDS_APP_TITLE);
+    t.MainTitle = "NanaZip Rev"; // LangString(IDS_APP_TITLE);
     t.MainAddTitle = title;
     t.MainAddTitle.Add_Space();
 

@@ -1,4 +1,4 @@
-﻿# NanaZip Upstream Synchronization Status
+﻿# NanaZip Rev Upstream Synchronization Status
 
 ## 7-Zip Mainline
 

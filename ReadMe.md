@@ -1,4 +1,112 @@
-﻿# ![NanaZip](Assets/NanaZip.png) NanaZip
+﻿# ![NanaZip](Assets/NanaZip.png) NanaZip Rev
+
+> [!WARNING]
+> **NanaZip Rev is an unofficial community fork.** It is not affiliated with,
+> endorsed by, or supported by Kenji Mouri or the M2Team organization. It is
+> built from the NanaZip source code, which is in turn derived from the source
+> code of 7-Zip. The 7-Zip derived parts are credited in
+> [License.md](License.md), and the complete upstream documentation is
+> preserved verbatim in the [upstream ReadMe](#upstream-readme) at the end of
+> this file.
+
+[![GitHub Actions Build Status](https://github.com/kaixinol/NanaZipRev/actions/workflows/BuildBinaries.yml/badge.svg?branch=nanazip-rev&event=push)](https://github.com/kaixinol/NanaZipRev/actions/workflows/BuildBinaries.yml?query=event%3Apush+branch%3Ananazip-rev)
+[![Latest Version](https://img.shields.io/github/v/release/kaixinol/NanaZipRev?display_name=release&sort=date&color=%23a4a61d)](https://github.com/kaixinol/NanaZipRev/releases/latest)
+[![Total Downloads](https://img.shields.io/github/downloads/kaixinol/NanaZipRev/total)](https://github.com/kaixinol/NanaZipRev/releases)
+
+![ContextMenu](Documents/ContextMenu.png)
+![MainWindowLightMode](Documents/MainWindowLightMode.png)
+![MainWindowDarkMode](Documents/MainWindowDarkMode.png)
+
+NanaZip Rev is a fork of NanaZip, an open source file archiver intended for the
+modern Windows experience. The fork tracks upstream and adds the changes listed
+below on top of it. Everything upstream NanaZip does, this fork does too, so
+read the [upstream ReadMe](#upstream-readme) for the full feature list, the
+system requirements, and the installation methods.
+
+## What this fork adds
+
+- A theme selector offering *Follow the system*, *Always light*, and *Always
+  dark*, stored per user and applied live to the windows that are already open,
+  including the hosted XAML islands.
+- A code page submenu on the archive file list, which re-decodes entry names
+  stored in a legacy encoding on demand. The choice is remembered per archive,
+  survives navigating between folders, applies to the archive comment as well,
+  and is dimmed where no code page applies.
+- A read-only *Archive Comment* command on the *View* menu, which reports the
+  comment of an archive that is open for reading.
+- A *Show file size units* setting, which formats file sizes with the IEC
+  binary prefixes instead of an exact byte count. It is off by default.
+- A language selector on the settings page of the Modern File Manager, which
+  offers the languages the modern experience library was built with.
+- A warning when a 7-Zip ZS compression method is selected for the 7z format,
+  because upstream 7-Zip and most other archive software cannot read those
+  archives.
+- A <kbd>Ctrl</kbd>+<kbd>W</kbd> shortcut for closing the File Manager window.
+
+## Package identity
+
+The fork ships under its own package identity, so it is a different package
+from the one upstream NanaZip installs.
+
+| Field | Value |
+| --- | --- |
+| Package/Identity/Name | `Kaesinol.NanaZipRev` |
+| Package/Identity/Publisher | `CN=23EBD860-A383-4AEA-836A-B041352C93FF` |
+| PublisherDisplayName | `Kaesinol` |
+| Package Family Name | `Kaesinol.NanaZipRev_ebdn1z678t2d0` |
+| Store ID | `9MVLG8PS1JW3` |
+
+Because the identity differs, this package and the upstream package can both be
+installed side by side. They still compete for the same shell registrations,
+though, so only one of them owns the File Explorer context menu, the file
+associations, and the `NanaZip.exe`, `NanaZipC.exe`, and `NanaZipG.exe`
+execution aliases at a time. Installing this fork over upstream replaces those
+registrations rather than adding to them.
+
+Settings are kept under `HKEY_CURRENT_USER\Software\NanaZipRev` rather than
+`HKEY_CURRENT_USER\Software\NanaZip`, so the two installations never read each
+other's settings and an upgrade from upstream does not carry them over.
+
+## Installation
+
+The fork is published to the Microsoft Store under the Store ID above. Once it
+is listed, install it with:
+
+```powershell
+winget install --id Kaesinol.NanaZipRev
+```
+
+The MSIX packages are also attached to
+[GitHub Releases](https://github.com/kaixinol/NanaZipRev/releases), and
+[App Installer](https://learn.microsoft.com/en-us/windows/msix/app-installer/install-update-app-installer)
+can install a downloaded package directly. The upstream ReadMe documents the
+command line methods in full; note that the uninstall command there filters on
+the upstream package name, so use `Kaesinol.NanaZipRev` when removing this
+fork.
+
+Because the publisher is the fork's own, the package is signed with a
+certificate issued for `CN=23EBD860-A383-4AEA-836A-B041352C93FF`. Installing it
+from a sideloaded file requires that signing certificate to be trusted on the
+machine.
+
+## Documents
+
+- [Upstream Synchronization Status](Documents/UpstreamSynchronization.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security Policy](Security.md)
+- [Privacy Policy](Documents/Privacy.md)
+- [License](License.md)
+- [Group Policy Administrative Templates](Documents/PolicyDefinitions)
+- [Accessibility Conformance Report for Section 508](Documents/Section508)
+- [Versioning](Documents/Versioning.md)
+
+<a name="upstream-readme"></a>
+
+<details>
+<summary>原README</summary>
+
+# ![NanaZip](Assets/NanaZip.png) NanaZip
 
 [![GitHub Actions Build Status](https://github.com/M2Team/NanaZip/actions/workflows/BuildBinaries.yml/badge.svg?branch=master&event=push)](https://github.com/M2Team/NanaZip/actions/workflows/BuildBinaries.yml?query=event%3Apush+branch%3Amaster)
 [![Total Downloads](https://img.shields.io/github/downloads/M2Team/NanaZip/total)](https://github.com/M2Team/NanaZip/releases)
@@ -368,3 +476,5 @@ If you open the Command Prompt as Administrator, you can execute:
 - [Security Policy](Security.md)
 - [Versioning](Documents/Versioning.md)
 - [My Digital Life Forums](https://forums.mydigitallife.net/threads/84171)
+
+</details>

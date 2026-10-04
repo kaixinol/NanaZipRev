@@ -1795,7 +1795,8 @@ Z7_DIAGNOSTIC_IGNORE_CAST_FUNCTION
     {
       // **************** NanaZip Modification Start ****************
       //errorInfo.SetFromLastError("7-Zip cannot find MAPISendMail function");
-      errorInfo.SetFromLastError("NanaZip cannot find MAPISendMail function");
+      errorInfo.SetFromLastError(
+        "NanaZip Rev cannot find MAPISendMail function");
       // **************** NanaZip Modification End ****************
       return errorInfo.Get_HRESULT_Error();
     }

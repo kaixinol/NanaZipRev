@@ -308,7 +308,7 @@ void CApp::Split()
 
   CProgressDialog &progressDialog = spliter;
 
-  UString progressWindowTitle ("NanaZip"); // LangString(IDS_APP_TITLE, 0x03000000);
+  UString progressWindowTitle ("NanaZip Rev"); // LangString(IDS_APP_TITLE, 0x03000000);
   UString title = LangString(IDS_SPLITTING);
 
   progressDialog.ShowCompressionInfo = false;
@@ -537,7 +537,7 @@ void CApp::Combine()
     CProgressDialog &progressDialog = combiner;
     progressDialog.ShowCompressionInfo = false;
 
-    UString progressWindowTitle ("NanaZip"); // LangString(IDS_APP_TITLE, 0x03000000);
+    UString progressWindowTitle ("NanaZip Rev"); // LangString(IDS_APP_TITLE, 0x03000000);
     UString title = LangString(IDS_COMBINING);
 
     progressDialog.MainWindow = _window;

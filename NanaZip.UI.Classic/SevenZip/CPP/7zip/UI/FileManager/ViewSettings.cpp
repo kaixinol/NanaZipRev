@@ -16,7 +16,12 @@
 using namespace NWindows;
 using namespace NRegistry;
 
-#define REG_PATH_FM TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZip") TEXT(STRING_PATH_SEPARATOR) TEXT("FM")
+// **************** NanaZip Modification Start ****************
+// The fork keeps its settings under its own key, so an installed
+// upstream package and this one never read each other's settings.
+//#define REG_PATH_FM TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZip") TEXT(STRING_PATH_SEPARATOR) TEXT("FM")
+#define REG_PATH_FM TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZipRev") TEXT(STRING_PATH_SEPARATOR) TEXT("FM")
+// **************** NanaZip Modification End ****************
 
 static LPCTSTR const kCUBasePath = REG_PATH_FM;
 static LPCTSTR const kCulumnsKeyName = REG_PATH_FM TEXT(STRING_PATH_SEPARATOR) TEXT("Columns");

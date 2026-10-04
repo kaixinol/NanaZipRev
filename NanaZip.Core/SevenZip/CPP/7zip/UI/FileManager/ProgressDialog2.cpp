@@ -987,7 +987,7 @@ INT_PTR CProgressDialog::Create(const UString &title, NWindows::CThread &thread,
   {
     // **************** NanaZip Modification Start ****************
     //MessageBoxW(wndParent, L"Progress Error", L"7-Zip", MB_ICONERROR);
-    MessageBoxW(wndParent, L"Progress Error", L"NanaZip", MB_ICONERROR);
+    MessageBoxW(wndParent, L"Progress Error", L"NanaZip Rev", MB_ICONERROR);
     // **************** NanaZip Modification End ****************
   }
   return res;
@@ -1026,7 +1026,7 @@ bool CProgressDialog::OnExternalCloseMessage()
     /*if (fm.ErrorMessage.Title.IsEmpty())
       fm.ErrorMessage.Title = "7-Zip";*/
     if (fm.ErrorMessage.Title.IsEmpty())
-      fm.ErrorMessage.Title = "NanaZip";
+      fm.ErrorMessage.Title = "NanaZip Rev";
     // **************** NanaZip Modification End ****************
     if (!g_DisableUserQuestions)
       MessageBoxW(*this, fm.ErrorMessage.Message, fm.ErrorMessage.Title, MB_ICONERROR);
@@ -1041,7 +1041,7 @@ bool CProgressDialog::OnExternalCloseMessage()
       /*if (fm.OkMessage.Title.IsEmpty())
         fm.OkMessage.Title = "7-Zip";*/
       if (fm.OkMessage.Title.IsEmpty())
-        fm.OkMessage.Title = "NanaZip";
+        fm.OkMessage.Title = "NanaZip Rev";
       // **************** NanaZip Modification End ****************
       if (!g_DisableUserQuestions)
         MessageBoxW(*this, fm.OkMessage.Message, fm.OkMessage.Title, MB_OK);

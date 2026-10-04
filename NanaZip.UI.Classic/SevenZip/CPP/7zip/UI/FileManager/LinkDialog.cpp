@@ -251,7 +251,7 @@ void CLinkDialog::OnButton_SetPath(bool to)
 
 void CLinkDialog::ShowError(const wchar_t *s)
 {
-  ::MessageBoxW(*this, s, L"NanaZip", MB_ICONERROR);
+  ::MessageBoxW(*this, s, L"NanaZip Rev", MB_ICONERROR);
 }
 
 void CLinkDialog::ShowLastErrorMessage()

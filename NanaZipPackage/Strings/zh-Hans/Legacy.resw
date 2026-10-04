@@ -40,7 +40,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Resource0" xml:space="preserve">
-    <value>NanaZip</value>
+    <value>NanaZip Rev</value>
   </data>
   <data name="Resource1" xml:space="preserve">
     <value>Chinese Simplified</value>
@@ -268,7 +268,7 @@
     <value>查看帮助(&amp;C)</value>
   </data>
   <data name="Resource961" xml:space="preserve">
-    <value>关于 NanaZip</value>
+    <value>关于 NanaZip Rev</value>
   </data>
   <data name="Resource1003" xml:space="preserve">
     <value>路径</value>
@@ -550,13 +550,13 @@
     <value>系统</value>
   </data>
   <data name="Resource2201" xml:space="preserve">
-    <value>使用 NanaZip 关联的文件类型：</value>
+    <value>使用 NanaZip Rev 关联的文件类型：</value>
   </data>
   <data name="Resource2202" xml:space="preserve">
     <value>所有用户</value>
   </data>
   <data name="Resource2301" xml:space="preserve">
-    <value>添加 NanaZip 到右键菜单</value>
+    <value>添加 NanaZip Rev 到右键菜单</value>
   </data>
   <data name="Resource2302" xml:space="preserve">
     <value>层叠右键菜单</value>
@@ -646,7 +646,7 @@
     <value>单击打开项目</value>
   </data>
   <data name="Resource2507" xml:space="preserve">
-    <value>NanaZip 传统选择模式(&amp;A)</value>
+    <value>NanaZip Rev 传统选择模式(&amp;A)</value>
   </data>
   <data name="Resource2508" xml:space="preserve">
     <value>使用大内存页(&amp;L)</value>
@@ -667,10 +667,10 @@
     <value>使用小写校验值</value>
   </data>
   <data name="Resource2900" xml:space="preserve">
-    <value>关于 NanaZip</value>
+    <value>关于 NanaZip Rev</value>
   </data>
   <data name="Resource2901" xml:space="preserve">
-    <value>NanaZip 是一款自由软件</value>
+    <value>NanaZip Rev 是一款自由软件</value>
   </data>
   <data name="Resource3000" xml:space="preserve">
     <value>系统无法分配所需内存</value>
@@ -1429,6 +1429,6 @@
     <value>集成</value>
   </data>
   <data name="Resource12201" xml:space="preserve">
-    <value>打开 Windows 设置应用将文件与 NanaZip 关联</value>
+    <value>打开 Windows 设置应用将文件与 NanaZip Rev 关联</value>
   </data>
 </root>

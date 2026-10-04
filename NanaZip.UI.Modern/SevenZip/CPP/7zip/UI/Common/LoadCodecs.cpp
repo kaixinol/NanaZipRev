@@ -10,7 +10,7 @@ EXTERNAL_CODECS
     - "Codecs"  subdir
   The order of check:
     1) directory of client executable
-    2) WIN32: directory for REGISTRY item [HKEY_*\Software\NanaZip\Path**]
+    2) WIN32: directory for REGISTRY item [HKEY_*\Software\NanaZipRev\Path**]
        The order for HKEY_* : Path** :
          - HKEY_CURRENT_USER  : PathXX
          - HKEY_LOCAL_MACHINE : PathXX
@@ -100,7 +100,12 @@ static CFSTR const kMainDll =
 
 #ifdef _WIN32
 
-static LPCTSTR const kRegistryPath = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZip");
+// **************** NanaZip Modification Start ****************
+// The fork keeps its settings under its own key, so an installed
+// upstream package and this one never read each other's settings.
+//static LPCTSTR const kRegistryPath = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZip");
+static LPCTSTR const kRegistryPath = TEXT("Software") TEXT(STRING_PATH_SEPARATOR) TEXT("NanaZipRev");
+// **************** NanaZip Modification End ****************
 static LPCWSTR const kProgramPathValue = L"Path";
 static LPCWSTR const kProgramPath2Value = L"Path"
   #ifdef _WIN64

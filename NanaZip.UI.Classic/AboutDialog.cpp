@@ -63,7 +63,7 @@ void NanaZip::FileManager::AboutDialog::Show(
 
         if (TDN_BUTTON_CLICKED == msg && IDB_ABOUT_HOMEPAGE == wParam)
         {
-            OpenWebSite(L"https://github.com/M2Team/NanaZip");
+            OpenWebSite(L"https://github.com/kaixinol/NanaZipRev");
             return S_FALSE;
         }
 
@@ -74,11 +74,11 @@ void NanaZip::FileManager::AboutDialog::Show(
         ::LangString(IDD_ABOUT));
     if (WindowTitle.empty())
     {
-        WindowTitle = L"About NanaZip";
+        WindowTitle = L"About NanaZip Rev";
     }
 
     std::wstring WindowMainInstruction = std::wstring(
-        "NanaZip " MILE_PROJECT_VERSION_STRING);
+        "NanaZip Rev " MILE_PROJECT_VERSION_STRING);
     WindowMainInstruction.append(
         L" (" MILE_PROJECT_DOT_VERSION_STRING L")");
     WindowMainInstruction.append(
@@ -88,7 +88,7 @@ void NanaZip::FileManager::AboutDialog::Show(
         ::LangString(IDT_ABOUT_INFO));
     if (WindowContent.empty())
     {
-        WindowContent = L"NanaZip is free software";
+        WindowContent = L"NanaZip Rev is free software";
     }
 #ifdef EXTERNAL_CODECS
     if (g_CodecsObj)

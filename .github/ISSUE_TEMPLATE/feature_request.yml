@@ -1,5 +1,5 @@
 ﻿name: Feature request
-description: Request a new feature into NanaZip.
+description: Request a new feature into NanaZip Rev.
 labels: ["enhancement"]
 body:
   - type: textarea

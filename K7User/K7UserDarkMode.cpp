@@ -153,7 +153,7 @@ namespace
         HKEY KeyHandle = nullptr;
         if (ERROR_SUCCESS == ::RegOpenKeyExW(
             HKEY_CURRENT_USER,
-            L"Software\\NanaZip\\FM",
+            L"Software\\NanaZipRev\\FM",
             0,
             KEY_READ,
             &KeyHandle))

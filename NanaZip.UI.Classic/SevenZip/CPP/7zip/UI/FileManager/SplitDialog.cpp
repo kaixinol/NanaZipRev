@@ -109,7 +109,7 @@ void CSplitDialog::OnOK()
   volumeString.Trim();
   if (!ParseVolumeSizes(volumeString, VolumeSizes) || VolumeSizes.Size() == 0)
   {
-    ::MessageBoxW(*this, LangString(IDS_INCORRECT_VOLUME_SIZE), L"NanaZip", MB_ICONERROR);
+    ::MessageBoxW(*this, LangString(IDS_INCORRECT_VOLUME_SIZE), L"NanaZip Rev", MB_ICONERROR);
     return;
   }
   CModalDialog::OnOK();

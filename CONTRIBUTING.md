@@ -1,11 +1,11 @@
-﻿# Contributing to NanaZip
+﻿# Contributing to NanaZip Rev
 
 ## How to become a contributor
 
 - Direct contributions
   - We use a code style similar but not identical to that of Windows NT kernel
     drivers. You must read the code style guidelines carefully, word by word,
-    before submitting your pull request. To maintain NanaZip's source code
+    before submitting your pull request. To maintain NanaZip Rev's source code
     quality, and to respect our reviewers' time, we will not accept PRs that
     don't follow these guidelines.
   - We expect all contributions to match our existing style WITHOUT EXCEPTION.
@@ -26,7 +26,7 @@
 - Feedback suggestions and bugs.
   - We use GitHub issues to track bugs and features.
   - For bugs and general issues please 
-    [file a new issue](https://github.com/M2Team/NanaZip/issues/new).
+    [file a new issue](https://github.com/kaixinol/NanaZipRev/issues/new).
 
 ## Code contribution guidelines
 
@@ -34,23 +34,23 @@
 
 - Visual Studio 2022 or later.
   - You also need install ARM64 components (MSVC Toolchain and ATL/MFC) if you
-    want to compile the ARM64 version of NanaZip.
+    want to compile the ARM64 version of NanaZip Rev.
 - Windows 11 SDK or later.
   - You also need to install ARM64 components if you want to compile the ARM64
-    version of NanaZip.
+    version of NanaZip Rev.
 
-### How to build all targets of NanaZip
+### How to build all targets of NanaZip Rev
 
 Run `BuildAllTargets.bat` in the root of the repository.
 
-### How to modify or debugging NanaZip
+### How to modify or debugging NanaZip Rev
 
 Recommend to run `RestoreNuGetPackages.cmd` in the root of the repository to
 restore NuGet packages if you have not run this script or `BuildAllTargets.bat`
 before. (Recent versions of Visual Studio 2026 has some issues to restore NuGet
 packages automatically.)
 
-Open `NanaZip.slnx` in the root of the repository.
+Open `NanaZip Rev.slnx` in the root of the repository.
 
 ### Code style and conventions
 
@@ -66,7 +66,7 @@ plugin.
 #### Modifications for inherited 7-Zip mainline source code
 
 > [!NOTE]
-> Read https://github.com/M2Team/NanaZip/blob/main/License.md first for knowing
+> Read https://github.com/kaixinol/NanaZipRev/blob/nanazip-rev/License.md first for knowing
 > which files whether belong to inherited 7-Zip mainline source code.**
 
 > [!NOTE]
@@ -131,7 +131,7 @@ maintenance in the future.
 #### Synchronization between components
 
 To minimize the work when synchronizing with upstream code, the following should
-be done when proposing changes to NanaZip:
+be done when proposing changes to NanaZip Rev:
 
 - Synchronize between Core and Universal.
 - Synchronize between UI.Classic and UI.Modern.

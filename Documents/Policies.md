@@ -1,6 +1,6 @@
-﻿# NanaZip Policies
+﻿# NanaZip Rev Policies
 
-Starting with NanaZip 6.0, users can configure system‑wide policies under the
+Starting with NanaZip Rev 6.0, users can configure system‑wide policies under the
 Windows registry key `HKLM\Software\Policies\M2Team\NanaZip`.
 
 These system-wide policies override user settings and are intended for use by
@@ -12,14 +12,14 @@ You can enforce these policies on an entire domain using our
 
 Here are the currently provided policies and their descriptions.
 
-## Available policies since NanaZip 6.0
+## Available policies since NanaZip Rev 6.0
 
-### Allow dynamic code generation for all NanaZip components
+### Allow dynamic code generation for all NanaZip Rev components
 
-NanaZip disables dynamic code generation for its components by default in
+NanaZip Rev disables dynamic code generation for its components by default in
 Release builds to reduce the risk of running potentially malicious code at
 runtime. However, some third‑party software that relies on dynamic code
-generation and injects code into NanaZip processes may require this feature
+generation and injects code into NanaZip Rev processes may require this feature
 to be enabled for compatibility.
 
 - Name: `AllowDynamicCodeGeneration`
@@ -28,9 +28,9 @@ to be enabled for compatibility.
   - `0`: Disabled (Default)
   - `1`: Enabled
 
-### Allow child processes creation for all NanaZip components
+### Allow child processes creation for all NanaZip Rev components
 
-NanaZip blocks child process creation by default in its command line components
+NanaZip Rev blocks child process creation by default in its command line components
 and self‑extracting executables to reduce the risk of process abuse by malicious
 archives. However, some third‑party input method editors (IMEs) and assistive
 technologies (ATs) may require child process creation to function correctly. In
@@ -44,9 +44,9 @@ such cases, this policy can be used to allow child process creation.
 
 ### Archive handler restrictions
 
-These values control which archive handlers can be loaded by NanaZip.
+These values control which archive handlers can be loaded by NanaZip Rev.
 
-With this policy, you can significantly limit the attack surface of NanaZip by
+With this policy, you can significantly limit the attack surface of NanaZip Rev by
 blocking the parsing of unusual archive formats.
 
 If AllowedHandlers is present, only the handlers specified in said list will be
@@ -70,7 +70,7 @@ must be on its own line.
 - Type: `REG_MULTI_SZ`
 - Value: List of blocked archive handlers (case-sensitive).
 
-Known archive handlers (as of NanaZip 6.0 Preview 2):
+Known archive handlers (as of NanaZip Rev 6.0 Preview 2):
 
 ```
 .Electron Archive (asar), .NET Single File Application, 7z, APFS, APM, Ar, Arj,
@@ -82,12 +82,12 @@ UEFIf, UFS, VDI, VHD, VHDX, VMDK, WebAssembly (WASM), wim, Xar, xz, Z, ZealFS,
 zip, zstd
 ```
 
-Run `NanaZipC --version` to see the full list of currently-enabled handlers.
+Run `NanaZip RevC --version` to see the full list of currently-enabled handlers.
 
 ### Codec restrictions
 
 Similarly to archive handler restrictions, these values control which codecs can
-be loaded by NanaZip.
+be loaded by NanaZip Rev.
 
 **Note:** Some single-codec archive formats (e.g. Brotli) may call their
 associated codecs without respecting codec restrictions. If you want to fully
@@ -104,7 +104,7 @@ blocked.
 - Type: `REG_MULTI_SZ`
 - Value: List of blocked codecs (case-sensitive).
 
-Known codecs (as of NanaZip 6.0 Preview 2):
+Known codecs (as of NanaZip Rev 6.0 Preview 2):
 
 ```
 7zAES, AES256CBC, ARM, ARM64, ARMT, BCJ, BCJ2, BROTLI, BZip2, Copy, Deflate,
@@ -112,7 +112,7 @@ Deflate64, Delta, FLZMA2, IA64, LIZARD, LZ4, LZ5, LZMA, LZMA2, PPC, PPMD, Rar1,
 Rar2, Rar3, Rar5, RISCV, SPARC, Swap2, Swap4, ZSTD
 ```
 
-Run `NanaZipC --version` to see the full list of currently-enabled codecs.
+Run `NanaZip RevC --version` to see the full list of currently-enabled codecs.
 
 ### Propagate Zone.Id stream
 
@@ -125,20 +125,20 @@ This value controls Mark-of-the-Web (MOTW) propagation of archive files.
     - `1`: Yes (all files)
     - `2`: Only for unsafe extensions (does not support all nested archives)
 
-## Legacy Policies in NanaZip 6.0 Preview 1
+## Legacy Policies in NanaZip Rev 6.0 Preview 1
 
-In NanaZip 6.0 Preview 1, system-wide policies should be set via creating
+In NanaZip Rev 6.0 Preview 1, system-wide policies should be set via creating
 Registry values in the key `HKLM\Software\NanaZip\Policies` instead.
 
-Here are the policies can be applied in NanaZip 6.0 Preview 1.
+Here are the policies can be applied in NanaZip Rev 6.0 Preview 1.
 
 - WriteZoneIdExtract
 
-Here are some policies only available in NanaZip 6.0 Preview 1.
+Here are some policies only available in NanaZip Rev 6.0 Preview 1.
 
 ### Disable mitigations
 
-This value controls which security mitigations should not be applied by NanaZip.
+This value controls which security mitigations should not be applied by NanaZip Rev.
 
 - Name: `DisableMitigations`
 - Type: `REG_DWORD`

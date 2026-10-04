@@ -40,7 +40,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Resource0" xml:space="preserve">
-    <value>NanaZip</value>
+    <value>NanaZip Rev</value>
   </data>
   <data name="Resource1" xml:space="preserve">
     <value>English</value>
@@ -268,7 +268,7 @@
     <value>&amp;Contents...</value>
   </data>
   <data name="Resource961" xml:space="preserve">
-    <value>About NanaZip...</value>
+    <value>About NanaZip Rev...</value>
   </data>
   <data name="Resource1003" xml:space="preserve">
     <value>Path</value>
@@ -550,13 +550,13 @@
     <value>System</value>
   </data>
   <data name="Resource2201" xml:space="preserve">
-    <value>Associate NanaZip with:</value>
+    <value>Associate NanaZip Rev with:</value>
   </data>
   <data name="Resource2202" xml:space="preserve">
     <value>All users</value>
   </data>
   <data name="Resource2301" xml:space="preserve">
-    <value>Integrate NanaZip to shell context menu</value>
+    <value>Integrate NanaZip Rev to shell context menu</value>
   </data>
   <data name="Resource2302" xml:space="preserve">
     <value>Cascaded context menu</value>
@@ -667,10 +667,10 @@
     <value>Use Lowercase Hashes</value>
   </data>
   <data name="Resource2900" xml:space="preserve">
-    <value>About NanaZip</value>
+    <value>About NanaZip Rev</value>
   </data>
   <data name="Resource2901" xml:space="preserve">
-    <value>NanaZip is free software</value>
+    <value>NanaZip Rev is free software</value>
   </data>
   <data name="Resource3000" xml:space="preserve">
     <value>The system cannot allocate the required amount of memory</value>
@@ -1444,6 +1444,6 @@ Are you sure you want to split archive into such volumes?</value>
     <value>Integration</value>
   </data>
   <data name="Resource12201" xml:space="preserve">
-    <value>Open Windows Settings app to associate files with NanaZip</value>
+    <value>Open Windows Settings app to associate files with NanaZip Rev</value>
   </data>
 </root>
