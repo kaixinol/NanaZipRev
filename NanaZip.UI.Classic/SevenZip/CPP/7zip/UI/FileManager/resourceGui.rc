@@ -16,4 +16,12 @@ BEGIN
 
   IDS_OPENNING  "Opening..."
   IDS_SCANNING  "Scanning..."
+
+  // **************** NanaZip Modification Start ****************
+  // The three entries of IDC_SETTINGS_THEME_MODE, in the order of the theme
+  // modes the settings page offers.
+  IDS_SETTINGS_THEME_MODE_SYSTEM   "Follow the system"
+  IDS_SETTINGS_THEME_MODE_LIGHT    "Always light"
+  IDS_SETTINGS_THEME_MODE_DARK     "Always dark"
+  // **************** NanaZip Modification End ****************
 END

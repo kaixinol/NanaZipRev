@@ -17,6 +17,11 @@
 #include "SettingsPage.h"
 #include "SettingsPageRes.h"
 
+// **************** NanaZip Modification Start ****************
+#include "App.h"
+#include <K7User.h>
+// **************** NanaZip Modification End ****************
+
 using namespace NWindows;
 
 static const UInt32 kLangIDs[] =
@@ -36,6 +41,7 @@ static const UInt32 kLangIDs[] =
   IDX_SETTINGS_LOWERCASE_HASHES,
   // **************** NanaZip Modification Start ****************
   IDX_SETTINGS_SHOW_FILE_SIZE_UNITS,
+  IDT_SETTINGS_THEME_MODE,
   // **************** NanaZip Modification End ****************
   // , IDT_COMPRESS_MEMORY
 };
@@ -144,6 +150,25 @@ bool CSettingsPage::OnInit()
   CheckButton(IDX_SETTINGS_LOWERCASE_HASHES, st.LowercaseHashes);
   // **************** NanaZip Modification Start ****************
   CheckButton(IDX_SETTINGS_SHOW_FILE_SIZE_UNITS, st.ShowFileSizeUnits);
+
+  NWindows::NControl::CComboBox ThemeModeComboBox;
+  ThemeModeComboBox.Attach(GetItem(IDC_SETTINGS_THEME_MODE));
+  // The entries are laid out in the order of EThemeMode, so the index of the
+  // selected entry is the stored theme mode.
+  const UINT32 ThemeModeLangIDs[] =
+  {
+    IDS_SETTINGS_THEME_MODE_SYSTEM,
+    IDS_SETTINGS_THEME_MODE_LIGHT,
+    IDS_SETTINGS_THEME_MODE_DARK
+  };
+  for (UINT32 Index = 0; Index < ARRAY_SIZE(ThemeModeLangIDs); ++Index)
+  {
+    ThemeModeComboBox.AddString(LangString(ThemeModeLangIDs[Index]));
+    if (Index == ReadRegThemeMode())
+    {
+      ThemeModeComboBox.SetCurSel(static_cast<int>(Index));
+    }
+  }
   // **************** NanaZip Modification End ****************
 
   /*
@@ -254,6 +279,30 @@ LONG CSettingsPage::OnApply()
     _largePages_wasChanged = false;
   }
   #endif
+
+  // **************** NanaZip Modification Start ****************
+  NWindows::NControl::CComboBox ThemeModeComboBox;
+  ThemeModeComboBox.Attach(GetItem(IDC_SETTINGS_THEME_MODE));
+  int const SelectedThemeMode = ThemeModeComboBox.GetCurSel();
+  // The combo box is empty when the page is not created yet, and the stored
+  // setting should be kept in that case.
+  if (SelectedThemeMode >= 0)
+  {
+    SaveRegThemeMode(static_cast<UInt32>(SelectedThemeMode));
+
+    // Apply the new theme to the windows which are already open. The
+    // ImmersiveColorSet notification re-evaluates the effective theme,
+    // re-themes the window tree and repaints it, so raising it is enough and
+    // no second refresh path is needed.
+    HWND MainWindow = g_App._window;
+    ::K7UserRefreshTheme();
+    ::SendMessageW(
+      MainWindow,
+      WM_SETTINGCHANGE,
+      0,
+      reinterpret_cast<LPARAM>(L"ImmersiveColorSet"));
+  }
+  // **************** NanaZip Modification End ****************
 
   /*
   if (_wasChanged_MemLimit)

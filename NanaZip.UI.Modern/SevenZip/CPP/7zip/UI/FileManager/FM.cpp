@@ -744,6 +744,14 @@ void NanaZipInitialize()
         ::ErrorMessage(L"K7ModernInitialize Failed");
         ::ExitProcess(1);
     }
+
+    // Initializing the XAML apartment resets the preferred app mode of
+    // uxtheme, which is what selects the theme data the popup menus and the
+    // other classic surfaces are painted with. K7UserInitializeDarkModeSupport
+    // runs before it and therefore cannot keep it, so the effective theme has
+    // to be applied again here. Without this the menus follow the system until
+    // the theme mode is changed once.
+    ::K7UserRefreshTheme();
 }
 // **************** NanaZip Modification End ****************
 
