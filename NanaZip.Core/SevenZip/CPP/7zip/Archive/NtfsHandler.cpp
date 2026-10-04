@@ -2885,6 +2885,14 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
     else if (IsString1PrefixedByString2_NoCase_Ascii(name, "memuse"))
     {
     }
+// **************** NanaZip Modification Start ***************
+    /* NTFS stores names as UTF-16, so a code page cannot change how they
+       read. Ignoring the property keeps the reopen that carries it from
+       failing on an image whose names never needed decoding. */
+    else if (StringsAreEqualNoCase_Ascii(name, "cp"))
+    {
+    }
+// **************** NanaZip Modification End ***************
     else
       return E_INVALIDARG;
   }

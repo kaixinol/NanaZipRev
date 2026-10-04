@@ -466,7 +466,20 @@ Z7_COM7F_IMF(CHandler::UpdateItems(ISequentialOutStream *outStream, UInt32 numIt
 
 Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVARIANT *values, UInt32 numProps))
 {
-  return _props.SetProperties(names, values, numProps);
+// **************** NanaZip Modification Start ***************
+  /* A bzip2 stream carries no entry name, so there is no code page to
+     apply. CMethodProps::SetParam rejects a name it does not know,
+     which would fail the reopen that carries "cp", so the property is
+     dropped here and every other property is passed on as before. */
+  _props.Init();
+  for (UInt32 i = 0; i < numProps; i++)
+  {
+    if (IsString1PrefixedByString2_NoCase_Ascii(names[i], "cp"))
+      continue;
+    RINOK(_props.SetProperty(names[i], values[i]))
+  }
+  return S_OK;
+// **************** NanaZip Modification End ***************
 }
 
 static const Byte k_Signature[] = { 'B', 'Z', 'h' };

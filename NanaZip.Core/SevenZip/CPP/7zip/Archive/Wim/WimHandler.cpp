@@ -1243,6 +1243,15 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
       RINOK(ParsePropToUInt32(name, prop, crcSize))
       _disable_Sha1Check = (crcSize == 0);
     }
+// **************** NanaZip Modification Start ***************
+    /* WIM names come from an embedded XML resource, which the format
+       defines as UTF-8, so there is no code page to apply here. The
+       property is swallowed instead of rejected, because rejecting it
+       fails the reopen that carries it. */
+    else if (name.IsEqualTo("cp"))
+    {
+    }
+// **************** NanaZip Modification End ***************
     else
     {
       bool processed = false;

@@ -1196,6 +1196,14 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
           continue;
         }
       }
+// **************** NanaZip Modification Start ***************
+      /* 7z keeps entry names as UTF-16, so a code page has nothing to
+         decode. The property is still accepted rather than rejected,
+         because it is sent on every reopen and refusing it would fail
+         the reopen instead of just ignoring the request. */
+      if (name.IsEqualTo("cp"))
+        continue;
+// **************** NanaZip Modification End ***************
       return E_INVALIDARG;
     }
   }

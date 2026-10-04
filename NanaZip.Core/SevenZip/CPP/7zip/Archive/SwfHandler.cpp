@@ -581,7 +581,19 @@ Z7_COM7F_IMF(CHandler::UpdateItems(ISequentialOutStream *outStream, UInt32 numIt
 Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVARIANT *values, UInt32 numProps))
 {
   _lzmaMode = false;
-  RINOK(_props.SetProperties(names, values, numProps))
+// **************** NanaZip Modification Start ***************
+  /* The entries of an SWF stream are its tags, which this handler names
+     after their index and type rather than after a stored string, so a
+     code page has nothing to decode. The property is dropped so that the
+     reopen carrying it does not fail in the method props below. */
+  _props.Init();
+  for (UInt32 i = 0; i < numProps; i++)
+  {
+    if (IsString1PrefixedByString2_NoCase_Ascii(names[i], "cp"))
+      continue;
+    RINOK(_props.SetProperty(names[i], values[i]))
+  }
+// **************** NanaZip Modification End ***************
   const AString &m = _props.MethodName;
   if (m.IsEqualTo_Ascii_NoCase("lzma"))
   {
