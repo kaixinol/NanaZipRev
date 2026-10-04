@@ -28,6 +28,11 @@
 #include <winrt/Windows.Globalization.h>
 #include <winrt/Windows.UI.Xaml.Hosting.h>
 
+#include <winreg.h>
+#include <dwmapi.h>
+#pragma comment(lib, "Advapi32.lib")
+#pragma comment(lib, "dwmapi.lib")
+
 #include <mutex>
 #include <map>
 #include <vector>
@@ -252,6 +257,214 @@ EXTERN_C HRESULT WINAPI K7ModernSetLanguageOverride(
 
 namespace
 {
+    // The theme mode is exposed by the File Manager settings and is stored as
+    // a REG_DWORD under HKCU\Software\NanaZip\FM\ThemeMode. This library does
+    // not link against K7User, so the value is read here instead of through
+    // K7UserReadThemeMode and the meaning of each number has to be kept in
+    // sync with K7_USER_THEME_MODE by hand.
+    enum class ThemeMode : DWORD
+    {
+        System = 0,
+        Light = 1,
+        Dark = 2
+    };
+
+    static ThemeMode ReadThemeMode()
+    {
+        DWORD Value = 0;
+        DWORD ValueSize = sizeof(Value);
+
+        HKEY KeyHandle = nullptr;
+        if (ERROR_SUCCESS == ::RegOpenKeyExW(
+            HKEY_CURRENT_USER,
+            L"Software\\NanaZip\\FM",
+            0,
+            KEY_READ,
+            &KeyHandle))
+        {
+            if (ERROR_SUCCESS != ::RegQueryValueExW(
+                KeyHandle,
+                L"ThemeMode",
+                nullptr,
+                nullptr,
+                reinterpret_cast<LPBYTE>(&Value),
+                &ValueSize))
+            {
+                Value = 0;
+            }
+            ::RegCloseKey(KeyHandle);
+        }
+
+        // A hand edited registry must not select an undefined theme.
+        if (Value > static_cast<DWORD>(ThemeMode::Dark))
+        {
+            Value = static_cast<DWORD>(ThemeMode::System);
+        }
+        return static_cast<ThemeMode>(Value);
+    }
+
+    static bool ShouldUseDarkMode()
+    {
+        // The immersive color policy state is refreshed by K7User before this
+        // is called, so it already reflects the current policy of the system.
+        const bool SystemShouldUseDarkMode =
+            ::MileShouldAppsUseDarkMode() &&
+            !::MileShouldAppsUseHighContrastMode();
+
+        switch (::ReadThemeMode())
+        {
+        case ThemeMode::Light:
+            return false;
+        case ThemeMode::Dark:
+            return true;
+        default:
+            return SystemShouldUseDarkMode;
+        }
+    }
+
+    // Tells the window which hosts the island how it is painted, which is a
+    // layer of its own next to the XAML visual tree. Mile decides it from
+    // ActualTheme when the content is set and does not look at it again, so a
+    // window whose RequestedTheme was just changed keeps the values the system
+    // had at that moment: the immersive dark mode policy of the window and the
+    // background color it is painted with. Both have to be set again here.
+    //
+    // The notification is raised as well, because it is what forwards the
+    // change to the CoreWindow compatibility window, which is where the
+    // runtime theme switch of a XAML island is actually applied. It cannot do
+    // the work on its own, though: its handler reads ActualTheme back from the
+    // content and only repaints when the content already has a parent, which
+    // a freshly created top level window does not have yet.
+    static void RefreshHostWindowTheme(
+        _In_ HWND WindowHandle,
+        _In_ bool UseDarkMode)
+    {
+        if (S_OK == ::MileEnableImmersiveDarkModeForWindow(
+            WindowHandle,
+            UseDarkMode))
+        {
+            const MARGINS Margins = { -1 };
+            ::DwmExtendFrameIntoClientArea(WindowHandle, &Margins);
+        }
+        else if (::SetPropW(
+            WindowHandle,
+            L"BackgroundFallbackColor",
+            reinterpret_cast<HANDLE>(
+                static_cast<ULONG_PTR>(::MileGetDefaultBackgroundColorValue(
+                    UseDarkMode)))))
+        {
+            ::InvalidateRect(WindowHandle, nullptr, TRUE);
+        }
+
+        ::SendMessageW(
+            WindowHandle,
+            WM_SETTINGCHANGE,
+            0,
+            reinterpret_cast<LPARAM>(L"ImmersiveColorSet"));
+    }
+}
+
+namespace
+{
+    static void ApplyXamlTheme(_In_ HWND WindowHandle)
+    {
+        winrt::Windows::UI::Xaml::Hosting::DesktopWindowXamlSource XamlSource =
+            nullptr;
+        // Mile.Xaml stores the island source on the window it hosts, which is
+        // how the rest of this library reaches the islands it already owns.
+        winrt::copy_from_abi(
+            XamlSource,
+            ::GetPropW(WindowHandle, L"XamlWindowSource"));
+        if (!XamlSource)
+        {
+            return;
+        }
+
+        winrt::Windows::UI::Xaml::FrameworkElement RootElement = nullptr;
+        try
+        {
+            RootElement = XamlSource.Content().try_as<
+                winrt::Windows::UI::Xaml::FrameworkElement>();
+        }
+        catch (...)
+        {
+            return;
+        }
+        if (!RootElement)
+        {
+            return;
+        }
+
+        // FrameworkElement.RequestedTheme takes an ElementTheme, which
+        // cannot be implicitly converted from an ApplicationTheme.
+        const bool UseDarkMode = ::ShouldUseDarkMode();
+        const winrt::Windows::UI::Xaml::ElementTheme Theme =
+            (UseDarkMode
+                ? winrt::Windows::UI::Xaml::ElementTheme::Dark
+                : winrt::Windows::UI::Xaml::ElementTheme::Light);
+        if (RootElement.RequestedTheme() != Theme)
+        {
+            RootElement.RequestedTheme(Theme);
+        }
+
+        // The host window has to be notified either way. It is not only the
+        // host window theme which is stale then: the theme of a newly created
+        // island is the default one again, so the values Mile took from it
+        // when the content was set describe the system and not the selection.
+        ::RefreshHostWindowTheme(WindowHandle, UseDarkMode);
+    }
+
+    static BOOL CALLBACK ApplyXamlThemeToChild(
+        _In_ HWND ChildWindowHandle,
+        _In_ LPARAM lParam)
+    {
+        UNREFERENCED_PARAMETER(lParam);
+
+        try
+        {
+            ::ApplyXamlTheme(ChildWindowHandle);
+        }
+        catch (...)
+        {
+            // One island which cannot be themed must not stop the others.
+        }
+
+        return TRUE;
+    }
+}
+
+EXTERN_C HRESULT WINAPI K7ModernRefreshTheme(
+    _In_opt_ HWND WindowHandle)
+{
+    if (!WindowHandle)
+    {
+        return E_INVALIDARG;
+    }
+
+    // The islands are child windows of the window passed in, so the theme is
+    // applied to the window itself and to every descendant. The address bar,
+    // the main window tool bar and the status bar are all hosted this way, and
+    // a newly created island starts with the default theme again, so this has
+    // to run over the whole tree rather than over one window.
+    try
+    {
+        ::ApplyXamlTheme(WindowHandle);
+
+        ::EnumChildWindows(
+            WindowHandle,
+            ::ApplyXamlThemeToChild,
+            0);
+    }
+    catch (...)
+    {
+        return winrt::to_hresult();
+    }
+
+    return S_OK;
+}
+
+namespace
+{
     static winrt::NanaZip::Modern::App g_AppInstance = nullptr;
 }
 
@@ -450,6 +663,13 @@ namespace
             ScaledWidth,
             ScaledHeight,
             SWP_NOZORDER | SWP_NOACTIVATE);
+
+        // A window which hosts XAML on its own is not among the islands of
+        // another window, so the refresh which walks those islands does not
+        // reach it. It is themed here instead, right before it is shown,
+        // because freshly set XAML content carries the default theme again,
+        // which is not necessarily the theme that was selected.
+        ::ApplyXamlTheme(WindowHandle);
 
         ::ShowWindow(WindowHandle, SW_SHOW);
         ::UpdateWindow(WindowHandle);
