@@ -640,6 +640,9 @@ public:
   Int32 _isRawSortProp;
 
   void SetSortRawStatus();
+  // **************** NanaZip Modification Start ****************
+  void UpdateSortIndicator();
+  // **************** NanaZip Modification End ****************
 
   void Release();
   ~CPanel();
