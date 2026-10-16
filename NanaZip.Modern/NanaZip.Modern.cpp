@@ -39,6 +39,7 @@
 
 namespace winrt
 {
+    using Windows::ApplicationModel::Resources::Core::NamedResource;
     using Windows::ApplicationModel::Resources::Core::ResourceCandidate;
     using Windows::ApplicationModel::Resources::Core::ResourceContext;
     using Windows::ApplicationModel::Resources::Core::ResourceManager;
@@ -144,9 +145,15 @@ namespace
                     // Resource 2200 is the name of the entry which follows the
                     // system language settings, so all the provided languages
                     // have it, and its candidates are the provided languages.
+                    // The named resource is kept in a variable because the
+                    // candidate view it hands out does not keep it alive: a
+                    // range based for ends the lifetime of the temporary the
+                    // view was built from at the end of its initializer, which
+                    // would leave the loop iterating a released resource.
+                    winrt::NamedResource LanguageNameResource =
+                        LegacyResourceMap.Lookup(L"Resource2200");
                     for (winrt::ResourceCandidate const& Candidate
-                        : LegacyResourceMap.Lookup(
-                            L"Resource2200").Candidates())
+                        : LanguageNameResource.Candidates())
                     {
                         winrt::hstring Tag =
                             Candidate.GetQualifierValue(L"Language");
