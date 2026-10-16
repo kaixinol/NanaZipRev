@@ -156,9 +156,6 @@ static const char * const kHelpString =
     "  t : Test integrity of archive\n"
     "  u : Update files to archive\n"
     "  x : eXtract files with full paths\n"
-    // **************** 7-Zip ZS Modification Start ****************
-    "  --version : Show version information\n"
-    // **************** 7-Zip ZS Modification End ****************
     "\n"
     "<Switches>\n"
     "  -- : Stop switches and @listfile parsing\n"
@@ -1717,6 +1714,12 @@ int Main2(
     );
 
   ThrowException_if_Error(hresultMain);
+  
+#ifdef Z7_EXTERNAL_CODECS
+  // for __clang_major__ >= 23 : for "-Wlifetime-safety-dangling-global" warning suppression
+  // we clear global pointer to local _externalCodecs:
+  g_ExternalCodecs_Ptr = NULL;
+#endif
 
   return retCode;
 }

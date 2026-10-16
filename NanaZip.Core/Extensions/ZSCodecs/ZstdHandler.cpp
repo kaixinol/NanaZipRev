@@ -11,8 +11,11 @@
 #include "../../SevenZip/CPP/7zip/Common/StreamUtils.h"
 
 #include "ZstdDecoder.h"
-#include "ZstdEncoder.h"
+// **************** NanaZip Modification Start ****************
+// #include "ZstdEncoder.h"
+#include "ZstdEncoder.hpp"
 #include "../../SevenZip/CPP/7zip/Compress/CopyCoder.h"
+// **************** NanaZip Modification End ****************
 
 #include "../../SevenZip/CPP/7zip/Archive/Common/DummyOutStream.h"
 #include "../../SevenZip/CPP/7zip/Archive/Common/HandlerOut.h"
@@ -276,11 +279,27 @@ static HRESULT UpdateArchive(
   CLocalProgress *localProgressSpec = new CLocalProgress;
   CMyComPtr<ICompressProgressInfo> localProgress = localProgressSpec;
   localProgressSpec->Init(updateCallback, true);
+  // **************** NanaZip Modification Start ****************
+  #if 0 // ******** Annotated 7-Zip ZS Source Code snippet Start ********
   NCompress::NZSTD::CEncoder *encoderSpec = new NCompress::NZSTD::CEncoder;
   // by zstd archive type store dictID and checksum (similar to zstd client)
   encoderSpec->dictIDFlag = 1;
   encoderSpec->checksumFlag = 1;
   encoderSpec->unpackSize = unpackSize;
+  #endif // ******** Annotated 7-Zip ZS Source Code snippet End ********
+  NanaZip::Core::Extensions::ZstdEncoder *encoderSpec =
+    new NanaZip::Core::Extensions::ZstdEncoder;
+
+  CMyComPtr<ICompressSetCoderPropertiesOpt> CoderPropertiesOpt = encoderSpec;
+  PROPID UnpackSizePropId = NCoderPropID::kExpectedDataSize;
+  PROPVARIANT UnpackSizeProp;
+  UnpackSizeProp.vt = VT_UI8;
+  UnpackSizeProp.uhVal.QuadPart = unpackSize;
+  RINOK(CoderPropertiesOpt->SetCoderPropertiesOpt(
+    &UnpackSizePropId,
+    &UnpackSizeProp,
+    1));
+  // **************** NanaZip Modification End ****************
   CMyComPtr<ICompressCoder> encoder = encoderSpec;
   RINOK(props.SetCoderProps(encoderSpec, NULL));
   RINOK(encoder->Code(fileInStream, outStream, NULL, NULL, localProgress));

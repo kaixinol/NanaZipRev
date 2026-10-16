@@ -22,6 +22,7 @@
   <Import Project="..\NanaZip.Project\NanaZip.Project.Runtime.props" />
   <Import Project="..\K7Base\K7Base.props" />
   <Import Project="..\NanaZip.Codecs\NanaZip.Codecs.props" />
+  <Import Project="..\NanaZip.ZS.Codecs\NanaZip.ZS.Codecs.props" />
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>Z7_EXTERNAL_CODECS;NSIS_SCRIPT;ZSTD_MULTITHREAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -40,34 +41,20 @@
     <None Include="SevenZip\ASM\x86\AesOpt.asm" />
     <None Include="SevenZip\ASM\x86\LzFindOpt.asm" />
     <None Include="SevenZip\ASM\x86\LzmaDecOpt.asm" />
+    <None Include="SevenZip\ASM\x86\Sha1Opt.asm" />
+    <None Include="SevenZip\ASM\x86\Sha256Opt.asm" />
     <None Include="SevenZip\ASM\x86\Sort.asm" />
     <None Include="SevenZip\ASM\x86\XzCrc64Opt.asm" />
     <None Include="SevenZip\CPP\7zip\Archive\Archive2.def" />
     <None Include="SevenZip\C\7zCrcOpt.c" />
-    <None Include="SevenZip\C\AesOpt.c" />
+    <None Include="SevenZip\C\AesOpt.c" /> 
+    <None Include="SevenZip\C\Sha1Opt.c" />
+    <None Include="SevenZip\C\Sha256Opt.c" />
     <None Include="SevenZip\C\XzCrc64Opt.c" />
     <None Include="SevenZip\C\LzFindOpt.c" />
     <None Include="SevenZip\C\Sort.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Extensions\ZSCodecs\BrotliDecoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\BrotliEncoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\BrotliHandler.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\BrotliRegister.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\FastLzma2Encoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\FastLzma2Register.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\LizardDecoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\LizardEncoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\LizardHandler.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\LizardRegister.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\Lz4Decoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\Lz4Encoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\Lz4Handler.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\Lz4Register.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\Lz5Decoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\Lz5Encoder.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\Lz5Handler.cpp" />
-    <ClCompile Include="Extensions\ZSCodecs\Lz5Register.cpp" />
     <ClCompile Include="Extensions\ZSCodecs\LzHandler.cpp" />
     <ClCompile Include="Extensions\ZSCodecs\ZstdDecoder.cpp" />
     <ClCompile Include="Extensions\ZSCodecs\ZstdEncoder.cpp" />
@@ -271,6 +258,13 @@
     <ClCompile Include="SevenZip\CPP\Common\MyString.cpp" />
     <ClCompile Include="SevenZip\CPP\Common\MyXml.cpp" />
     <ClCompile Include="SevenZip\CPP\Common\NewHandler.cpp" />
+    <ClCompile Include="SevenZip\CPP\Common\Sha1Prepare.cpp" />
+    <ClCompile Include="SevenZip\CPP\Common\Sha1Reg.cpp" />
+    <ClCompile Include="SevenZip\CPP\Common\Sha256Prepare.cpp" />
+    <ClCompile Include="SevenZip\CPP\Common\Sha256Reg.cpp" />
+    <ClCompile Include="SevenZip\CPP\Common\Sha3Reg.cpp" />
+    <ClCompile Include="SevenZip\CPP\Common\Sha512Prepare.cpp" />
+    <ClCompile Include="SevenZip\CPP\Common\Sha512Reg.cpp" />
     <ClCompile Include="SevenZip\CPP\Common\StringConvert.cpp" />
     <ClCompile Include="SevenZip\CPP\Common\StringToInt.cpp" />
     <ClCompile Include="SevenZip\CPP\Common\UTFConvert.cpp" />
@@ -317,6 +311,11 @@
     <ClCompile Include="SevenZip\C\Ppmd8.c" />
     <ClCompile Include="SevenZip\C\Ppmd8Dec.c" />
     <ClCompile Include="SevenZip\C\Ppmd8Enc.c" />
+    <ClCompile Include="SevenZip\C\Sha1.c" />
+    <ClCompile Include="SevenZip\C\Sha256.c" />
+    <ClCompile Include="SevenZip\C\Sha3.c" />
+    <ClCompile Include="SevenZip\C\Sha512.c" />
+    <ClCompile Include="SevenZip\C\Sha512Opt.c" />
     <ClCompile Include="SevenZip\C\SwapBytes.c" />
     <ClCompile Include="SevenZip\C\Threads.c" />
     <ClCompile Include="SevenZip\C\Xz.c" />
@@ -324,22 +323,10 @@
     <ClCompile Include="SevenZip\C\XzDec.c" />
     <ClCompile Include="SevenZip\C\XzEnc.c" />
     <ClCompile Include="SevenZip\C\XzIn.c" />
-    <ClCompile Include="Wrappers\Sha1Wrapper.cpp" />
-    <ClCompile Include="Wrappers\Sha256Wrapper.cpp" />
-    <ClCompile Include="Wrappers\Sha512Wrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Extensions\ZSCodecs\BrotliDecoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\BrotliEncoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\FastLzma2Encoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\LizardDecoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\LizardEncoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\Lz4Decoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\Lz4Encoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\Lz5Decoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\Lz5Encoder.h" />
     <ClInclude Include="Extensions\ZSCodecs\ZstdDecoder.h" />
-    <ClInclude Include="Extensions\ZSCodecs\ZstdEncoder.h" />
+    <ClInclude Include="Extensions\ZSCodecs\ZstdEncoder.hpp" />
     <ClInclude Include="SevenZip\CPP\7zip\Archive\7z\7zCompressionMode.h" />
     <ClInclude Include="SevenZip\CPP\7zip\Archive\7z\7zDecode.h" />
     <ClInclude Include="SevenZip\CPP\7zip\Archive\7z\7zEncode.h" />
@@ -578,6 +565,7 @@
     <ClInclude Include="SevenZip\C\RotateDefs.h" />
     <ClInclude Include="SevenZip\C\Sha1.h" />
     <ClInclude Include="SevenZip\C\Sha256.h" />
+    <ClInclude Include="SevenZip\C\Sha3.h" />
     <ClInclude Include="SevenZip\C\Sha512.h" />
     <ClInclude Include="SevenZip\C\Sort.h" />
     <ClInclude Include="SevenZip\C\SwapBytes.h" />
@@ -585,9 +573,6 @@
     <ClInclude Include="SevenZip\C\Xz.h" />
     <ClInclude Include="SevenZip\C\XzCrc64.h" />
     <ClInclude Include="SevenZip\C\XzEnc.h" />
-    <ClInclude Include="Wrappers\Sha1Wrapper.h" />
-    <ClInclude Include="Wrappers\Sha256Wrapper.h" />
-    <ClInclude Include="Wrappers\Sha512Wrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="SevenZip\CPP\7zip\Guid.txt" />
@@ -635,6 +620,30 @@
   <Target Name="NanaZipCoreLzFindOptHardwareAccelerationBuildCSource" BeforeTargets="BeforeClCompile">
     <ItemGroup Condition="'$(Platform)' != 'x64'">
       <ClCompile Include="SevenZip\C\LzFindOpt.c" />
+    </ItemGroup>
+  </Target>
+  <Target Name="NanaZipCoreSha1HardwareAccelerationBuildAssemblySource" BeforeTargets="_MASM">
+    <ItemGroup Condition="('$(Platform)'=='Win32') Or ('$(Platform)'=='x64')">
+      <MASM Include="SevenZip\ASM\x86\Sha1Opt.asm" />
+    </ItemGroup>
+  </Target>
+  <Target Name="NanaZipCoreSha1HardwareAccelerationBuildCSource" BeforeTargets="BeforeClCompile">
+    <ItemGroup Condition="('$(Platform)'!='Win32') And ('$(Platform)'!='x64')">
+      <ClCompile Include="SevenZip\C\Sha1Opt.c">
+        <Optimization Condition="'$(Configuration)'=='Release'">MaxSpeed</Optimization>
+      </ClCompile>
+    </ItemGroup>
+  </Target>
+  <Target Name="NanaZipCoreSha256HardwareAccelerationBuildAssemblySource" BeforeTargets="_MASM">
+    <ItemGroup Condition="('$(Platform)'=='Win32') Or ('$(Platform)'=='x64')">
+      <MASM Include="SevenZip\ASM\x86\Sha256Opt.asm" />
+    </ItemGroup>
+  </Target>
+  <Target Name="NanaZipCoreSha256HardwareAccelerationBuildCSource" BeforeTargets="BeforeClCompile">
+    <ItemGroup Condition="('$(Platform)'!='Win32') And ('$(Platform)'!='x64')">
+      <ClCompile Include="SevenZip\C\Sha256Opt.c">
+        <Optimization Condition="'$(Configuration)'=='Release'">MaxSpeed</Optimization>
+      </ClCompile>
     </ItemGroup>
   </Target>
   <Target Name="NanaZipCoreSortHardwareAccelerationBuildAssemblySource" BeforeTargets="_MASM">
