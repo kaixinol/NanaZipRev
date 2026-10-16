@@ -65,6 +65,11 @@ charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 
+## PowerShell scripts are run straight from a string by the ReadMe one-liner,
+## and a BOM at the head of that string breaks the 5.1 parser.
+[*.ps1]
+charset = utf-8
+
 [*.{asm,inc,s,nasm}]
 charset = utf-8
 indent_style = space
