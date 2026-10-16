@@ -32,8 +32,6 @@ system requirements, and the installation methods.
   stored in a legacy encoding on demand. The choice is remembered per archive,
   survives navigating between folders, applies to the archive comment as well,
   and is dimmed where no code page applies.
-- A read-only *Archive Comment* command on the *View* menu, which reports the
-  comment of an archive that is open for reading.
 - A *Show file size units* setting, which formats file sizes with the IEC
   binary prefixes instead of an exact byte count. It is off by default.
 - A language selector on the settings page of the Modern File Manager, which
@@ -54,7 +52,6 @@ from the one upstream NanaZip installs.
 | Package/Identity/Publisher | `CN=23EBD860-A383-4AEA-836A-B041352C93FF` |
 | PublisherDisplayName | `Kaesinol` |
 | Package Family Name | `Kaesinol.NanaZipRev_ebdn1z678t2d0` |
-| Store ID | `9MVLG8PS1JW3` |
 
 Because the identity differs, this package and the upstream package can both be
 installed side by side. They still compete for the same shell registrations,
@@ -69,25 +66,17 @@ other's settings and an upgrade from upstream does not carry them over.
 
 ## Installation
 
-The fork is published to the Microsoft Store under the Store ID above. Once it
-is listed, install it with:
+Install:
 
 ```powershell
-winget install --id Kaesinol.NanaZipRev
+irm https://raw.githubusercontent.com/kaixinol/NanaZipRev/refs/heads/nanazip-rev/Install.ps1 | iex
 ```
 
-The MSIX packages are also attached to
-[GitHub Releases](https://github.com/kaixinol/NanaZipRev/releases), and
-[App Installer](https://learn.microsoft.com/en-us/windows/msix/app-installer/install-update-app-installer)
-can install a downloaded package directly. The upstream ReadMe documents the
-command line methods in full; note that the uninstall command there filters on
-the upstream package name, so use `Kaesinol.NanaZipRev` when removing this
-fork.
+Uninstall:
 
-Because the publisher is the fork's own, the package is signed with a
-certificate issued for `CN=23EBD860-A383-4AEA-836A-B041352C93FF`. Installing it
-from a sideloaded file requires that signing certificate to be trusted on the
-machine.
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kaixinol/NanaZipRev/refs/heads/nanazip-rev/Install.ps1))) -Uninstall
+```
 
 ## Documents
 
@@ -435,9 +424,9 @@ If you open the Command Prompt as Administrator, you can execute:
 
 #### Useful Links
 
-- https://learn.microsoft.com/en-us/powershell/module/appx/add-appxpackage
-- https://learn.microsoft.com/en-us/powershell/module/dism/add-appxprovisionedpackage
-- https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-app-package--appx-or-appxbundle--servicing-command-line-options
+- <https://learn.microsoft.com/en-us/powershell/module/appx/add-appxpackage>
+- <https://learn.microsoft.com/en-us/powershell/module/dism/add-appxprovisionedpackage>
+- <https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-app-package--appx-or-appxbundle--servicing-command-line-options>
 
 ## Known issues
 
@@ -454,14 +443,14 @@ If you open the Command Prompt as Administrator, you can execute:
   `%UserProfile%/AppData` will still be redirected in Windows 11.
 - Due to the Microsoft Store limitations, NanaZip 1.2 and later won't support
   languages not mentioned in
-  https://docs.microsoft.com/en-us/windows/uwp/publish/supported-languages.
+  <https://docs.microsoft.com/en-us/windows/uwp/publish/supported-languages>.
 - If you turn off the Windows Firewall, NanaZip may fail to install.
-  (https://github.com/M2Team/NanaZip/issues/204)
-  (https://github.com/microsoft/terminal/issues/12269)
+  (<https://github.com/M2Team/NanaZip/issues/204>)
+  (<https://github.com/microsoft/terminal/issues/12269>)
 - Due to the System Settings limitations, starting with Windows 11+
   (Build 22000.1817+ & 22621.1555+), you can launch directly to the Settings
   page for file association for NanaZip.
-  (https://learn.microsoft.com/en-us/windows/uwp/launch-resume/launch-default-apps-settings)
+  (<https://learn.microsoft.com/en-us/windows/uwp/launch-resume/launch-default-apps-settings>)
 - Due to the Microsoft Store Licensing API implementation, you will find NanaZip
   will try to access the Internet beginning with NanaZip 3.0 because NanaZip
   needs to use that to check the Sponsor Edition addon licensing status.
