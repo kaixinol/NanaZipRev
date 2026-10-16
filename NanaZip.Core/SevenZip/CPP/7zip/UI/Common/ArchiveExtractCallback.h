@@ -491,13 +491,9 @@ public:
   UInt64 UnpackSize;
   UInt64 AltStreams_UnpackSize;
   
-  // **************** 7-Zip ZS Modification Start ****************
-  FString FirstExtractedPath;
-  // **************** 7-Zip ZS Modification End ****************
-  
   FString DirPathPrefix_for_HashFiles;
 
-  // **************** NanaZip Modification End ****************
+  // **************** NanaZip Modification Start ****************
   FString OutDir;
   // **************** NanaZip Modification End ****************
 
@@ -619,7 +615,7 @@ struct CArchiveExtractCallback_Closer
 {
   CArchiveExtractCallback *_ref;
   
-  CArchiveExtractCallback_Closer(CArchiveExtractCallback *ref): _ref(ref) {}
+  CArchiveExtractCallback_Closer(CArchiveExtractCallback *ref Z7_lifetimebound): _ref(ref) {}
   
   HRESULT Close()
   {

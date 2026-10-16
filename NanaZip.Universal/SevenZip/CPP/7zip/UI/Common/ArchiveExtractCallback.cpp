@@ -1448,6 +1448,7 @@ HRESULT CArchiveExtractCallback::GetExtractStream(CMyComPtr<ISequentialOutStream
         SET_NEED_SET_OWNER
         SET_OWNER
       }
+      needExit = false; // v26.04 : we want (_hashStreamWasUsed = true) for dir items.
       return S_OK;
     }
   }
@@ -1460,10 +1461,7 @@ HRESULT CArchiveExtractCallback::GetExtractStream(CMyComPtr<ISequentialOutStream
   }
   
   _diskFilePath = fullProcessedPath;
-  // **************** 7-Zip ZS Modification Start ****************
-  if (FirstExtractedPath.IsEmpty())
-    FirstExtractedPath = fullProcessedPath;
-  // **************** 7-Zip ZS Modification End ****************
+    
 
   if (isAnti)
   {
@@ -1704,7 +1702,7 @@ HRESULT CArchiveExtractCallback::GetItem(UInt32 index)
 }
 
 
-Z7_COM7F_IMF(CArchiveExtractCallback::GetStream(UInt32 index, ISequentialOutStream **outStream, Int32 askExtractMode))
+Z7_COM7F_IMF(CArchiveExtractCallback::GetStream(const UInt32 index, ISequentialOutStream **outStream, const Int32 askExtractMode))
 {
   COM_TRY_BEGIN
 

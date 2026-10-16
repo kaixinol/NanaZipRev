@@ -1,474 +1,494 @@
-﻿// (C) 2016 - 2020 Tino Reichardt
-
-#include "../../SevenZip/CPP/7zip/Compress/StdAfx.h"
-#include "ZstdEncoder.h"
-#include "ZstdDecoder.h"
+﻿/*
+ * PROJECT:    NanaZip.Core
+ * FILE:       ZstdEncoder.cpp
+ * PURPOSE:    Implementation for Zstandard encoder
+ *
+ * LICENSE:    The MIT License
+ *
+ * MAINTAINER: Tu Dinh <contact@tudinh.xyz>
+ */
 
 #ifndef Z7_EXTRACT_ONLY
-namespace NCompress {
-namespace NZSTD {
 
-CEncoder::CEncoder():
-  _ctx(NULL),
-  _srcBuf(NULL),
-  _dstBuf(NULL),
-  _srcBufSize(ZSTD_CStreamInSize()),
-  _dstBufSize(ZSTD_CStreamOutSize()),
-  _processedIn(0),
-  _processedOut(0),
-  _numThreads(NWindows::NSystem::GetNumberOfProcessors()),
-  _Max(false),
-  _Long(-1),
-  _Level(ZSTD_CLEVEL_DEFAULT),
-  _Strategy(-1),
-  _WindowLog(-1),
-  _HashLog(-1),
-  _ChainLog(-1),
-  _SearchLog(-1),
-  _MinMatch(-1),
-  _TargetLen(-1),
-  _OverlapLog(-1),
-  _LdmHashLog(-1),
-  _LdmMinMatch(-1),
-  _LdmBucketSizeLog(-1),
-  _LdmHashRateLog(-1),
-  dictIDFlag(-1),
-  checksumFlag(-1),
-  unpackSize(0)
+#include <intrin.h>
+
+#include "ZstdEncoder.hpp"
+
+#include <zstd_errors.h>
+
+#include "../../SevenZip/CPP/7zip/Common/StreamUtils.h"
+
+namespace
 {
-  _props.clear();
-}
+    static HRESULT ZstdErrorCodeMap[ZSTD_error_maxCode];
 
-CEncoder::~CEncoder()
-{
-  if (_ctx) {
-    ZSTD_freeCCtx(_ctx);
-    MyFree(_srcBuf);
-    MyFree(_dstBuf);
-  }
-}
-
-Z7_COM7F_IMF(CEncoder::SetCoderProperties(const PROPID * propIDs, const PROPVARIANT * coderProps, UInt32 numProps))
-{
-  _props.clear();
-
-  for (UInt32 i = 0; i < numProps; i++)
-  {
-    const PROPVARIANT & prop = coderProps[i];
-    PROPID propID = propIDs[i];
-    UInt32 v = (UInt32)prop.ulVal;
-    switch (propID)
+    static HRESULT ZstdResultToHRESULT(std::size_t Result) noexcept
     {
-    case NCoderPropID::kNumThreads:
-      {
-        SetNumberOfThreads(v);
-        break;
-      }
-    case NCoderPropID::kStrategy:
-      {
-        if (v < 1) v = 1;
-        if (v > 8) v = 8;
-        _Strategy = v;
-        break;
-      }
-    case NCoderPropID::kAdvMax:
-      if (!v)
-        break;
-    #if Z7_ZSTD_ADVMAX_ALLOWED // 64-bit only
-      _Max = true;
-    #endif
-      v = Z7_ZSTD_ULTIMATE_LEV;
-      /* fall-through */
-    case NCoderPropID::kLevel:
-      {
-        _Level = !_Max ? v : Z7_ZSTD_ULTIMATE_LEV;
-        if (v < 1) {
-          _Level = 1;
-        } else if ((Int32)v > ZSTD_maxCLevel()) {
-          if ((Int32)v > Z7_ZSTD_FAST_LEV_INC && _Level != Z7_ZSTD_ULTIMATE_LEV) { // special case (inverter for fast lever)
-            v -= Z7_ZSTD_FAST_LEV_INC;
-            goto fastLevel;
-          }
-        #if Z7_ZSTD_ADVMAX_ALLOWED // 64-bit only
-          _Max = (_Level == Z7_ZSTD_ULTIMATE_LEV); // special case (level from GUI)
-        #endif
-          _Level = ZSTD_maxCLevel();
+        static const HRESULT *CachedMap = ([]() -> const HRESULT *
+        {
+            for (std::size_t Index = 0; Index < ZSTD_error_maxCode; Index++)
+            {
+                ZstdErrorCodeMap[Index] = E_FAIL;
+            }
+            // Inspired by SResToHRESULT in CWrappers.cpp
+            ZstdErrorCodeMap[ZSTD_error_no_error] = S_OK;
+            ZstdErrorCodeMap[ZSTD_error_prefix_unknown] = S_FALSE;
+            ZstdErrorCodeMap[ZSTD_error_version_unsupported] = E_NOTIMPL;
+            ZstdErrorCodeMap[ZSTD_error_frameParameter_unsupported] = E_NOTIMPL;
+            ZstdErrorCodeMap[ZSTD_error_frameParameter_windowTooLarge] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_corruption_detected] = S_FALSE;
+            ZstdErrorCodeMap[ZSTD_error_checksum_wrong] = S_FALSE;
+            ZstdErrorCodeMap[ZSTD_error_literals_headerWrong] = S_FALSE;
+            ZstdErrorCodeMap[ZSTD_error_dictionary_corrupted] = S_FALSE;
+            ZstdErrorCodeMap[ZSTD_error_dictionary_wrong] = S_FALSE;
+            ZstdErrorCodeMap[ZSTD_error_dictionaryCreation_failed] = E_FAIL;
+            ZstdErrorCodeMap[ZSTD_error_parameter_unsupported] = E_NOTIMPL;
+            ZstdErrorCodeMap[ZSTD_error_parameter_combination_unsupported] = E_NOTIMPL;
+            ZstdErrorCodeMap[ZSTD_error_parameter_outOfBound] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_tableLog_tooLarge] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_maxSymbolValue_tooLarge] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_maxSymbolValue_tooSmall] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_cannotProduce_uncompressedBlock] = E_FAIL;
+            ZstdErrorCodeMap[ZSTD_error_stabilityCondition_notRespected] = E_FAIL;
+            ZstdErrorCodeMap[ZSTD_error_stage_wrong] = E_FAIL;
+            ZstdErrorCodeMap[ZSTD_error_init_missing] = E_FAIL;
+            ZstdErrorCodeMap[ZSTD_error_memory_allocation] = E_OUTOFMEMORY;
+            ZstdErrorCodeMap[ZSTD_error_workSpace_tooSmall] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_dstSize_tooSmall] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_srcSize_wrong] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_dstBuffer_null] = E_INVALIDARG;
+            ZstdErrorCodeMap[ZSTD_error_noForwardProgress_destFull] = E_FAIL;
+            ZstdErrorCodeMap[ZSTD_error_noForwardProgress_inputEmpty] = E_FAIL;
+
+            return ZstdErrorCodeMap;
+        })();
+
+        if (!ZSTD_isError(Result))
+        {
+            return S_OK;
         }
 
-        /**
-         * zstd default levels: _Level => 1..ZSTD_maxCLevel(), Z7_ZSTD_ULTIMATE_LEV (128) == --max
-         */
-        _props._level = static_cast < Byte > (!_Max ? _Level : Z7_ZSTD_ULTIMATE_LEV);
-        break;
-      }
-    case NCoderPropID::kFast:
-     fastLevel:
-      if (!_Max)
-      {
-        /* like --fast in zstd cli program */
-        UInt32 _Fast = v;
-
-        if (v < 1) {
-          _Fast = 1;
-        } else if (v > 64) {
-          _Fast = 64;
-        }
-
-        /**
-         * zstd fast levels:
-         * _Fast  => 1..ZSTD_minCLevel()  (_Level => _Fast + Z7_ZSTD_FAST_LEV_INC)
-         */
-        _props._level = static_cast < Byte > (_Fast + Z7_ZSTD_FAST_LEV_INC);
-
-        /* negative levels are the fast ones */
-        _Level = _Fast * -1;
-        break;
-      }
-      /* fall-through */
-    case NCoderPropID::kLong:
-      {
-        /* like --long in zstd cli program */
-        _Long = 1;
-        if (v == 0) {
-          // m0=zstd:long:tlen=x -> long=default
-          _WindowLog = 27;
-        } else if (v < ZSTD_WINDOWLOG_MIN) {
-          // m0=zstd:long=9 -> long=10
-          _WindowLog = ZSTD_WINDOWLOG_MIN;
-        } else if (v > ZSTD_WINDOWLOG_MAX) {
-          // m0=zstd:long=33 -> long=max
-          _WindowLog = ZSTD_WINDOWLOG_MAX;
-        } else {
-          // m0=zstd:long=15 -> long=value
-          _WindowLog = v;
-        }
-        break;
-      }
-    case NCoderPropID::kWindowLog:
-      {
-        if (v < ZSTD_WINDOWLOG_MIN) v = ZSTD_WINDOWLOG_MIN;
-        if (v > ZSTD_WINDOWLOG_MAX) v = ZSTD_WINDOWLOG_MAX;
-        _WindowLog = v;
-        break;
-      }
-    case NCoderPropID::kHashLog:
-      {
-        if (v < ZSTD_HASHLOG_MIN) v = ZSTD_HASHLOG_MIN;
-        if (v > ZSTD_HASHLOG_MAX) v = ZSTD_HASHLOG_MAX;
-        _HashLog = v;
-        break;
-      }
-    case NCoderPropID::kChainLog:
-      {
-        if (v < ZSTD_CHAINLOG_MIN) v = ZSTD_CHAINLOG_MIN;
-        if (v > ZSTD_CHAINLOG_MAX) v = ZSTD_CHAINLOG_MAX;
-        _ChainLog = v;
-        break;
-      }
-    case NCoderPropID::kSearchLog:
-      {
-        if (v < ZSTD_SEARCHLOG_MIN) v = ZSTD_SEARCHLOG_MIN;
-        if (v > ZSTD_SEARCHLOG_MAX) v = ZSTD_SEARCHLOG_MAX;
-        _SearchLog = v;
-        break;
-      }
-    case NCoderPropID::kMinMatch:
-      {
-        if (v < ZSTD_MINMATCH_MIN) v = ZSTD_MINMATCH_MIN;
-        if (v > ZSTD_MINMATCH_MAX) v = ZSTD_MINMATCH_MAX;
-        _MinMatch = v;
-        break;
-      }
-    case NCoderPropID::kTargetLen:
-      {
-        if (v > ZSTD_TARGETLENGTH_MAX) v = ZSTD_TARGETLENGTH_MAX;
-        _TargetLen = 0;
-        break;
-      }
-    case NCoderPropID::kOverlapLog:
-      {
-        if (v > 9) v = 9; /* full size */
-        _OverlapLog = v;
-        break;
-      }
-    case NCoderPropID::kLdmHashLog:
-      {
-        if (v < ZSTD_HASHLOG_MIN) v = ZSTD_HASHLOG_MIN;
-        if (v > ZSTD_HASHLOG_MAX) v = ZSTD_HASHLOG_MAX;
-        _LdmHashLog = v;
-        break;
-      }
-    case NCoderPropID::kLdmSearchLength:
-      {
-        if (v < ZSTD_LDM_MINMATCH_MIN) v = ZSTD_LDM_MINMATCH_MIN;
-        if (v > ZSTD_LDM_MINMATCH_MAX) v = ZSTD_LDM_MINMATCH_MAX;
-        _LdmMinMatch = v;
-        break;
-      }
-    case NCoderPropID::kLdmBucketSizeLog:
-      {
-        if (v < 1) v = 1;
-        if (v > ZSTD_LDM_BUCKETSIZELOG_MAX) v = ZSTD_LDM_BUCKETSIZELOG_MAX;
-        _LdmBucketSizeLog = v;
-        break;
-      }
-    case NCoderPropID::kLdmHashRateLog:
-      {
-        if (v > (ZSTD_WINDOWLOG_MAX - ZSTD_HASHLOG_MIN)) v = (ZSTD_WINDOWLOG_MAX - ZSTD_HASHLOG_MIN);
-        _LdmHashRateLog = v;
-        break;
-      }
-    default:
-      {
-        break;
-      }
-    }
-  }
-
-  return S_OK;
-}
-
-Z7_COM7F_IMF(CEncoder::SetCoderPropertiesOpt(const PROPID *propIDs,
-    const PROPVARIANT *coderProps, UInt32 numProps))
-{
-  for (UInt32 i = 0; i < numProps; i++)
-  {
-    const PROPVARIANT &prop = coderProps[i];
-    const PROPID propID = propIDs[i];
-    if (propID == NCoderPropID::kExpectedDataSize)
-      if (prop.vt == VT_UI8 && prop.uhVal.QuadPart)
-        unpackSize = prop.uhVal.QuadPart;
-  }
-  return S_OK;
-}
-
-Z7_COM7F_IMF(CEncoder::WriteCoderProperties(ISequentialOutStream * outStream))
-{
-  return WriteStream(outStream, &_props, sizeof (_props));
-}
-
-Z7_COM7F_IMF(CEncoder::Code(ISequentialInStream *inStream,
-  ISequentialOutStream *outStream, const UInt64 * /*inSize*/ ,
-  const UInt64 * /*outSize */, ICompressProgressInfo *progress))
-{
-  ZSTD_EndDirective ZSTD_todo = ZSTD_e_continue;
-  ZSTD_outBuffer outBuff;
-  ZSTD_inBuffer inBuff;
-  size_t err, srcSize;
-
-  _processedIn = 0;
-  _processedOut = 0;
-
-  if (!_ctx) {
-    _ctx = ZSTD_createCCtx();
-    if (!_ctx)
-      return E_OUTOFMEMORY;
-
-    _srcBuf = MyAlloc(_srcBufSize);
-    if (!_srcBuf)
-      return E_OUTOFMEMORY;
-
-    _dstBuf = MyAlloc(_dstBufSize);
-    if (!_dstBuf)
-      return E_OUTOFMEMORY;
-
-  #if Z7_ZSTD_ADVMAX_ALLOWED // 64-bit only
-    // params from setMaxCompression(), https://github.com/facebook/zstd/blob/v1.5.7/programs/zstdcli.c#L642 :
-    if (_Max) {
-      _Long = 1;
-      _WindowLog = ZSTD_WINDOWLOG_MAX;
-      _ChainLog = ZSTD_CHAINLOG_MAX;
-      _HashLog = ZSTD_HASHLOG_MAX;
-      _SearchLog = ZSTD_SEARCHLOG_MAX;
-      _MinMatch = ZSTD_MINMATCH_MIN;
-      _TargetLen = ZSTD_TARGETLENGTH_MAX;
-      _Strategy = ZSTD_STRATEGY_MAX;
-      _OverlapLog = ZSTD_OVERLAPLOG_MAX;
-      _LdmHashLog = ZSTD_LDM_HASHLOG_MAX;
-      _LdmHashRateLog = 0; /* automatically derived */
-      _LdmMinMatch = 16; /* heuristic */
-      _LdmBucketSizeLog = ZSTD_LDM_BUCKETSIZELOG_MAX;
-      _Level = ZSTD_maxCLevel();
-    }
-  #endif
-
-    /* setup level */
-    err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_compressionLevel, (UInt32)_Level);
-    if (ZSTD_isError(err)) return E_INVALIDARG;
-
-    /* setup thread count */
-    err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_nbWorkers, _numThreads);
-    if (ZSTD_isError(err)) return E_INVALIDARG;
-
-    /* set the content size flag */
-    err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_contentSizeFlag, 1);
-    if (ZSTD_isError(err)) return E_INVALIDARG;
-
-    if (dictIDFlag != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_dictIDFlag, dictIDFlag);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-    if (checksumFlag != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_checksumFlag, checksumFlag);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (unpackSize && unpackSize != (UInt64)(Int64)-1) { // size is known
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_srcSizeHint, (int)(unpackSize <= INT_MAX ? unpackSize : INT_MAX));
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    /* enable ldm for large windowlog values */
-    if (_WindowLog > 27 && _Long == 0)
-      _Long = 1;
-
-    /* set ldm */
-    if (_Long != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_enableLongDistanceMatching, _Long);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_Strategy != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_strategy, _Strategy);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_WindowLog != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_windowLog, _WindowLog);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_HashLog != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_hashLog, _HashLog);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_ChainLog != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_chainLog, _ChainLog);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_SearchLog != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_searchLog, _SearchLog);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_MinMatch != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_minMatch, _MinMatch);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_TargetLen != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_targetLength, _TargetLen);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_OverlapLog != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_overlapLog, _OverlapLog);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_LdmHashLog != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_ldmHashLog, _LdmHashLog);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_LdmMinMatch != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_ldmMinMatch, _LdmMinMatch);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_LdmBucketSizeLog != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_ldmBucketSizeLog, _LdmBucketSizeLog);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    if (_LdmHashRateLog != -1) {
-      err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_ldmHashRateLog, _LdmHashRateLog);
-      if (ZSTD_isError(err)) return E_INVALIDARG;
-    }
-
-    //err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_literalCompressionMode, (int)ZSTD_ps_auto);
-    //if (ZSTD_isError(err)) return E_INVALIDARG;
-
-    //err = ZSTD_CCtx_setParameter(_ctx, ZSTD_c_enableDedicatedDictSearch, 1);
-    //if (ZSTD_isError(err)) return E_INVALIDARG;
-  }
-
-  for (;;) {
-
-    /* read input */
-    srcSize = _srcBufSize;
-    RINOK(ReadStream(inStream, _srcBuf, &srcSize))
-
-    /* eof */
-    if (srcSize == 0)
-      ZSTD_todo = ZSTD_e_end;
-
-    /* compress data */
-    _processedIn += srcSize;
-
-    for (;;) {
-      outBuff.dst = _dstBuf;
-      outBuff.size = _dstBufSize;
-      outBuff.pos = 0;
-
-      if (ZSTD_todo == ZSTD_e_continue) {
-        inBuff.src = _srcBuf;
-        inBuff.size = srcSize;
-        inBuff.pos = 0;
-      } else {
-        inBuff.src = 0;
-        inBuff.size = srcSize;
-        inBuff.pos = 0;
-      }
-
-      err = ZSTD_compressStream2(_ctx, &outBuff, &inBuff, ZSTD_todo);
-      if (ZSTD_isError(err)) {
-        switch (ZSTD_getErrorCode(err)) {
-          /* @Igor: would be nice, if we have an API to store the errmsg */
-          case ZSTD_error_memory_allocation:
-            return E_OUTOFMEMORY;
-          case ZSTD_error_version_unsupported:
-          case ZSTD_error_frameParameter_unsupported:
-            return E_NOTIMPL;
-          case ZSTD_error_frameParameter_windowTooLarge:
-          case ZSTD_error_parameter_unsupported:
-          case ZSTD_error_parameter_outOfBound:
-            return E_INVALIDARG;
-          default:
+        ZSTD_ErrorCode Error = ZSTD_getErrorCode(Result);
+        if (Error >= ZSTD_error_maxCode)
+        {
             return E_FAIL;
         }
-      }
-
-      /* write output */
-      if (outBuff.pos) {
-        RINOK(WriteStream(outStream, _dstBuf, outBuff.pos))
-        _processedOut += outBuff.pos;
-      }
-
-      if (progress)
-        RINOK(progress->SetRatioInfo(&_processedIn, &_processedOut))
-
-      /* done */
-      if (ZSTD_todo == ZSTD_e_end && err == 0)
-        return S_OK;
-
-      /* need more input */
-      if (inBuff.pos == inBuff.size)
-        break;
+        return CachedMap[Error];
     }
-  }
+
+    static int LevelToZstdLevel(ULONG Level)
+    {
+        switch (Level)
+        {
+            // Just an arbitrary level mapping.
+            case 0:
+            case 1:
+                return -3;
+            case 2:
+                return -1;
+            case 3:
+                return 1;
+            case 4:
+                return 3;
+            case 5:
+                return 6;
+            case 6:
+                return 10;
+            case 7:
+                return 16;
+            case 8:
+                return 19;
+            case 9:
+            default:
+                return ZSTD_maxCLevel();
+        }
+    }
+
+    static int ClampValueToInt(ULONG Value)
+    {
+        if (Value <= static_cast<ULONG>(INT_MAX))
+        {
+            return static_cast<int>(Value);
+        }
+        else
+        {
+            return INT_MAX;
+        }
+    }
+
+    static int ClampValueToInt(ULONGLONG Value)
+    {
+        if (Value <= static_cast<ULONGLONG>(INT_MAX))
+        {
+            return static_cast<int>(Value);
+        }
+        else
+        {
+            return INT_MAX;
+        }
+    }
+
+    static int ClampZstdParameter(const ZSTD_bounds &Bounds, int Value)
+    {
+        if (ZSTD_isError(Bounds.error))
+        {
+            return 0;
+        }
+        else if (Value != 0 && Value < Bounds.lowerBound)
+        {
+            return Bounds.lowerBound;
+        }
+        else if (Value > Bounds.upperBound)
+        {
+            return Bounds.upperBound;
+        }
+        else
+        {
+            return Value;
+        }
+    }
 }
 
-Z7_COM7F_IMF(CEncoder::SetNumberOfThreads(UInt32 numThreads))
+namespace NanaZip::Core::Extensions
 {
-  const UInt32 kNumThreadsMax = ZSTD_THREAD_MAX;
-  if (numThreads < 1) numThreads = 1;
-  if (numThreads > kNumThreadsMax) numThreads = kNumThreadsMax;
-  _numThreads = numThreads;
-  return S_OK;
+    ZstdEncoder::ZstdEncoder()
+    {
+        std::size_t Result;
+
+        this->m_Context = {ZSTD_createCCtx(), {}};
+        if (!this->m_Context)
+        {
+            return;
+        }
+
+        Result = ZSTD_CCtx_setParameter(
+            this->m_Context.get(),
+            ZSTD_c_checksumFlag,
+            1);
+        if (ZSTD_isError(Result))
+        {
+            this->m_Context.reset();
+            return;
+        }
+        Result = ZSTD_CCtx_setParameter(
+            this->m_Context.get(),
+            ZSTD_c_dictIDFlag,
+            1);
+        if (ZSTD_isError(Result))
+        {
+            this->m_Context.reset();
+            return;
+        }
+
+        try
+        {
+            auto InBufferSize = ZSTD_CStreamInSize();
+            if (InBufferSize > UINT32_MAX)
+            {
+                InBufferSize = UINT32_MAX;
+            }
+            m_InBuffer.resize(InBufferSize);
+
+            auto OutBufferSize = ZSTD_CStreamOutSize();
+            if (OutBufferSize > UINT32_MAX)
+            {
+                OutBufferSize = UINT32_MAX;
+            }
+            m_OutBuffer.resize(OutBufferSize);
+        }
+        catch (...)
+        {
+        }
+    }
+
+    HRESULT STDMETHODCALLTYPE ZstdEncoder::Code(
+        ISequentialInStream *InStream,
+        ISequentialOutStream *OutStream,
+        const UInt64 *InSize,
+        const UInt64 *OutSize,
+        ICompressProgressInfo *Progress) noexcept
+    {
+        HRESULT hr;
+        std::size_t Result;
+
+        if (!this->m_Context ||
+            0 == this->m_InBuffer.size() ||
+            0 == this->m_OutBuffer.size())
+        {
+            return E_OUTOFMEMORY;
+        }
+
+        Result = ZSTD_CCtx_reset(this->m_Context.get(), ZSTD_reset_session_only);
+        if (ZSTD_isError(Result))
+        {
+            return ZstdResultToHRESULT(Result);
+        }
+
+        if (this->m_ExpectedDataSize <
+            static_cast<ULONGLONG>(ZSTD_SRCSIZEHINT_MAX))
+        {
+            ZSTD_CCtx_setParameter(
+                this->m_Context.get(),
+                ZSTD_c_srcSizeHint,
+                this->m_ExpectedDataSize);
+        }
+        else
+        {
+            ZSTD_CCtx_setParameter(this->m_Context.get(), ZSTD_c_srcSizeHint, 0);
+        }
+        // we ignore ZSTD_c_srcSizeHint error since it doesn't block compression
+
+        UInt64 Read = 0, Written = 0;
+
+        while (true)
+        {
+            UInt32 ReadSize;
+            hr = InStream->Read(m_InBuffer.data(), m_InBuffer.size(), &ReadSize);
+            if (S_OK != hr)
+            {
+                return hr;
+            }
+
+            ZSTD_inBuffer Input{m_InBuffer.data(), ReadSize, 0};
+            while (true)
+            {
+                ZSTD_outBuffer Output{m_OutBuffer.data(), m_OutBuffer.size(), 0};
+                std::size_t LastInPosition = Input.pos;
+
+                Result = ZSTD_compressStream2(
+                    this->m_Context.get(),
+                    &Output,
+                    &Input,
+                    0 == ReadSize ? ZSTD_e_end : ZSTD_e_continue);
+                if (ZSTD_isError(Result))
+                {
+                    return ZstdResultToHRESULT(Result);
+                }
+
+                hr = WriteStream(
+                    OutStream,
+                    this->m_OutBuffer.data(),
+                    Output.pos);
+                if (S_OK != hr)
+                {
+                    return hr;
+                }
+
+                Read += Input.pos - LastInPosition;
+                Written += Output.pos;
+
+                if (Progress)
+                {
+                    hr = Progress->SetRatioInfo(
+                        &Read,
+                        &Written);
+                    if (S_OK != hr)
+                    {
+                        return hr;
+                    }
+                }
+
+                if (0 == ReadSize)
+                {
+                    if (0 == Result)
+                    {
+                        // Everything has been drained.
+                        return S_OK;
+                    }
+                    // Still draining.
+                }
+                else if (Input.pos == Input.size)
+                {
+                    // Need more data.
+                    break;
+                }
+            }
+        }
+    }
+
+    HRESULT STDMETHODCALLTYPE ZstdEncoder::SetNumberOfThreads(
+        UInt32 NumThreads) noexcept
+    {
+        if (!this->m_Context)
+        {
+            return E_FAIL;
+        }
+
+        int Value = ClampValueToInt(static_cast<ULONG>(NumThreads));
+
+        static const ZSTD_bounds Bounds = ZSTD_cParam_getBounds(
+            ZSTD_c_nbWorkers);
+        ClampZstdParameter(Bounds, Value);
+
+        std::size_t Result = ZSTD_CCtx_setParameter(
+            this->m_Context.get(),
+            ZSTD_c_nbWorkers,
+            Value);
+        return ZstdResultToHRESULT(Result);
+    }
+
+    HRESULT ZstdEncoder::SetCoderProperty(
+        const PROPID PropID,
+        const PROPVARIANT *Prop) noexcept
+    {
+        int Value;
+        std::size_t Result;
+
+        if (!this->m_Context)
+        {
+            return E_FAIL;
+        }
+
+        switch (PropID)
+        {
+            case NCoderPropID::kDictionarySize:
+            {
+                unsigned long Bit;
+
+                if (VT_UI4 != Prop->vt)
+                {
+                    return E_INVALIDARG;
+                }
+
+                if (_BitScanReverse(&Bit, Prop->ulVal))
+                {
+                    Value = static_cast<int>(Bit);
+                }
+                else
+                {
+                    Value = 0;
+                }
+
+                if (Value < ZSTD_WINDOWLOG_MIN)
+                {
+                    Value = ZSTD_WINDOWLOG_MIN;
+                }
+                else if (Value > ZSTD_WINDOWLOG_LIMIT_DEFAULT)
+                {
+                    // Limit to avoid creating incompatible archives.
+                    Value = ZSTD_WINDOWLOG_LIMIT_DEFAULT;
+                }
+
+                Result = ZSTD_CCtx_setParameter(
+                    this->m_Context.get(),
+                    ZSTD_c_windowLog,
+                    Value);
+                return ZstdResultToHRESULT(Result);
+            }
+
+            case NCoderPropID::kBlockSize:
+            {
+                switch (Prop->vt)
+                {
+                    case VT_UI4:
+                        Value = ClampValueToInt(Prop->ulVal);
+                        break;
+                    case VT_UI8:
+                        Value = ClampValueToInt(Prop->uhVal.QuadPart);
+                        break;
+                    default:
+                        return E_INVALIDARG;
+                }
+
+                static const ZSTD_bounds Bounds = ZSTD_cParam_getBounds(
+                    ZSTD_c_jobSize);
+                ClampZstdParameter(Bounds, Value);
+
+                Result = ZSTD_CCtx_setParameter(
+                    this->m_Context.get(),
+                    ZSTD_c_jobSize,
+                    Value);
+                return ZstdResultToHRESULT(Result);
+            }
+
+            case NCoderPropID::kNumThreads:
+            {
+                if (VT_UI4 != Prop->vt)
+                {
+                    return E_INVALIDARG;
+                }
+
+                return this->SetNumberOfThreads(Prop->ulVal);
+            }
+
+            case NCoderPropID::kLevel:
+            {
+                if (VT_UI4 != Prop->vt)
+                {
+                    return E_INVALIDARG;
+                }
+
+                Value = LevelToZstdLevel(Prop->ulVal);
+
+                Result = ZSTD_CCtx_setParameter(
+                    this->m_Context.get(),
+                    ZSTD_c_compressionLevel,
+                    Value);
+                return ZstdResultToHRESULT(Result);
+            }
+
+            case NCoderPropID::kReduceSize:
+            case NCoderPropID::kAffinity:
+            case NCoderPropID::kNumThreadGroups:
+            case NCoderPropID::kThreadGroup:
+            case NCoderPropID::kAffinityInGroup:
+                // Fatal props that we need to accept.
+                return S_OK;
+
+            default:
+                return E_INVALIDARG;
+        }
+    }
+
+    HRESULT STDMETHODCALLTYPE ZstdEncoder::SetCoderProperties(
+        const PROPID *PropIDs,
+        const PROPVARIANT *Props,
+        UInt32 NumProps) noexcept
+    {
+        for (UInt32 Index = 0; Index < NumProps; Index++)
+        {
+            HRESULT hr = SetCoderProperty(PropIDs[Index], &Props[Index]);
+
+            if (S_OK != hr)
+            {
+                return hr;
+            }
+        }
+
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE ZstdEncoder::SetCoderPropertiesOpt(
+        const PROPID *PropIDs,
+        const PROPVARIANT *Props,
+        UInt32 NumProps) noexcept
+    {
+        for (UInt32 Index = 0; Index < NumProps; Index++)
+        {
+            switch (PropIDs[Index])
+            {
+                case NCoderPropID::kExpectedDataSize:
+                    if (VT_UI8 != Props[Index].vt)
+                    {
+                        return S_OK;
+                    }
+                    this->m_ExpectedDataSize = Props[Index].uhVal.QuadPart;
+                    break;
+
+                default:
+                    return S_OK;
+            }
+        }
+
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE ZstdEncoder::WriteCoderProperties(
+        ISequentialOutStream *OutStream) noexcept
+    {
+        const Byte Properties = 0;
+        return ::WriteStream(OutStream, &Properties, sizeof(Properties));
+    }
 }
 
-}}
 #endif
