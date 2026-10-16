@@ -1841,6 +1841,30 @@ UString CCompressDialog::GetMethodSpec()
   return s;
 }
 
+// **************** NanaZip Modification Start ****************
+void CCompressDialog::ShowMethodCompatibilityWarning()
+{
+  UString warningText;
+  const int methodID = GetMethodID();
+
+  // The methods 7-Zip has built in are the ones kMethodsNames lists. Every
+  // other method is filled in from the codec registry, so what those produce
+  // is something upstream 7-Zip cannot read.
+  if (Get_ArcInfoEx().Is_7z() &&
+      methodID >= (int)Z7_ARRAY_SIZE(kMethodsNames))
+  {
+    const UString methodName = GetMethodSpec();
+    if (!methodName.IsEmpty())
+    {
+      warningText = MyFormatNew(
+          IDS_COMPRESS_METHOD_UNSUPPORTED, methodName);
+    }
+  }
+
+  SetItemText(IDT_COMPRESS_METHOD_WARNING, warningText);
+}
+// **************** NanaZip Modification End ****************
+
 bool CCompressDialog::IsMethodEqualTo(const UString &s)
 {
   UString estimatedName;
