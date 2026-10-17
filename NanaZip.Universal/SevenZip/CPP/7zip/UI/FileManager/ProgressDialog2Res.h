@@ -37,6 +37,9 @@
 #define IDT_PROGRESS_PROCESSED_VAL 124
 #define IDT_PROGRESS_RATIO_VAL     125
 #define IDT_PROGRESS_ERRORS_VAL    126
+// **************** NanaZip Modification Start ****************
+#define IDT_PROGRESS_PERCENT      5006
+// **************** NanaZip Modification End ****************
 
 
 #ifdef UNDER_CE
@@ -47,3 +50,6 @@
 #define MY_PROGRESS_LABEL_UNITS_MIN   60
 #define MY_PROGRESS_LABEL_UNITS_START 90
 #define MY_PROGRESS_PAD_UNITS  4
+// **************** NanaZip Modification Start ****************
+#define MY_PROGRESS_PERCENT_UNITS 24
+// **************** NanaZip Modification End ****************
