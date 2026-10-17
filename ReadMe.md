@@ -21,7 +21,21 @@ NanaZip Rev is a fork of NanaZip, an open source file archiver intended for the
 modern Windows experience. The fork tracks upstream and adds the changes listed
 below on top of it. Everything upstream NanaZip does, this fork does too, so
 read the [upstream ReadMe](#upstream-readme) for the full feature list, the
-system requirements, and the installation methods.
+system requirements, and the other installation methods.
+
+## Installation
+
+Install:
+
+```powershell
+irm https://raw.githubusercontent.com/kaixinol/NanaZipRev/refs/heads/nanazip-rev/Install.ps1 | iex
+```
+
+Uninstall:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kaixinol/NanaZipRev/refs/heads/nanazip-rev/Install.ps1))) -Uninstall
+```
 
 ## What this fork adds
 
@@ -63,20 +77,6 @@ registrations rather than adding to them.
 Settings are kept under `HKEY_CURRENT_USER\Software\NanaZipRev` rather than
 `HKEY_CURRENT_USER\Software\NanaZip`, so the two installations never read each
 other's settings and an upgrade from upstream does not carry them over.
-
-## Installation
-
-Install:
-
-```powershell
-irm https://raw.githubusercontent.com/kaixinol/NanaZipRev/refs/heads/nanazip-rev/Install.ps1 | iex
-```
-
-Uninstall:
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kaixinol/NanaZipRev/refs/heads/nanazip-rev/Install.ps1))) -Uninstall
-```
 
 ## Documents
 
