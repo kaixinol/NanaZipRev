@@ -16,10 +16,12 @@
   Downloads the newest package published on GitHub, or takes a local one, makes
   sure this machine can deploy it, and deploys it. With -Uninstall it removes
   the package, the provisioned copy that new accounts would pick up, the signing
-  certificate and the certificate backup, so nothing is left behind.
+  certificate and any certificate backup an earlier version left behind, so
+  nothing is left behind.
 
   A published package carries no signature, so one is made on the machine,
-  the package is signed with it and it is trusted. A package that already
+  the package is signed with it and it is trusted. Its private key stays in
+  Cert:\CurrentUser\My and is never exported. A package that already
   carries a signature keeps it, and its certificate is trusted here instead.
 
   Where the package comes from, first hit wins:
@@ -54,11 +56,8 @@
   to this script.
 
 .PARAMETER BackupDir
-  Where the generated certificate and its pfx are kept.
-
-.PARAMETER PfxPassword
-  Protects the generated pfx. It is a local test certificate, so this is not a
-  secret worth guarding.
+  Where earlier versions kept the pfx backup. Nothing is written there any
+  more; -Uninstall uses this path only to clean up a backup they left behind.
 
 .PARAMETER Years
   How long the generated certificate stays valid.
@@ -77,10 +76,14 @@
   .\Install.ps1 -LocalPath $built[0].FullName
 
 .EXAMPLE
-  Remove the package, its certificate and the backup.
+  Remove the package, its certificate and any old backup.
   .\Install.ps1 -Uninstall
 
 .NOTES
+  The signing certificate is a local test one. It is created on demand, reused
+  while it is in Cert:\CurrentUser\My, and rebuilt and re-signed whenever it is
+  gone, so its private key is never exported to disk.
+
   Deploying a package this script signed itself needs sideloading, so either
   developer mode or the Allow sideloading of apps policy. Runs on Windows
   PowerShell 5.1 and on PowerShell 7; only the provisioned package step needs
@@ -97,7 +100,6 @@ param(
   [string]$Repo = 'kaixinol/NanaZipRev',
   [string]$LocalSearchRoot,
   [string]$BackupDir,
-  [string]$PfxPassword = 'NanaZipRev-Test',
   [int]$Years = 5,
   [int]$RemovalTimeoutSeconds = 180
 )
@@ -588,13 +590,7 @@ function Get-OrCreateCertificate {
     -HashAlgorithm SHA256 -NotAfter (Get-Date).AddYears($Years) `
     -FriendlyName 'NanaZip Rev local test'
 
-  $stem = Join-Path $BackupDir ($Subject -replace '[^A-Za-z0-9]', '_')
-  New-Item -ItemType Directory -Force -Path $BackupDir | Out-Null
-  $secure = ConvertTo-SecureString -String $PfxPassword -Force -AsPlainText
-  Export-PfxCertificate -Cert $cert -FilePath "$stem.pfx" `
-    -Password $secure | Out-Null
-  Export-Certificate -Cert $cert -FilePath "$stem.cer" | Out-Null
-  Write-Step "backed up the pfx to $stem.pfx"
+  # The private key stays in Cert:\CurrentUser\My; nothing is exported.
   return $cert
 }
 
@@ -775,7 +771,7 @@ function Install-Package {
         -ForegroundColor DarkGray
       return
     }
-    $stamp = 'http://timestamp.digicert.com'
+    $stamp = 'https://timestamp.digicert.com'
     & $signTool sign /fd SHA256 /td SHA256 /tr $stamp `
       /sha1 $certificate.Thumbprint $Path
     if ($LASTEXITCODE -ne 0) {
@@ -861,6 +857,8 @@ function Uninstall-Package {
 
   Remove-TrustedCertificate -Subject $Publisher -Apply:(-not $WhatIf)
   if (Test-Path -LiteralPath $BackupDir) {
+    Write-Warn "$BackupDir is a backup left by an earlier version; it holds " +
+      'a pfx whose private key was protected by a hardcoded password'
     Write-Step "deleting $BackupDir"
     if (Invoke-ShouldProcess $BackupDir 'Remove-Item') {
       Remove-Item -LiteralPath $BackupDir -Recurse -Force `
