@@ -108,6 +108,13 @@ $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol =
   [Net.SecurityProtocolType]::Tls12
 
+# When invoked via `irm ... | iex` the caller's -Proxy never reaches us, so
+# pick up a proxy from the environment for the script's own web calls.
+$Proxy = if ($env:HTTPS_PROXY) { $env:HTTPS_PROXY }
+         elseif ($env:HTTP_PROXY) { $env:HTTP_PROXY }
+         elseif ($env:ALL_PROXY) { $env:ALL_PROXY }
+         else { $null }
+
 if (-not $LocalSearchRoot) {
   $LocalSearchRoot = Join-Path $PSScriptRoot 'Output\Binaries\AppPackages'
 }
@@ -354,8 +361,9 @@ function Save-RemotePackage {
   }
 
   $uri = "https://api.github.com/repos/$Owner/releases/latest"
+  $proxyArg = if ($Proxy) { @{ Proxy = $Proxy } } else { @{} }
   try {
-    $release = Invoke-RestMethod -Uri $uri -Headers $headers -ErrorAction Stop
+    $release = Invoke-RestMethod -Uri $uri -Headers $headers -ErrorAction Stop @proxyArg
   }
   catch {
     Write-Note "no release on $Owner ($($_.Exception.Message))"
@@ -371,7 +379,7 @@ function Save-RemotePackage {
   $cache = Join-Path ([IO.Path]::GetTempPath()) ('NanaZipRev-' + $asset.name)
   Write-Note "downloading $($release.tag_name) / $($asset.name)"
   Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $cache `
-    -UseBasicParsing -Headers @{ 'User-Agent' = 'Install.ps1' }
+    -UseBasicParsing -Headers @{ 'User-Agent' = 'Install.ps1' } @proxyArg
   return $cache
 }
 
@@ -412,6 +420,7 @@ function Download-Bytes {
 
   $client = New-Object Net.WebClient
   $client.Headers.Add('User-Agent', 'Install.ps1')
+  if ($Proxy) { $client.Proxy = [System.Net.WebProxy]::new($Proxy) }
   try { return $client.DownloadData($Uri) }
   finally { $client.Dispose() }
 }
