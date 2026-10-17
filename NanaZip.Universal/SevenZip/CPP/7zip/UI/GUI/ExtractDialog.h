@@ -52,6 +52,12 @@ class CExtractDialog: public NWindows::NControl::CModalDialog
   #endif
   
   void OnButtonSetPath();
+  // **************** NanaZip Modification Start ****************
+  void OnButtonAddFileName();
+  void UpdateFreeSpaceLabel();
+  void OnButtonOpenOutput();
+  virtual bool OnCommand(unsigned code, unsigned itemID, LPARAM lParam) Z7_override;
+  // **************** NanaZip Modification End ****************
 
   void CheckButton_TwoBools(UINT id, const CBoolPair &b1, const CBoolPair &b2);
   void GetButton_Bools(UINT id, CBoolPair &b1, CBoolPair &b2);
@@ -94,6 +100,8 @@ public:
   CBoolPair ElimDup;
   // **************** NanaZip Modification Start ****************
   CBoolPair OpenFolder;
+  bool Close7Zip;
+  CBoolPair DeleteSource;
   // **************** NanaZip Modification End ****************
 
   INT_PTR Create(HWND aWndParent = NULL)
@@ -111,6 +119,9 @@ public:
     OverwriteMode_Force(false)
   {
     ElimDup.Val = true;
+    // **************** NanaZip Modification Start ****************
+    Close7Zip = false;
+    // **************** NanaZip Modification End ****************
   }
 
 };

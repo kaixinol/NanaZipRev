@@ -224,6 +224,10 @@ HRESULT ExtractGUI(
       dialog.ElimDup = options.ElimDup;
       // **************** NanaZip Modification Start ****************
       dialog.OpenFolder = options.OpenFolder;
+      dialog.Close7Zip = options.Close7Zip;
+      // **************** NanaZip Modification End ****************
+      // **************** NanaZip Modification Start ****************
+      dialog.DeleteSource = options.DeleteSource;
       // **************** NanaZip Modification End ****************
 
       if (archivePathsFull.Size() == 1)
@@ -246,6 +250,10 @@ HRESULT ExtractGUI(
       options.ElimDup = dialog.ElimDup;
       // **************** NanaZip Modification Start ****************
       options.OpenFolder = dialog.OpenFolder;
+      options.Close7Zip = dialog.Close7Zip;
+      // **************** NanaZip Modification End ****************
+      // **************** NanaZip Modification Start ****************
+      options.DeleteSource = dialog.DeleteSource;
       // **************** NanaZip Modification End ****************
       
       #ifndef Z7_SFX

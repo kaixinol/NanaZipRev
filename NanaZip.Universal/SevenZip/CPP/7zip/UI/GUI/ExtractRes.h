@@ -49,3 +49,7 @@
 #define IDS_OPEN_MSG_UNAVAILABLE_START       3763
 #define IDS_OPEN_MSG_UNCONFIRMED_START       3764
 #define IDS_OPEN_MSG_UNSUPPORTED_FEATURE     3768
+// **************** NanaZip Modification Start ****************
+#define IDS_EXTRACT_FOLDER_NOT_EXIST         5010
+#define IDS_EXTRACT_SOURCE_NOT_DELETED       5011
+// **************** NanaZip Modification End ****************

@@ -1446,4 +1446,10 @@ Are you sure you want to split archive into such volumes?</value>
   <data name="Resource12201" xml:space="preserve">
     <value>Open Windows Settings app to associate files with NanaZip Rev</value>
   </data>
+  <data name="Resource5004" xml:space="preserve">
+    <value>&amp;Filename</value>
+  </data>
+  <data name="Resource5005" xml:space="preserve">
+    <value>&amp;Close NanaZip Rev</value>
+  </data>
 </root>

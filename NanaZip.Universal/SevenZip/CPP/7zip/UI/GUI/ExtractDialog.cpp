@@ -7,6 +7,9 @@
 
 #include "../../../Windows/FileName.h"
 #include "../../../Windows/FileDir.h"
+// **************** NanaZip Modification Start ****************
+#include "../../../Windows/FileFind.h"
+// **************** NanaZip Modification End ****************
 #include "../../../Windows/ResourceString.h"
 
 // **************** NanaZip Modification Start ****************
@@ -19,6 +22,9 @@
 #include "../FileManager/BrowseDialog.h"
 #include "../FileManager/LangUtils.h"
 #include "../FileManager/resourceGui.h"
+// **************** NanaZip Modification Start ****************
+#include "../Explorer/MyMessages.h"
+// **************** NanaZip Modification End ****************
 
 #include "ExtractDialog.h"
 #include "ExtractDialogRes.h"
@@ -70,6 +76,74 @@ static const
   NExtract::NOverwriteMode::kRenameExisting
 };
 
+// **************** NanaZip Modification Start ****************
+static void AddDiskSpaceValue(UString &s, UInt64 value)
+{
+  static const struct { UInt64 Factor; char Char; } kUnits[] =
+  {
+    { (UInt64)1 << 40, 'T' },
+    { (UInt64)1 << 30, 'G' },
+    { (UInt64)1 << 20, 'M' },
+    { (UInt64)1 << 10, 'K' }
+  };
+  for (unsigned i = 0; i < Z7_ARRAY_SIZE(kUnits); i++)
+  {
+    if (value >= kUnits[i].Factor)
+    {
+      s.Add_UInt64(value / kUnits[i].Factor);
+      const UInt64 rest = (value % kUnits[i].Factor) * 10 / kUnits[i].Factor;
+      if (rest != 0)
+      {
+        s.Add_Char('.');
+        s.Add_UInt64(rest);
+      }
+      s.Add_Space();
+      s.Add_Char(kUnits[i].Char);
+      s += "B";
+      return;
+    }
+  }
+  s.Add_UInt64(value);
+  s += " B";
+}
+
+static bool QueryDiskFreeSpace(const wchar_t *path, UInt64 &freeBytes, UInt64 &totalBytes)
+{
+  ULARGE_INTEGER freeSize, totalSize;
+  if (!::GetDiskFreeSpaceExW(path, NULL, &totalSize, &freeSize))
+    return false;
+  freeBytes = freeSize.QuadPart;
+  totalBytes = totalSize.QuadPart;
+  return true;
+}
+
+static bool GetDiskFreeSpaceForPath(const UString &path, UInt64 &freeBytes, UInt64 &totalBytes)
+{
+  const wchar_t *p = path;
+  if (p == NULL || *p == 0)
+    return false;
+  if (QueryDiskFreeSpace(p, freeBytes, totalBytes))
+    return true;
+  // The directory may not exist yet; query the volume root instead.
+  UString root;
+  if (p[0] == '\\' && p[1] == '\\')
+  {
+    unsigned separators = 0;
+    for (unsigned i = 2; p[i] != 0; i++)
+    {
+      root += p[i];
+      if (p[i] == '\\' && ++separators == 2)
+        break;
+    }
+  }
+  else if (p[1] == ':')
+  {
+    root = p[0];
+    root += ":\\";
+  }
+  return !root.IsEmpty() && QueryDiskFreeSpace(root, freeBytes, totalBytes);
+}
+// **************** NanaZip Modification End ****************
 #endif
 
 #ifdef Z7_LANG
@@ -84,9 +158,15 @@ static const UInt32 kLangIDs[] =
   IDX_EXTRACT_ELIM_DUP,
   // **************** NanaZip Modification Start ****************
   IDX_EXTRACT_OPEN_FOLDER,
+  IDB_EXTRACT_ADD_FILE_NAME,
+  IDX_EXTRACT_CLOSE_7ZIP,
   // **************** NanaZip Modification End ****************
   IDG_PASSWORD,
-  IDX_PASSWORD_SHOW
+  IDX_PASSWORD_SHOW,
+  // **************** NanaZip Modification Start ****************
+  IDG_EXTRACT_AFTER_COMPLETE,
+  IDX_EXTRACT_DELETE_SOURCE
+  // **************** NanaZip Modification End ****************
 };
 #endif
 
@@ -188,6 +268,12 @@ bool CExtractDialog::OnInit()
   // **************** NanaZip Modification Start ****************
   CheckButton_TwoBools(IDX_EXTRACT_OPEN_FOLDER, OpenFolder, _info.OpenFolder);
   // **************** NanaZip Modification End ****************
+  // **************** NanaZip Modification Start ****************
+  CheckButton_TwoBools(IDX_EXTRACT_DELETE_SOURCE, DeleteSource, _info.DeleteSource);
+  CheckButton(IDX_EXTRACT_CLOSE_7ZIP, Close7Zip);
+  // The Filename button needs a single archive to derive the name from.
+  EnableItem(IDB_EXTRACT_ADD_FILE_NAME, !ArcPath.IsEmpty());
+  // **************** NanaZip Modification End ****************
 
   CheckButton(IDX_PASSWORD_SHOW, _info.ShowPassword.Val);
   UpdatePasswordControl();
@@ -231,6 +317,9 @@ bool CExtractDialog::OnInit()
   #endif
 
   _path.SetText(pathPrefix);
+  // **************** NanaZip Modification Start ****************
+  UpdateFreeSpaceLabel();
+  // **************** NanaZip Modification End ****************
 
   #ifndef Z7_NO_REGISTRY
   for (unsigned i = 0; i < _info.Paths.Size() && i < kHistorySize; i++)
@@ -282,6 +371,16 @@ bool CExtractDialog::OnButtonClicked(unsigned buttonID, HWND buttonHWND)
     case IDB_EXTRACT_SET_PATH:
       OnButtonSetPath();
       return true;
+    // NanaZip Modification Start
+    case IDB_EXTRACT_ADD_FILE_NAME:
+      OnButtonAddFileName();
+      return true;
+    // NanaZip Modification End
+    // **************** NanaZip Modification Start ****************
+    case IDB_EXTRACT_OPEN_OUTPUT:
+      OnButtonOpenOutput();
+      return true;
+    // **************** NanaZip Modification End ****************
     #ifndef Z7_SFX
     case IDX_EXTRACT_NAME_ENABLE:
       ShowItem_Bool(IDE_EXTRACT_NAME, IsButtonCheckedBool(IDX_EXTRACT_NAME_ENABLE));
@@ -308,7 +407,45 @@ void CExtractDialog::OnButtonSetPath()
   _path.SetCurSel(-1);
   #endif
   _path.SetText(resultPath);
+  // **************** NanaZip Modification Start ****************
+  UpdateFreeSpaceLabel();
+  // **************** NanaZip Modification End ****************
 }
+
+// NanaZip Modification Start
+void CExtractDialog::OnButtonAddFileName()
+{
+  UString path;
+  _path.GetText(path);
+  path.Trim();
+  if (path.IsEmpty() || ArcPath.IsEmpty())
+    return;
+  UString name = ArcPath;
+  int slashPos = name.ReverseFind_PathSepar();
+  if (slashPos >= 0)
+    name.DeleteFrontal((unsigned)(slashPos + 1));
+  int dotPos = name.ReverseFind_Dot();
+  if (dotPos > 0)
+    name.DeleteFrom((unsigned)dotPos);
+  if (name.IsEmpty())
+    return;
+  if (IsPathSepar(path.Back()))
+    path.DeleteBack();
+  int lastSep = path.ReverseFind_PathSepar();
+  UString last;
+  if (lastSep >= 0)
+    last = path.Ptr((unsigned)(lastSep + 1));
+  else
+    last = path;
+  if (last.IsEqualTo_NoCase(name))
+    return;
+  path += WCHAR_PATH_SEPARATOR;
+  path += name;
+  _pathName.SetText(UString());
+  _path.SetText(path);
+  _path.SetFocus();
+}
+// NanaZip Modification End
 
 void AddUniqueString(UStringVector &list, const UString &s);
 void AddUniqueString(UStringVector &list, const UString &s)
@@ -342,6 +479,12 @@ void CExtractDialog::OnOK()
   GetButton_Bools(IDX_EXTRACT_ELIM_DUP,    ElimDup,    _info.ElimDup);
   // **************** NanaZip Modification Start ****************
   GetButton_Bools(IDX_EXTRACT_OPEN_FOLDER, OpenFolder, _info.OpenFolder);
+  // **************** NanaZip Modification End ****************
+  // **************** NanaZip Modification Start ****************
+  GetButton_Bools(IDX_EXTRACT_DELETE_SOURCE, DeleteSource, _info.DeleteSource);
+  // NanaZip Modification Start
+  Close7Zip = IsButtonCheckedBool(IDX_EXTRACT_CLOSE_7ZIP);
+  // NanaZip Modification End
   // **************** NanaZip Modification End ****************
 
   bool showPassword = IsShowPasswordChecked();
@@ -435,6 +578,51 @@ void CExtractDialog::OnOK()
   
   CModalDialog::OnOK();
 }
+
+// **************** NanaZip Modification Start ****************
+bool CExtractDialog::OnCommand(unsigned code, unsigned itemID, LPARAM lParam)
+{
+  if (itemID == IDC_EXTRACT_PATH &&
+      (code == CBN_SELCHANGE || code == CBN_EDITCHANGE))
+  {
+    UpdateFreeSpaceLabel();
+    return true;
+  }
+  return CModalDialog::OnCommand(code, itemID, lParam);
+}
+
+void CExtractDialog::UpdateFreeSpaceLabel()
+{
+  UString path;
+  _path.GetText(path);
+  path.Trim();
+  UInt64 freeBytes = 0, totalBytes = 0;
+  if (!GetDiskFreeSpaceForPath(path, freeBytes, totalBytes))
+  {
+    SetItemText_Empty(IDT_EXTRACT_FREE_SPACE);
+    return;
+  }
+  UString s;
+  AddDiskSpaceValue(s, freeBytes);
+  s += " Free (Total: ";
+  AddDiskSpaceValue(s, totalBytes);
+  s += ")";
+  SetItemText(IDT_EXTRACT_FREE_SPACE, s);
+}
+
+void CExtractDialog::OnButtonOpenOutput()
+{
+  UString path;
+  _path.GetText(path);
+  path.Trim();
+  if (path.IsEmpty() || !NFind::DoesDirExist(us2fs(path)))
+  {
+    ShowErrorMessageHwndRes(*this, IDS_EXTRACT_FOLDER_NOT_EXIST);
+    return;
+  }
+  ::ShellExecuteW(*this, NULL, path, NULL, NULL, SW_SHOWNORMAL);
+}
+// **************** NanaZip Modification End ****************
 
 // **************** NanaZip Modification Start ****************
 //#ifndef Z7_NO_REGISTRY

@@ -211,6 +211,7 @@ enum Enum
 
   // **************** NanaZip Modification Start ****************
   kOpenFolder,
+  kParentWindow,
   // **************** NanaZip Modification End ****************
 
   kDeleteAfterCompressing,
@@ -370,6 +371,7 @@ static const CSwitchForm kSwitchForms[] =
   
   // **************** NanaZip Modification Start ****************
   { "sre", SWFRM_MINUS },
+  { "hwnd", SWFRM_STRING_SINGL(1) },
   // **************** NanaZip Modification End ****************
   
   { "sdel", SWFRM_SIMPLE },
@@ -1492,6 +1494,15 @@ void CArcCmdLineParser::Parse2(CArcCmdLineOptions &options)
   {
     options.OpenFolder.Def = true;
     options.OpenFolder.Val = !parser[NKey::kOpenFolder].WithMinus;
+  }
+  if (parser[NKey::kParentWindow].ThereIs)
+  {
+    const UString &s = parser[NKey::kParentWindow].PostStrings[0];
+    const wchar_t *end;
+    const UInt64 v = ConvertStringToUInt64(s, &end);
+    if (*end != 0)
+      throw CArcCmdLineException("Unsupported -hwnd", s);
+    options.ParentWindowFM = (HWND)(UINT_PTR)v;
   }
   // **************** NanaZip Modification End ****************
   

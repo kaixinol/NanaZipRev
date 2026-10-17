@@ -20,6 +20,10 @@ BEGIN
   IDS_PROGRESS_SKIPPING   "Skipping"
 
   IDS_EXTRACT_SET_FOLDER  "Specify a location for extracted files."
+  // **************** NanaZip Modification Start ****************
+  IDS_EXTRACT_FOLDER_NOT_EXIST  "The output folder does not exist."
+  IDS_EXTRACT_SOURCE_NOT_DELETED  "Cannot move the source archive to the Recycle Bin. It may be open in another program:"
+  // **************** NanaZip Modification End ****************
 
   IDS_EXTRACT_PATHS_FULL    "Full pathnames"
   IDS_EXTRACT_PATHS_NO      "No pathnames"

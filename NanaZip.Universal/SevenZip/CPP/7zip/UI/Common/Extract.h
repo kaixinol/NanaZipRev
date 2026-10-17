@@ -68,6 +68,10 @@ struct CExtractOptions: public CExtractOptionsBase
   bool TestMode;
   // **************** NanaZip Modification Start ****************
   CBoolPair OpenFolder;
+  bool Close7Zip;
+  // **************** NanaZip Modification End ****************
+  // **************** NanaZip Modification Start ****************
+  CBoolPair DeleteSource;
   // **************** NanaZip Modification End ****************
   
   // bool ShowDialog;
@@ -87,7 +91,10 @@ struct CExtractOptions: public CExtractOptionsBase
       StdInMode(false),
       StdOutMode(false),
       YesToAll(false),
-      TestMode(false)
+      TestMode(false),
+      // **************** NanaZip Modification Start ****************
+      Close7Zip(false)
+      // **************** NanaZip Modification End ****************
       {}
 };
 

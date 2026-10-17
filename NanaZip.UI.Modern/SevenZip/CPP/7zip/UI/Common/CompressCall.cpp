@@ -353,6 +353,14 @@ void ExtractArchives(const UStringVector &arcPaths, const UString &outFolder, bo
     params += " -sps";
   if (openFolder)
     params += " -sre";
+  // Hand the File Manager window to the host so that "Close 7-Zip" can
+  // signal it. Shell extension extraction has no parent window (g_HWND is
+  // null there) and therefore passes no switch.
+  if (g_HWND)
+  {
+    params += " -hwnd";
+    params.Add_UInt64((UInt64)(UINT_PTR)g_HWND);
+  }
   // **************** NanaZip Modification End ****************
   if (writeZone != (UInt32)(Int32)-1)
   {

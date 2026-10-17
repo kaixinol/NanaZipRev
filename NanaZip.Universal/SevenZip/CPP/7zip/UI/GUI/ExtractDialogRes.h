@@ -26,3 +26,11 @@
 
 #define IDX_PASSWORD_SHOW           3803
 #define IDG_PASSWORD                3807
+// **************** NanaZip Modification Start ****************
+#define IDB_EXTRACT_OPEN_OUTPUT     5000
+#define IDT_EXTRACT_FREE_SPACE      5001
+#define IDG_EXTRACT_AFTER_COMPLETE  5002
+#define IDX_EXTRACT_DELETE_SOURCE   5003
+#define IDB_EXTRACT_ADD_FILE_NAME   5004
+#define IDX_EXTRACT_CLOSE_7ZIP      5005
+// **************** NanaZip Modification End ****************

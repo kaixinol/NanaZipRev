@@ -30,6 +30,13 @@ using namespace NWindows;
 extern HINSTANCE g_hInstance;
 extern bool g_DisableUserQuestions;
 
+// **************** NanaZip Modification Start ****************
+// Set when any error or warning message was reported during this process.
+// Consumed by the after-extraction actions (Close 7-Zip) so that they run
+// only on a completely successful extraction.
+bool g_ProcessErrorOccurred = false;
+// **************** NanaZip Modification End ****************
+
 static const UINT_PTR kTimerID = 3;
 
 static const UINT kCloseMessage = WM_APP + 1;
@@ -228,6 +235,9 @@ void CProgressSync::AddError_Message(const wchar_t *message)
 {
   CRITICAL_LOCK
   Messages.Add(message);
+  // **************** NanaZip Modification Start ****************
+  g_ProcessErrorOccurred = true;
+  // **************** NanaZip Modification End ****************
 }
 
 void CProgressSync::AddError_Message_Name(const wchar_t *message, const wchar_t *name)
