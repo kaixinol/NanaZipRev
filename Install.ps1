@@ -773,7 +773,8 @@ function Install-Package {
         -ForegroundColor DarkGray
       return
     }
-    $stamp = 'https://timestamp.digicert.com'
+    # signtool rejects an https timestamp URL outright, so this one stays http.
+    $stamp = 'http://timestamp.digicert.com'
     & $signTool sign /fd SHA256 /td SHA256 /tr $stamp `
       /sha1 $certificate.Thumbprint $Path
     if ($LASTEXITCODE -ne 0) {
