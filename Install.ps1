@@ -102,6 +102,19 @@ param(
   [int]$RemovalTimeoutSeconds = 180
 )
 
+# CmdletBinding gives us $PSCmdlet and $WhatIfPreference only when PowerShell
+# runs this as a command. A script block that is invoked rather than called,
+# which is what a piped install does, has neither, and StrictMode turns
+# reading them into a terminating error. Read them once here and use the
+# snapshot instead, so both invocation styles behave the same.
+$WhatIf = [bool]$WhatIfPreference
+function Invoke-ShouldProcess {
+  param($Target, $Action)
+  if (-not $WhatIf) { return $true }
+  Write-Host "WhatIf: would $Action $Target" -ForegroundColor DarkGray
+  return $false
+}
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -738,11 +751,11 @@ function Install-Package {
     # A release package keeps its signature, and deploying it needs that
     # certificate trusted here.
     Trust-Certificate -Certificate $signature.SignerCertificate `
-      -Apply:(-not $WhatIfPreference)
+      -Apply:(-not $WhatIf)
   }
   else {
     Write-Step "not signed ($($signature.Status)), signing it"
-    if (-not $WhatIfPreference) {
+    if (-not $WhatIf) {
       $signTool = Find-SignTool
       Write-Note "signtool $signTool"
     }
@@ -754,10 +767,10 @@ function Install-Package {
     }
 
     $certificate = Get-OrCreateCertificate -Subject $subject `
-      -Apply:(-not $WhatIfPreference)
+      -Apply:(-not $WhatIf)
     if (-not $certificate) { return }
-    Trust-Certificate -Certificate $certificate -Apply:(-not $WhatIfPreference)
-    if ($WhatIfPreference) {
+    Trust-Certificate -Certificate $certificate -Apply:(-not $WhatIf)
+    if ($WhatIf) {
       Write-Host 'WhatIf: the package would be signed and installed.' `
         -ForegroundColor DarkGray
       return
@@ -779,7 +792,7 @@ function Install-Package {
   if ($existing -and -not $ForceUpdateFromAnyVersion) {
     Write-Step "removing $($existing.PackageFullName)"
     $target = $existing.PackageFullName
-    if ($PSCmdlet.ShouldProcess($target, 'Remove-AppxPackage')) {
+    if (Invoke-ShouldProcess $target 'Remove-AppxPackage') {
       $location = $existing.InstallLocation
       $stopped = Stop-PackageProcesses -InstallLocation $location
       if ($stopped -gt 0) {
@@ -801,7 +814,7 @@ function Install-Package {
   if ($ForceUpdateFromAnyVersion) {
     $arguments.ForceUpdateFromAnyVersion = $true
   }
-  if ($PSCmdlet.ShouldProcess($Path, 'Add-AppxPackage')) {
+  if (Invoke-ShouldProcess $Path 'Add-AppxPackage') {
     try {
       Add-AppxPackage @arguments
     }
@@ -823,7 +836,7 @@ function Uninstall-Package {
   foreach ($package in $packages) {
     Write-Step "removing $($package.PackageFullName)"
     $target = $package.PackageFullName
-    if (-not $PSCmdlet.ShouldProcess($target, 'Remove-AppxPackage')) {
+    if (-not (Invoke-ShouldProcess $target 'Remove-AppxPackage')) {
       continue
     }
     $stopped = Stop-PackageProcesses -InstallLocation $package.InstallLocation
@@ -839,17 +852,17 @@ function Uninstall-Package {
   }
 
   if (Test-IsAdmin) {
-    $apply = -not $WhatIfPreference
+    $apply = -not $WhatIf
     foreach ($name in @(Invoke-ProvisionedPackageCleanup -Name $PackageName `
         -Apply $apply)) {
       Write-Note "provisioned package removed: $name"
     }
   }
 
-  Remove-TrustedCertificate -Subject $Publisher -Apply:(-not $WhatIfPreference)
+  Remove-TrustedCertificate -Subject $Publisher -Apply:(-not $WhatIf)
   if (Test-Path -LiteralPath $BackupDir) {
     Write-Step "deleting $BackupDir"
-    if ($PSCmdlet.ShouldProcess($BackupDir, 'Remove-Item')) {
+    if (Invoke-ShouldProcess $BackupDir 'Remove-Item') {
       Remove-Item -LiteralPath $BackupDir -Recurse -Force `
         -ErrorAction SilentlyContinue
     }
@@ -873,7 +886,7 @@ $package = Resolve-PackagePath
 Write-Step "package : $package"
 Install-Package -Path $package
 
-if ($WhatIfPreference) {
+if ($WhatIf) {
   Write-Host ''
   Write-Host 'WhatIf: nothing was installed or removed.' `
     -ForegroundColor DarkGray
