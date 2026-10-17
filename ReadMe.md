@@ -50,10 +50,25 @@ Uninstall:
   binary prefixes instead of an exact byte count. It is off by default.
 - A language selector on the settings page of the Modern File Manager, which
   offers the languages the modern experience library was built with.
-- A warning when a 7-Zip ZS compression method is selected for the 7z format,
+- A warning when a compression method the upstream 7-Zip has no built-in
+  support for, such as a 7-Zip ZS one, is selected for the 7z format,
   because upstream 7-Zip and most other archive software cannot read those
   archives.
 - A <kbd>Ctrl</kbd>+<kbd>W</kbd> shortcut for closing the File Manager window.
+- An install and uninstall script that signs the release bundle with a
+  certificate it creates on the machine, so no store account is needed.
+- A sort direction arrow on the column the file list is sorted by, redrawn
+  whenever the column, the direction or the visible columns change.
+- A denser path tree in the Modern File Manager, whose rows no longer
+  inherit a minimum height meant for a full icon and label.
+- An extract dialog that offers the free space left on the target volume, an
+  *Open* button that reveals the result, a *Filename* button that fills the
+  archive name into the path, and an *After extraction completes
+  successfully* group. The group can open the output folder, move the source
+  archives to the Recycle Bin once the extraction succeeded, and close the
+  File Manager that started it. Archives that cannot be moved are reported
+  instead of being erased.
+- A percentage beside the progress bar, redrawn only when the value changes.
 
 ## Package identity
 
