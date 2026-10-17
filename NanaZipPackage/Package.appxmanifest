@@ -21,7 +21,7 @@
   <Identity
     Name="Kaesinol.NanaZipRev"
     Publisher="CN=23EBD860-A383-4AEA-836A-B041352C93FF"
-    Version="7.0.1845.0" />
+    Version="7.0.1873.0" />
 
   <Properties>
     <DisplayName>NanaZip Rev</DisplayName>
