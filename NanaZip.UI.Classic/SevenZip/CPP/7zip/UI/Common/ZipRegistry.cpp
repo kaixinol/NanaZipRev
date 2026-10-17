@@ -12,7 +12,6 @@
 #include "../../../Windows/Synchronization.h"
 
 #include "../FileManager/RegistryUtils.h"
-
 #include "ZipRegistry.h"
 
 // **************** NanaZip Modification Start ****************
@@ -116,10 +115,10 @@ static LPCTSTR const kOpenFolderAfterExtract = TEXT("OpenFolderAfterExtract");
 
 void CInfo::Save() const
 {
+  UStringVector Empty;
   CS_LOCK
   CKey key;
   CreateMainKey(key, kKeyName);
-  UStringVector Empty;
 
   if (PathMode_Force)
     key.SetValue(kExtractMode, (UInt32)PathMode);
@@ -156,7 +155,7 @@ void CInfo::Load()
   PathMode_Force = false;
   OverwriteMode = NOverwriteMode::kAsk;
   OverwriteMode_Force = false;
-
+  
   SplitDest.Val = true;
 
   Paths.Clear();
@@ -165,7 +164,7 @@ void CInfo::Load()
   CKey key;
   if (OpenMainKey(key, kKeyName) != ERROR_SUCCESS)
     return;
-
+  
   key.GetValue_Strings(kPathHistory, Paths);
   UInt32 v;
   if (key.QueryValue(kExtractMode, v) == ERROR_SUCCESS && v <= NPathMode::kAbsPaths)
@@ -271,14 +270,13 @@ void CInfo::Save() const
   Key_Set_BoolPair_Delete_IfNotDef (key, kHardLinks, HardLinks);
   Key_Set_BoolPair_Delete_IfNotDef (key, kSymLinks, SymLinks);
   Key_Set_BoolPair_Delete_IfNotDef (key, kPreserveATime, PreserveATime);
-
+  
   key.SetValue(kShowPassword, ShowPassword);
   key.SetValue(kLevel, (UInt32)Level);
   key.SetValue(kArchiver, ArcType);
   key.SetValue(kShowPassword, ShowPassword);
   key.SetValue(kEncryptHeaders, EncryptHeaders);
   key.RecurseDeleteKey(kArcHistory);
-
   if (WantArcHistory())
     key.SetValue_Strings(kArcHistory, ArcPaths);
   else
@@ -293,7 +291,7 @@ void CInfo::Save() const
       const CFormatOptions &fo = Formats[i];
       CKey fk;
       fk.Create(optionsKey, fo.FormatID);
-
+      
       SetRegString(fk, kMethod, fo.Method);
       SetRegString(fk, kOptions, fo.Options);
       SetRegString(fk, kSplitVolume, fo.SplitVolume);
@@ -338,7 +336,7 @@ void CInfo::Load()
   Key_Get_BoolPair(key, kPreserveATime, PreserveATime);
 
   key.GetValue_Strings(kArcHistory, ArcPaths);
-
+  
   {
     CKey optionsKey;
     if (optionsKey.Open(key, kOptionsKeyName, KEY_READ) == ERROR_SUCCESS)
@@ -402,7 +400,7 @@ static bool ParseMemUse(const wchar_t *s, CMemUse &mu)
   UInt64 number = ConvertStringToUInt64(s, &end);
   if (end == s)
     return false;
-
+  
   wchar_t c = *end;
 
   if (percentMode)
@@ -423,7 +421,7 @@ static bool ParseMemUse(const wchar_t *s, CMemUse &mu)
   c = MyCharLower_Ascii(c);
 
   const wchar_t c1 = end[1];
-
+  
   if (c == '%')
   {
     if (c1 != 0)
@@ -440,11 +438,11 @@ static bool ParseMemUse(const wchar_t *s, CMemUse &mu)
     mu.Val = number;
     return true;
   }
-
+  
   if (c1 != 0)
     if (MyCharLower_Ascii(c1) != 'b' || end[2] != 0)
       return false;
-
+  
   unsigned numBits;
   switch (c)
   {
@@ -562,7 +560,7 @@ void CContextMenuInfo::Save() const
   CS_LOCK
   CKey key;
   CreateMainKey(key, kOptionsInfoKeyName);
-
+  
   Key_Set_BoolPair(key, kCascadedMenu, Cascaded);
   Key_Set_BoolPair(key, kMenuIcons, MenuIcons);
   Key_Set_BoolPair(key, kElimDup, ElimDup);
@@ -572,7 +570,7 @@ void CContextMenuInfo::Save() const
   // **************** NanaZip Modification Start ****************
   Key_Set_BoolPair(key, kExtractOnOpen, ExtractOnOpen);
   // **************** NanaZip Modification End ****************
-
+  
   if (Flags_Def)
     key.SetValue(kContextMenu, Flags);
 }
@@ -598,13 +596,13 @@ void CContextMenuInfo::Load()
 
   Flags = (UInt32)(Int32)-1;
   Flags_Def = false;
-
+  
   CS_LOCK
-
+  
   CKey key;
   if (OpenMainKey(key, kOptionsInfoKeyName) != ERROR_SUCCESS)
     return;
-
+  
   Key_Get_BoolPair_true(key, kCascadedMenu, Cascaded);
   Key_Get_BoolPair_true(key, kElimDup, ElimDup);
   Key_Get_BoolPair(key, kMenuIcons, MenuIcons);
@@ -612,7 +610,7 @@ void CContextMenuInfo::Load()
   // **************** NanaZip Modification Start ****************
   if (WriteZone == (UInt32)(Int32)-1)
   {
-    Key_Get_UInt32(key, kWriteZoneId, WriteZone);
+  Key_Get_UInt32(key, kWriteZoneId, WriteZone);
   }
 
   Key_Get_BoolPair(key, kExtractOnOpen, ExtractOnOpen);
