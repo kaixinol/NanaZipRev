@@ -492,7 +492,17 @@ bool CProgressDialog::OnSize(WPARAM /* wParam */, int xSize, int ySize)
 
   ChangeSubWindowSizeX(GetItem(IDT_PROGRESS_STATUS), xSize - mx * 2);
   ChangeSubWindowSizeX(GetItem(IDT_PROGRESS_FILE_NAME), xSize - mx * 2);
-  ChangeSubWindowSizeX(GetItem(IDC_PROGRESS1), xSize - mx * 2);
+  // **************** NanaZip Modification Start ****************
+  const int xPercent = Units_To_Pixels_X(MY_PROGRESS_PERCENT_UNITS);
+  ChangeSubWindowSizeX(GetItem(IDC_PROGRESS1), xSize - mx * 2 - xPercent);
+  {
+    RECT r;
+    GetClientRectOfItem(IDT_PROGRESS_PERCENT, r);
+    r.left = xSize - mx - xPercent;
+    r.right = r.left + xPercent;
+    MoveItem_RECT(IDT_PROGRESS_PERCENT, r);
+  }
+  // **************** NanaZip Modification End ****************
 
   int bSizeX = _buttonSizeX;
   int mx2 = mx;
@@ -855,6 +865,12 @@ void CProgressDialog::UpdateStatInfo(bool showAll)
       if (percent != _prevPercentValue)
       {
         _prevPercentValue = percent;
+        // **************** NanaZip Modification Start ****************
+        wchar_t s[16];
+        ConvertUInt64ToString(percent, s);
+        MyStringCat(s, L"%");
+        SetItemText(IDT_PROGRESS_PERCENT, s);
+        // **************** NanaZip Modification End ****************
         needSetTitle = true;
       }
     }

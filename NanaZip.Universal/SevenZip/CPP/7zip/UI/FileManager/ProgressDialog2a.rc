@@ -5,6 +5,10 @@
 #define x1s MY_PROGRESS_VAL_UNITS
 #define x2s MY_PROGRESS_LABEL_UNITS_START
 #define x3s MY_PROGRESS_VAL_UNITS
+// **************** NanaZip Modification Start ****************
+#define x4s MY_PROGRESS_PERCENT_UNITS
+#define x4 (m + xc - x4s)
+// **************** NanaZip Modification End ****************
 
 #define x1 (m + x0s)
 #define x3 (xs - m - x3s)
@@ -77,7 +81,10 @@ CAPTION "Progress"
   LTEXT  "", IDT_PROGRESS_STATUS, m, z3, xc, MY_TEXT_NOPREFIX
   CONTROL  "", IDT_PROGRESS_FILE_NAME, "Static", SS_NOPREFIX | SS_LEFTNOWORDWRAP, m, z2, xc, z2s
   
-  CONTROL  "Progress1", IDC_PROGRESS1, "msctls_progress32", PBS_SMOOTH | WS_BORDER, m, z1, xc, z1s
+// **************** NanaZip Modification Start ****************
+  CONTROL  "Progress1", IDC_PROGRESS1, "msctls_progress32", PBS_SMOOTH | WS_BORDER, m, z1, (xc - x4s), z1s
+  RTEXT  "",  IDT_PROGRESS_PERCENT,       x4, z1, x4s, z1s, MY_TEXT_NOPREFIX
+// **************** NanaZip Modification End ****************
 
   CONTROL  "List1", IDL_PROGRESS_MESSAGES, "SysListView32",
            LVS_REPORT | LVS_SHOWSELALWAYS | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,
