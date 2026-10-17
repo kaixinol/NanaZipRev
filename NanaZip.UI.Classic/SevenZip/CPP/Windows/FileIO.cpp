@@ -443,7 +443,15 @@ bool CInFile::Open(CFSTR fileName, DWORD shareMode, DWORD creationDisposition, D
 }
 
 bool CInFile::OpenShared(CFSTR fileName, bool shareForWrite)
-{ return Open(fileName, FILE_SHARE_READ | (shareForWrite ? FILE_SHARE_WRITE : 0), OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL); }
+{ return Open(fileName, FILE_SHARE_READ | (shareForWrite ? FILE_SHARE_WRITE : 0)
+  // **************** NanaZip Modification Start ****************
+  // FILE_SHARE_DELETE lets another process move the file to the Recycle Bin
+  // while it is open here. The File Manager holds the archive open while its
+  // contents are on screen, and the extraction child cannot otherwise honour
+  // the "delete source archives" option.
+  | FILE_SHARE_DELETE
+  // **************** NanaZip Modification End ****************
+  , OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL); }
 
 bool CInFile::Open(CFSTR fileName)
   { return OpenShared(fileName, false); }

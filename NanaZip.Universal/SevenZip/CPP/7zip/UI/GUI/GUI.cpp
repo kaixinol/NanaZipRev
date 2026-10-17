@@ -27,6 +27,9 @@
 
 #include "../FileManager/StringUtils.h"
 #include "../FileManager/LangUtils.h"
+// **************** NanaZip Modification Start ****************
+#include <shellapi.h>
+// **************** NanaZip Modification End ****************
 
 #include "BenchmarkDialog.h"
 #include "ExtractGUI.h"
@@ -49,6 +52,10 @@ HINSTANCE g_hInstance;
 extern
 bool g_DisableUserQuestions;
 bool g_DisableUserQuestions;
+// **************** NanaZip Modification Start ****************
+extern
+bool g_ProcessErrorOccurred;
+// **************** NanaZip Modification End ****************
 
 #ifndef UNDER_CE
 
@@ -355,6 +362,58 @@ static int Main2()
     // **************** NanaZip Modification Start ****************
     else if (eo.OpenFolder.Val) {
       ShellExecuteW(NULL, NULL, ecs->Stat.OutDir, NULL, NULL, SW_SHOWNORMAL);
+    }
+    // Signal the File Manager that started this extraction to close itself.
+    // Shell extension extraction passes no parent window, and the parent may
+    // already be gone, so the handle is validated before it is used.
+    if (eo.Close7Zip && !g_ProcessErrorOccurred &&
+        IsWindow(options.ParentWindowFM))
+      PostMessage(options.ParentWindowFM, WM_CLOSE, 0, 0);
+    // **************** NanaZip Modification End ****************
+    // **************** NanaZip Modification Start ****************
+    // Any error has already returned above, so the source archives are
+    // removed only after a fully successful extraction. They go to the
+    // Recycle Bin rather than being erased outright, and FOF_WANTNUKEWARNING
+    // asks before the shell falls back to a permanent delete. The shell
+    // reports nothing per file, so the paths that are still there afterwards
+    // are collected and shown.
+    if (eo.DeleteSource.Val && !eo.TestMode)
+    {
+      // SHFileOperationW wants a double null terminated list of paths.
+      UString pathList;
+      FOR_VECTOR (i, ArchivePathsFullSorted)
+      {
+        pathList += ArchivePathsFullSorted[i];
+        pathList.Add_Char(0);
+      }
+      pathList.Add_Char(0);
+      SHFILEOPSTRUCTW fo;
+      fo.hwnd = NULL;
+      fo.wFunc = FO_DELETE;
+      fo.pFrom = pathList;
+      fo.pTo = NULL;
+      fo.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI |
+          FOF_WANTNUKEWARNING;
+      fo.fAnyOperationsAborted = FALSE;
+      fo.hNameMappings = NULL;
+      fo.lpszProgressTitle = NULL;
+      ::SHFileOperationW(&fo);
+      UString errorPaths;
+      FOR_VECTOR (i, ArchivePathsFullSorted)
+        if (NFile::NFind::GetFileAttrib(fs2us(ArchivePathsFullSorted[i])) !=
+            INVALID_FILE_ATTRIBUTES)
+        {
+          if (!errorPaths.IsEmpty())
+            errorPaths.Add_LF();
+          errorPaths += ArchivePathsFullSorted[i];
+        }
+      if (!errorPaths.IsEmpty())
+      {
+        UString s = LangString(IDS_EXTRACT_SOURCE_NOT_DELETED);
+        s.Add_LF();
+        s += errorPaths;
+        ErrorMessage(s);
+      }
     }
     // **************** NanaZip Modification End ****************
   }

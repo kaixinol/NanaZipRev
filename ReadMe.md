@@ -154,6 +154,8 @@ Kenji Mouri
 - Modernize message boxes and folder browsers.
 - Provide the Smart Extraction feature.
 - Provide the Open folder after extraction option.
+- Provide the Filename button and the Close 7-Zip option in the extract
+  dialog.
 - Provide the policy mechanism for enforcing settings (see
   [Policies.md](/Documents/Policies.md) for details)
 - Propagates Mark-of-the-Web to all files by default.

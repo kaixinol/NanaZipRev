@@ -110,6 +110,8 @@ struct CArcCmdLineOptions
   UStringVector ExcludedArcTypes;
   // **************** NanaZip Modification Start ****************
   CBoolPair OpenFolder;
+  // Handle of the File Manager window that started this extraction, if any.
+  HWND ParentWindowFM;
   // **************** NanaZip Modification End ****************
   
   unsigned Number_for_Out;
@@ -145,6 +147,9 @@ struct CArcCmdLineOptions
       ShowTime(false),
 
       ConsoleCodePage(-1),
+      // **************** NanaZip Modification Start ****************
+      ParentWindowFM(nullptr),
+      // **************** NanaZip Modification End ****************
 
       Number_for_Out(k_OutStream_stdout),
       Number_for_Errors(k_OutStream_stderr),

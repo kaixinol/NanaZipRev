@@ -37,6 +37,9 @@ namespace NExtract
     // **************** NanaZip Modification Start ****************
     CBoolPair OpenFolder;
     // **************** NanaZip Modification End ****************
+    // **************** NanaZip Modification Start ****************
+    CBoolPair DeleteSource;
+    // **************** NanaZip Modification End ****************
 
     UStringVector Paths;
 
