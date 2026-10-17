@@ -115,7 +115,11 @@ $Proxy = if ($env:HTTPS_PROXY) { $env:HTTPS_PROXY }
          elseif ($env:ALL_PROXY) { $env:ALL_PROXY }
          else { $null }
 
-if (-not $LocalSearchRoot) {
+# `irm ... | iex` runs this as a script block, where $PSScriptRoot is empty
+# rather than the script's directory, so Join-Path would fail on an empty
+# path. Leave the fallback unset in that case; Resolve-PackagePath then
+# reports that no local package was found instead.
+if (-not $LocalSearchRoot -and $PSScriptRoot) {
   $LocalSearchRoot = Join-Path $PSScriptRoot 'Output\Binaries\AppPackages'
 }
 if (-not $BackupDir) {
@@ -397,6 +401,10 @@ function Resolve-PackagePath {
   Write-Step "looking for the latest release on $Repo"
   $remote = Save-RemotePackage -Owner $Repo
   if ($remote) { return $remote }
+
+  if (-not $LocalSearchRoot) {
+    throw "no release on $Repo, build first or pass -LocalPath"
+  }
 
   Write-Note "falling back to the build output under $LocalSearchRoot"
   $local = Get-ChildItem -LiteralPath $LocalSearchRoot -Recurse `
