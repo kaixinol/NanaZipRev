@@ -205,7 +205,9 @@ function Remove-StoreEntry {
 
   $scope = if ($UserScope) { 'CurrentUser' } else { 'LocalMachine' }
   $path = "Cert:\$scope\$Store"
-  $prefix = if ($UserScope) { @('-user') } else { @() }
+  # An if expression unwraps a one-element array, and splatting the resulting
+  # string would pass certutil -u s e r. The outer @() keeps it an array.
+  $prefix = @(if ($UserScope) { '-user' })
 
   for ($i = 0; $i -lt 10; $i++) {
     $hits = @(Get-ChildItem -LiteralPath $path -ErrorAction SilentlyContinue |
