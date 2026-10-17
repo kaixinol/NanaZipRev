@@ -3,7 +3,7 @@
 #include "StdAfx.h"
 
 #include "../../../../C/CpuArch.h"
-
+ 
 #include "../../../Common/IntToString.h"
 #include "../../../Common/StringConvert.h"
 
@@ -302,7 +302,6 @@ void SaveFolderHistory(const UStringVector &folders)
     SaveStringList(kFolderHistoryValueName, Empty);
   }
 }
-
 void ReadFolderHistory(UStringVector &folders)
   { ReadStringList(kFolderHistoryValueName, folders); }
 
@@ -320,7 +319,6 @@ void SaveCopyHistory(const UStringVector &folders)
     SaveStringList(kCopyHistoryValueName, Empty);
   }
 }
-
 void ReadCopyHistory(UStringVector &folders)
   { ReadStringList(kCopyHistoryValueName, folders); }
 

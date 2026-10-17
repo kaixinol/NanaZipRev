@@ -193,7 +193,6 @@ static bool ReadFMOption(LPCTSTR value)
   }
   return enabled;
 }
-
 static void ReadOption(CKey &key, LPCTSTR value, bool &dest)
 {
   bool enabled = false;
@@ -299,7 +298,6 @@ bool WantPathHistory() { return ReadFMOption(kPathHistory); }
 bool WantCopyHistory() { return ReadFMOption(kCopyHistory); }
 bool WantFolderHistory() { return ReadFMOption(kFolderHistory); }
 bool WantLowercaseHashes() { return ReadFMOption(kLowercaseHashes); }
-
 static CSysString GetFlatViewName(UInt32 panelIndex)
 {
   TCHAR panelString[16];

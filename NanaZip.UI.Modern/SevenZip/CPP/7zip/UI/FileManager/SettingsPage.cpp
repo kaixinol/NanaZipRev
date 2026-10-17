@@ -139,7 +139,7 @@ bool CSettingsPage::OnInit()
   // CheckButton(IDX_SETTINGS_UNDERLINE, st.Underline);
 
   CheckButton(IDX_SETTINGS_SHOW_SYSTEM_MENU, st.ShowSystemMenu);
-
+  
   if (IsLargePageSupported())
     CheckButton(IDX_SETTINGS_LARGE_PAGES, ReadLockMemoryEnable());
   else
@@ -242,7 +242,7 @@ bool CSettingsPage::OnInit()
     }
   }
   */
-
+  
   // EnableSubItems();
 
   return CPropertyPage::OnInit();
@@ -280,7 +280,7 @@ LONG CSettingsPage::OnApply()
     st.FolderHistory = IsButtonCheckedBool(IDX_SETTINGS_WANT_FOLDER_HISTORY);
     st.LowercaseHashes = IsButtonCheckedBool(IDX_SETTINGS_LOWERCASE_HASHES);
     // st.Underline = IsButtonCheckedBool(IDX_SETTINGS_UNDERLINE);
-
+    
     st.ShowSystemMenu = IsButtonCheckedBool(IDX_SETTINGS_SHOW_SYSTEM_MENU);
     // **************** NanaZip Modification Start ****************
     st.ShowFileSizeUnits = IsButtonCheckedBool(
@@ -359,7 +359,7 @@ LONG CSettingsPage::OnApply()
     const UString str = _memLimitStrings[index];
 
     bool needSave = true;
-
+    
     NCompression::CMemUse mu;
 
     if (_ramSize_Defined)
@@ -373,28 +373,28 @@ LONG CSettingsPage::OnApply()
         if (s2.IsEmpty())
           GetItemText(IDT_COMPRESS_MEMORY, s2);
         UString s;
-
+        
         s += "The selected value is not safe for system performance.";
         s.Add_LF();
         s += "The memory consumption for compression operation will exceed RAM size.";
         s.Add_LF();
         s.Add_LF();
         AddSize_MB(s, usage64);
-
+        
         if (!s2.IsEmpty())
         {
           s += " : ";
           s += s2;
         }
-
+        
         s.Add_LF();
         AddSize_MB(s, _ramSize);
         s += " : RAM";
-
+        
         s.Add_LF();
         s.Add_LF();
         s += "Are you sure you want set that unsafe value for memory usage?";
-
+        
         int res = MessageBoxW(*this, s, L"NanaZip", MB_YESNOCANCEL | MB_ICONQUESTION);
         if (res != IDYES)
           needSave = false;
@@ -410,7 +410,7 @@ LONG CSettingsPage::OnApply()
       return PSNRET_INVALID_NOCHANGEPAGE;
   }
   */
-
+    
   return PSNRET_NOERROR;
 }
 
