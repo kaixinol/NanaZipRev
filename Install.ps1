@@ -55,10 +55,6 @@
   Where to look for a locally built package. Empty means the build output next
   to this script.
 
-.PARAMETER BackupDir
-  Where earlier versions kept the pfx backup. Nothing is written there any
-  more; -Uninstall uses this path only to clean up a backup they left behind.
-
 .PARAMETER Years
   How long the generated certificate stays valid.
 
@@ -86,8 +82,8 @@
 
   Deploying a package this script signed itself needs sideloading, so either
   developer mode or the Allow sideloading of apps policy. Runs on Windows
-  PowerShell 5.1 and on PowerShell 7; only the provisioned package step needs
-  5.1, and that step is handed over to it when it is needed.
+  PowerShell 5.1 and PowerShell 7.1+; PowerShell 7 uses the Windows PowerShell
+  compatibility layer for Appx cmdlets. Provisioned package cleanup uses 5.1.
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
@@ -96,19 +92,15 @@ param(
   [switch]$NoSign,
   [switch]$ForceUpdateFromAnyVersion,
   [string]$PackageName = 'Kaesinol.NanaZipRev',
+  [ValidateSet('CN=23EBD860-A383-4AEA-836A-B041352C93FF')]
   [string]$Publisher = 'CN=23EBD860-A383-4AEA-836A-B041352C93FF',
   [string]$Repo = 'kaixinol/NanaZipRev',
   [string]$LocalSearchRoot,
-  [string]$BackupDir,
   [int]$Years = 5,
   [int]$RemovalTimeoutSeconds = 180
 )
 
-# CmdletBinding gives us $PSCmdlet and $WhatIfPreference only when PowerShell
-# runs this as a command. A script block that is invoked rather than called,
-# which is what a piped install does, has neither, and StrictMode turns
-# reading them into a terminating error. Read them once here and use the
-# snapshot instead, so both invocation styles behave the same.
+# Keep -WhatIf working when the script is invoked through a pipeline.
 $WhatIf = [bool]$WhatIfPreference
 function Invoke-ShouldProcess {
   param($Target, $Action)
@@ -120,26 +112,38 @@ function Invoke-ShouldProcess {
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
+
+if ($PSVersionTable.PSEdition -eq 'Core') {
+  if ($PSVersionTable.PSVersion -lt [version]'7.1') {
+    throw 'PowerShell 7.1 or newer is required for the Appx compatibility layer; run this script in Windows PowerShell 5.1 instead.'
+  }
+  Import-Module Appx -UseWindowsPowerShell -ErrorAction Stop
+}
+
 [Net.ServicePointManager]::SecurityProtocol =
+  [Net.ServicePointManager]::SecurityProtocol -bor
   [Net.SecurityProtocolType]::Tls12
 
-# When invoked via `irm ... | iex` the caller's -Proxy never reaches us, so
-# pick up a proxy from the environment for the script's own web calls.
+# Honor proxy settings when invoked through `irm ... | iex`.
 $Proxy = if ($env:HTTPS_PROXY) { $env:HTTPS_PROXY }
          elseif ($env:HTTP_PROXY) { $env:HTTP_PROXY }
          elseif ($env:ALL_PROXY) { $env:ALL_PROXY }
          else { $null }
 
-# `irm ... | iex` runs this as a script block, where $PSScriptRoot is empty
-# rather than the script's directory, so Join-Path would fail on an empty
-# path. Leave the fallback unset in that case; Resolve-PackagePath then
-# reports that no local package was found instead.
+# A piped invocation has no $PSScriptRoot, so local-build fallback is unavailable.
 if (-not $LocalSearchRoot -and $PSScriptRoot) {
   $LocalSearchRoot = Join-Path $PSScriptRoot 'Output\Binaries\AppPackages'
 }
-if (-not $BackupDir) {
-  $BackupDir = Join-Path $env:LOCALAPPDATA 'NanaZipRev\cert-backup'
+$localAppData = [Environment]::GetFolderPath('LocalApplicationData')
+if (-not $localAppData) {
+  throw 'LOCALAPPDATA could not be resolved; refusing relative cache paths'
 }
+$Script:NanaZipDataRoot = Join-Path $localAppData 'NanaZipRev'
+$Script:LegacyThumbprintsPath = Join-Path $Script:NanaZipDataRoot `
+  'trusted-thumbprints.txt'
+$Script:LegacyBackupDir = Join-Path $Script:NanaZipDataRoot 'cert-backup'
+$Script:DownloadedPackagePath = $null
+$Script:SignToolTempRoot = $null
 
 Write-Host ('[ps] {0} {1} on {2}' -f
   $PSVersionTable.PSEdition, $PSVersionTable.PSVersion,
@@ -192,10 +196,7 @@ function Test-IsAdmin {
 }
 
 function Remove-StoreEntry {
-  <#
-    certutil is the only way into CurrentUser\Root, and one thumbprint can sit
-    in a store twice, once as the certificate and once as a public key only.
-  #>
+  # Remove duplicate store entries for this thumbprint.
   param(
     [string]$Thumbprint,
     [string]$Store,
@@ -205,8 +206,7 @@ function Remove-StoreEntry {
 
   $scope = if ($UserScope) { 'CurrentUser' } else { 'LocalMachine' }
   $path = "Cert:\$scope\$Store"
-  # An if expression unwraps a one-element array, and splatting the resulting
-  # string would pass certutil -u s e r. The outer @() keeps it an array.
+  # Keep the optional -user switch as an array for splatting.
   $prefix = @(if ($UserScope) { '-user' })
 
   for ($i = 0; $i -lt 10; $i++) {
@@ -224,10 +224,7 @@ function Remove-StoreEntry {
 }
 
 function Invoke-ProvisionedPackageCleanup {
-  <#
-    Removes the copy that is provisioned for future accounts. The cmdlets work
-    on 5.1 only; on 7 they are found but fail with "Class not registered".
-  #>
+  # Provisioning cmdlets require Windows PowerShell 5.1.
   param([string]$Name, [bool]$Apply = $true)
 
   $host5 = Join-Path $env:SystemRoot `
@@ -255,8 +252,7 @@ if ($found.Count -eq 0) { Write-Output 'NONE' }
 '@
 
   Set-Content -LiteralPath $helper -Value $body -Encoding UTF8
-  # A switch on a native command line arrives as a string, which a
-  # SwitchParameter refuses to convert.
+  # Pass the switch only when needed; native arguments are strings.
   $childArgs = @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
     '-File', $helper, '-Name', $Name)
   if ($Apply) { $childArgs += '-Apply' }
@@ -281,7 +277,7 @@ if ($found.Count -eq 0) { Write-Output 'NONE' }
 }
 
 function Add-ZipTypes {
-  <# The two PowerShell editions keep the zip types in different assemblies. #>
+  # Load the ZIP assemblies available in this PowerShell edition.
   foreach ($assembly in 'System.IO.Compression',
                           'System.IO.Compression.FileSystem',
                           'System.IO.Compression.ZipFile') {
@@ -297,7 +293,7 @@ function Add-ZipTypes {
 }
 
 function Read-EntryText {
-  <# Reads one text entry out of a zip, UTF-8 or UTF-16. #>
+  # Read a ZIP entry as UTF-8 or UTF-16 text.
   param([string]$Archive, [string]$EntryName)
 
   Add-ZipTypes
@@ -329,11 +325,7 @@ function Read-EntryText {
 }
 
 function Get-PackagePublisher {
-  <#
-    The signing tool rejects a certificate whose subject is not the publisher
-    the manifest declares. A bundle keeps it in AppxBundleManifest.xml and a
-    single package in AppxManifest.xml.
-  #>
+  # Read Publisher from the bundle manifest or package manifest.
   param([string]$Path)
 
   $candidates = 'AppxMetadata/AppxBundleManifest.xml', 'AppxManifest.xml'
@@ -348,10 +340,7 @@ function Get-PackagePublisher {
 }
 
 function Select-ReleaseBundle {
-  <#
-    The one msixbundle among the assets of a release. More than one is an
-    error, because then there is no telling which one is meant.
-  #>
+  # Require exactly one bundle asset.
   param([object[]]$Assets)
 
   $bundles = @($Assets | Where-Object { $_.name -like '*.msixbundle' })
@@ -365,12 +354,7 @@ function Select-ReleaseBundle {
 }
 
 function Save-RemotePackage {
-  <#
-    The one msixbundle the latest release carries, downloaded to the temp
-    directory. Returns nothing when there is no release, no msixbundle, or
-    the API refuses the call, and fails when the release carries more than
-    one.
-  #>
+  # Download and verify the latest release bundle.
   param([string]$Owner)
 
   $headers = @{
@@ -397,10 +381,39 @@ function Save-RemotePackage {
     return $null
   }
 
-  $cache = Join-Path ([IO.Path]::GetTempPath()) ('NanaZipRev-' + $asset.name)
+  if ($asset.digest -notmatch '^sha256:([0-9a-fA-F]{64})$') {
+    throw "release asset $($asset.name) has no usable GitHub SHA-256 digest; refusing download"
+  }
+  $expectedHash = $Matches[1].ToUpperInvariant()
+  if ($asset.name -match '[\\/]' -or $asset.name -match '(^|[.])\.\.([.]|$)') {
+    throw "unsafe release asset filename: $($asset.name)"
+  }
+  $downloadUri = $null
+  if (-not [Uri]::TryCreate([string]$asset.browser_download_url,
+      [UriKind]::Absolute, [ref]$downloadUri) -or
+      $downloadUri.Scheme -ne 'https' -or $downloadUri.Host -ne 'github.com' -or
+      -not $downloadUri.AbsolutePath.StartsWith('/' + $Owner.Trim('/') + '/releases/download/',
+        [StringComparison]::OrdinalIgnoreCase)) {
+    throw "unexpected GitHub release asset URL: $($asset.browser_download_url)"
+  }
+
+  $cache = Join-Path ([IO.Path]::GetTempPath()) `
+    ('NanaZipRev-' + [guid]::NewGuid().ToString('N') + '.msixbundle')
   Write-Note "downloading $($release.tag_name) / $($asset.name)"
-  Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $cache `
-    -UseBasicParsing -Headers @{ 'User-Agent' = 'Install.ps1' } @proxyArg
+  try {
+    Invoke-WebRequest -Uri $downloadUri.AbsoluteUri -OutFile $cache `
+      -UseBasicParsing -Headers @{ 'User-Agent' = 'Install.ps1' } @proxyArg
+    $actualHash = (Get-FileHash -LiteralPath $cache -Algorithm SHA256).Hash
+    if ($actualHash -cne $expectedHash) {
+      throw "GitHub release SHA-256 mismatch for $($asset.name); refusing installation"
+    }
+  }
+  catch {
+    Remove-Item -LiteralPath $cache -Force -ErrorAction SilentlyContinue
+    throw
+  }
+  $Script:DownloadedPackagePath = $cache
+  Write-Note "verified SHA-256 $actualHash"
   return $cache
 }
 
@@ -437,24 +450,28 @@ function Resolve-PackagePath {
 }
 
 function Download-Bytes {
-  <#
-    Bytes without touching the disk. Invoke-WebRequest either needs a file or
-    decodes the response into text, and the bytes are lost either way.
-  #>
   param([string]$Uri)
 
-  $client = New-Object Net.WebClient
-  $client.Headers.Add('User-Agent', 'Install.ps1')
-  if ($Proxy) { $client.Proxy = [System.Net.WebProxy]::new($Proxy) }
-  try { return $client.DownloadData($Uri) }
-  finally { $client.Dispose() }
+  # Read the response into memory; do not create an intermediate file.
+  $proxyArg = if ($Proxy) { @{ Proxy = $Proxy } } else { @{} }
+  $response = Invoke-WebRequest -Uri $Uri -Headers @{
+    'User-Agent' = 'Install.ps1'
+  } -UseBasicParsing -ErrorAction Stop @proxyArg
+  $stream = $response.RawContentStream
+  if (-not $stream) { throw "download returned no response stream: $Uri" }
+  $memory = New-Object IO.MemoryStream
+  try {
+    $stream.CopyTo($memory)
+    return ,$memory.ToArray()
+  }
+  finally {
+    $memory.Dispose()
+    $stream.Dispose()
+  }
 }
 
 function Get-SignToolArchOrder {
-  <#
-    The architecture this process runs as comes first. An x64 build runs
-    nowhere else, while x64 and x86 both run on arm64 through emulation.
-  #>
+  # Prefer the native architecture before emulation targets.
   switch ($env:PROCESSOR_ARCHITECTURE) {
     'ARM64' { return 'arm64', 'x64', 'x86' }
     'x86' { return 'x86', 'x64', 'arm64' }
@@ -478,6 +495,10 @@ function Get-SignToolIn {
   param([string]$Root, [switch]$Recurse)
 
   if (-not (Test-Path -LiteralPath $Root)) { return $null }
+  $rootItem = Get-Item -LiteralPath $Root -Force -ErrorAction Stop
+  if ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+    throw "refusing to search a reparse-point directory: $Root"
+  }
   $find = @{
     LiteralPath = $Root
     Filter = 'signtool.exe'
@@ -488,84 +509,216 @@ function Get-SignToolIn {
   return Select-SignTool -Files $files
 }
 
-function Find-SignToolInTempRoot {
-  <#
-    Some other tool may have dropped a signing kit straight into the temp
-    directory. The root only: a recursive walk of it is not worth the time,
-    and there is no architecture directory to key on at that level.
-  #>
-  $hit = Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) `
-    -Filter 'signtool.exe' -ErrorAction SilentlyContinue |
-    Select-Object -First 1
-  if ($hit) { return $hit.FullName }
-  return $null
+function Test-MicrosoftSignedBinary {
+  param([string]$Path)
+
+  try { $signature = Get-AuthenticodeSignature -FilePath $Path -ErrorAction Stop }
+  catch { return $false }
+  return ($signature.Status -eq 'Valid' -and
+    $signature.SignerCertificate -and
+    $signature.SignerCertificate.Subject -match 'CN=Microsoft Corporation')
+}
+
+function Get-Sha512Base64FromBytes {
+  param([byte[]]$Bytes)
+
+  $sha512 = [Security.Cryptography.SHA512]::Create()
+  try { return [Convert]::ToBase64String($sha512.ComputeHash($Bytes)) }
+  finally { $sha512.Dispose() }
+}
+
+function Get-NuGetPackageHash {
+  param(
+    [Parameter(Mandatory = $true)][string]$PackageId,
+    [Parameter(Mandatory = $true)][string]$Version
+  )
+
+  $headers = @{ 'User-Agent' = 'Install.ps1'; 'Accept' = 'application/json' }
+  $proxyArg = if ($Proxy) { @{ Proxy = $Proxy } } else { @{} }
+  $serviceIndex = Invoke-RestMethod -Uri 'https://api.nuget.org/v3/index.json' `
+    -Headers $headers -ErrorAction Stop @proxyArg
+  $registration = $serviceIndex.resources | Where-Object {
+    @($_.'@type') -contains 'RegistrationsBaseUrl'
+  } | Select-Object -First 1
+  if (-not $registration) {
+    throw 'NuGet service index has no registration resource'
+  }
+
+  $registrationBase = [string]$registration.'@id'
+  if (-not $registrationBase.EndsWith('/')) { $registrationBase += '/' }
+  $lowerId = $PackageId.ToLowerInvariant()
+  $indexUri = [Uri]::new([Uri]$registrationBase, "$lowerId/index.json").AbsoluteUri
+  $index = Invoke-RestMethod -Uri $indexUri -Headers $headers `
+    -ErrorAction Stop @proxyArg
+  $leaf = $null
+
+  foreach ($page in @($index.items)) {
+    $leaves = if ($page.PSObject.Properties['items']) { @($page.items) } else { @() }
+    if ($leaves.Count -eq 0) {
+      $pageUri = [string]$page.'@id'
+      if (-not $pageUri) { throw "NuGet registration page for $PackageId has no URL" }
+      $pageDocument = Invoke-RestMethod -Uri $pageUri -Headers $headers `
+        -ErrorAction Stop @proxyArg
+      $leaves = @($pageDocument.items)
+    }
+
+    $leaf = $leaves | Where-Object {
+      [string]$_.catalogEntry.version -ieq $Version
+    } | Select-Object -First 1
+    if ($leaf) { break }
+  }
+
+  if (-not $leaf) {
+    throw "NuGet registration has no exact version $PackageId $Version"
+  }
+
+  $catalogUri = [string]$leaf.catalogEntry.'@id'
+  $catalogUriObject = $null
+  if (-not [Uri]::TryCreate($catalogUri, [UriKind]::Absolute, [ref]$catalogUriObject) -or
+      $catalogUriObject.Scheme -ne 'https' -or
+      $catalogUriObject.Host -ne 'api.nuget.org') {
+    throw "unexpected NuGet catalog URL: $catalogUri"
+  }
+  $catalog = Invoke-RestMethod -Uri $catalogUriObject.AbsoluteUri `
+    -Headers $headers -ErrorAction Stop @proxyArg
+
+  if ($catalog.id -ine $PackageId -or $catalog.version -ine $Version) {
+    throw "NuGet catalog entry does not match $PackageId $Version"
+  }
+  if ($catalog.packageHashAlgorithm -ine 'SHA512') {
+    throw "NuGet catalog did not report SHA512 for $PackageId $Version"
+  }
+
+  $packageHash = [string]$catalog.packageHash
+  $hashBytes = [Convert]::FromBase64String($packageHash)
+  if ($hashBytes.Length -ne 64) {
+    throw "NuGet packageHash for $PackageId $Version is not a SHA-512 digest"
+  }
+  return $packageHash
+}
+
+function Remove-TemporarySignToolDirectory {
+  param([string]$Root)
+
+  if (-not $Root) { return }
+  try {
+    $tempPath = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd(
+      [char[]]@('\', '/'))
+    $fullRoot = [IO.Path]::GetFullPath($Root).TrimEnd([char[]]@('\', '/'))
+    $parent = [IO.Path]::GetDirectoryName($fullRoot).TrimEnd([char[]]@('\', '/'))
+    $leaf = [IO.Path]::GetFileName($fullRoot)
+    if (-not [StringComparer]::OrdinalIgnoreCase.Equals($parent, $tempPath) -or
+        $leaf -notmatch '^NanaZipRev-SignTool-[0-9a-f]{32}$') {
+      Write-Warn "refusing to remove unexpected temporary SignTool path: $Root"
+      return
+    }
+    if (-not (Test-Path -LiteralPath $fullRoot)) { return }
+    $rootItem = Get-Item -LiteralPath $fullRoot -Force -ErrorAction Stop
+    if (-not $rootItem.PSIsContainer -or
+        ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+      Write-Warn "refusing to remove an unsafe temporary SignTool path: $fullRoot"
+      return
+    }
+    foreach ($item in @(Get-ChildItem -LiteralPath $fullRoot -Force -Recurse -ErrorAction Stop)) {
+      if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        Write-Warn "refusing to recursively remove a temporary SignTool tree containing a reparse point: $($item.FullName)"
+        return
+      }
+    }
+    Remove-Item -LiteralPath $fullRoot -Recurse -Force -ErrorAction Stop
+  }
+  catch {
+    Write-Warn "could not clean up temporary SignTool files: $($_.Exception.Message)"
+  }
 }
 
 function Find-SignTool {
-  $onPath = Get-Command 'signtool.exe' -ErrorAction SilentlyContinue |
-    Select-Object -First 1
-  if ($onPath) {
-    Write-Note "signtool on PATH: $($onPath.Source)"
-    return $onPath.Source
+  # Prefer a Microsoft-signed SignTool on PATH; do not reuse temporary tools.
+  $pathCandidates = @(Get-Command 'signtool.exe' -CommandType Application -All `
+    -ErrorAction SilentlyContinue)
+  foreach ($candidate in $pathCandidates) {
+    if (Test-MicrosoftSignedBinary -Path $candidate.Source) {
+      Write-Note "using Microsoft-signed signtool from PATH: $($candidate.Source)"
+      return $candidate.Source
+    }
+    Write-Warn "ignoring signtool on PATH because its Microsoft Authenticode signature is not valid: $($candidate.Source)"
   }
 
-  $kits = @(
-    (Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'),
-    (Join-Path $env:ProgramFiles 'Windows Kits\10\bin')
-  )
-  foreach ($root in $kits) {
-    $hit = Get-SignToolIn -Root $root -Recurse
-    if ($hit) { return $hit }
-  }
-
-  $temp = [IO.Path]::GetTempPath()
-  $cache = Join-Path $temp 'NanaZipRev\winsdk'
-  $hit = Get-SignToolIn -Root $cache -Recurse
-  if ($hit) { return $hit }
-
-  # Some other tool may have dropped a signing kit straight into the temp
-  # directory.
-  $hit = Find-SignToolInTempRoot
-  if ($hit) {
-    Write-Note "signtool found in $([IO.Path]::GetTempPath())"
-    return $hit
-  }
-
-  Write-Step 'signtool.exe not found, fetching the Windows SDK build tools'
+  Write-Step 'no trusted signtool.exe on PATH, downloading the Windows SDK build tools'
   $version = '10.0.26100.9169'
   $id = 'microsoft.windows.sdk.buildtools'
   $uri = "https://api.nuget.org/v3-flatcontainer/$id/$version" +
     "/$id.$version.nupkg"
 
-  # Kept in memory: 20 MB of bytes, and only the signing tools are wanted.
+  # The package hash comes from NuGet's Catalog PackageDetails document.
+  $expectedHash = Get-NuGetPackageHash -PackageId $id -Version $version
   $bytes = Download-Bytes -Uri $uri
+  if ((Get-Sha512Base64FromBytes -Bytes $bytes) -cne $expectedHash) {
+    throw 'Windows SDK NuGet package SHA-512 mismatch; refusing to extract it'
+  }
 
-  Add-ZipTypes
-  $memory = [IO.MemoryStream]::new($bytes)
+  # Use a fresh directory for this run; the caller removes it after signing.
+  $tempPath = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd(
+    [char[]]@('\', '/'))
+  $toolRoot = Join-Path $tempPath (
+    'NanaZipRev-SignTool-' + [guid]::NewGuid().ToString('N'))
+  New-Item -ItemType Directory -Path $toolRoot -ErrorAction Stop | Out-Null
+  $Script:SignToolTempRoot = $toolRoot
+
   try {
-    $zip = [IO.Compression.ZipArchive]::new(
-      $memory, [IO.Compression.ZipArchiveMode]::Read)
-    try {
-      $pattern = '^(bin/[^/]+/)(x64|arm64)/(signtool\.exe|.*\.dll)$'
-      foreach ($entry in $zip.Entries) {
-        if ($entry.FullName -notmatch $pattern) { continue }
-        $target = Join-Path $cache ($entry.FullName -replace '/', '\')
-        $parent = Split-Path -Parent $target
-        New-Item -ItemType Directory -Force -Path $parent | Out-Null
-        $extract = [IO.Compression.ZipFileExtensions]
-        $extract::ExtractToFile($entry, $target, $true)
-      }
+    $rootItem = Get-Item -LiteralPath $toolRoot -Force -ErrorAction Stop
+    if (-not $rootItem.PSIsContainer -or
+        ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+      throw "refusing to extract the SDK into an unsafe temporary path: $toolRoot"
     }
-    finally { $zip.Dispose() }
-  }
-  finally { $memory.Dispose() }
 
-  $hit = Get-SignToolIn -Root $cache -Recurse
-  if (-not $hit) {
-    throw 'the SDK package carried no signtool.exe, install the Windows SDK'
+    Add-ZipTypes
+    $memory = [IO.MemoryStream]::new($bytes)
+    try {
+      $zip = [IO.Compression.ZipArchive]::new(
+        $memory, [IO.Compression.ZipArchiveMode]::Read)
+      try {
+        # Extract only the tool and adjacent DLLs; reject traversal and duplicates.
+        $pattern = '^bin/(?!\.{1,2}/)[^/]+/(x86|x64|arm64)/(signtool\.exe|[^/]+\.dll)$'
+        $rootPrefix = [IO.Path]::GetFullPath($toolRoot).TrimEnd(
+          [char[]]@('\', '/')) + '\'
+        $seen = @{}
+        foreach ($entry in $zip.Entries) {
+          if ($entry.FullName -notmatch $pattern) { continue }
+          $relative = $entry.FullName -replace '/', '\'
+          $target = [IO.Path]::GetFullPath((Join-Path $toolRoot $relative))
+          if (-not $target.StartsWith($rootPrefix,
+              [StringComparison]::OrdinalIgnoreCase)) {
+            throw "SDK archive entry escapes the temporary directory: $($entry.FullName)"
+          }
+          if ($seen.ContainsKey($target)) {
+            throw "SDK archive contains a duplicate tool entry: $($entry.FullName)"
+          }
+          $seen[$target] = $true
+          $parent = Split-Path -Parent $target
+          New-Item -ItemType Directory -Force -Path $parent -ErrorAction Stop | Out-Null
+          [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $target, $false)
+        }
+      }
+      finally { $zip.Dispose() }
+    }
+    finally { $memory.Dispose() }
+
+    $hit = Get-SignToolIn -Root $toolRoot -Recurse
+    if (-not $hit) {
+      throw 'the SDK package carried no compatible signtool.exe'
+    }
+    if (-not (Test-MicrosoftSignedBinary -Path $hit)) {
+      throw "extracted signtool.exe does not have a valid Microsoft Authenticode signature: $hit"
+    }
+    Write-Note "downloaded and extracted Microsoft-signed signtool: $hit"
+    return $hit
   }
-  Write-Note "fetched $hit"
-  return $hit
+  catch {
+    Remove-TemporarySignToolDirectory -Root $toolRoot
+    $Script:SignToolTempRoot = $null
+    throw
+  }
 }
 
 function Get-OrCreateCertificate {
@@ -592,7 +745,7 @@ function Get-OrCreateCertificate {
     -HashAlgorithm SHA256 -NotAfter (Get-Date).AddYears($Years) `
     -FriendlyName 'NanaZip Rev local test'
 
-  # The private key stays in Cert:\CurrentUser\My; nothing is exported.
+  # The private key is never exported.
   return $cert
 }
 
@@ -620,9 +773,18 @@ function Trust-Certificate {
   Export-Certificate -Cert $Certificate -FilePath $cer | Out-Null
   try {
     & certutil -user -addstore Root $cer | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+      throw "certutil failed to trust $($Certificate.Thumbprint) in CurrentUser\Root"
+    }
     if (Test-IsAdmin) {
       & certutil -addstore Root $cer | Out-Null
+      if ($LASTEXITCODE -ne 0) {
+        throw "certutil failed to trust $($Certificate.Thumbprint) in LocalMachine\Root"
+      }
       & certutil -addstore TrustedPeople $cer | Out-Null
+      if ($LASTEXITCODE -ne 0) {
+        throw "certutil failed to trust $($Certificate.Thumbprint) in LocalMachine\TrustedPeople"
+      }
       Write-Step 'trusted in CurrentUser, LocalMachine and TrustedPeople'
     }
     else {
@@ -634,45 +796,112 @@ function Trust-Certificate {
   finally { Remove-Item -LiteralPath $cer -Force -ErrorAction SilentlyContinue }
 }
 
-function Remove-TrustedCertificate {
-  param([string]$Subject, [bool]$Apply = $true)
+function Remove-LegacyInstallerData {
+  param([bool]$Apply = $true)
 
-  $stores = 'Cert:\CurrentUser\My', 'Cert:\CurrentUser\Root', `
-    'Cert:\LocalMachine\Root', 'Cert:\LocalMachine\TrustedPeople'
-  $thumbs = @(Get-ChildItem $stores -ErrorAction SilentlyContinue |
-    Where-Object { $_.Subject -eq $Subject } |
-    Select-Object -ExpandProperty Thumbprint -Unique)
-  if ($thumbs.Count -eq 0) {
-    Write-Step "no certificate for $Subject in the stores"
-    return
+  $thumbs = @()
+  if (Test-Path -LiteralPath $Script:LegacyThumbprintsPath) {
+    $thumbFile = Get-Item -LiteralPath $Script:LegacyThumbprintsPath -Force `
+      -ErrorAction Stop
+    if ($thumbFile.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+      throw "refusing to read legacy thumbprint list through a reparse point: $Script:LegacyThumbprintsPath"
+    }
+    $thumbs = @(Get-Content -LiteralPath $Script:LegacyThumbprintsPath |
+      Where-Object { $_ -match '^[0-9A-Fa-f]{40}$' } |
+      Sort-Object -Unique)
   }
 
   foreach ($thumbprint in $thumbs) {
-    Write-Step "removing certificate $thumbprint"
-    $args = @{ Thumbprint = $thumbprint; Apply = $Apply }
-    Remove-StoreEntry @args -Store 'My' -UserScope
-    Remove-StoreEntry @args -Store 'Root' -UserScope
+    $stores = @('Cert:\CurrentUser\My', 'Cert:\CurrentUser\Root')
     if (Test-IsAdmin) {
-      Remove-StoreEntry @args -Store 'Root'
-      Remove-StoreEntry @args -Store 'TrustedPeople'
+      $stores += 'Cert:\LocalMachine\Root', 'Cert:\LocalMachine\TrustedPeople'
+    }
+    foreach ($store in $stores) {
+      $hits = @(Get-ChildItem -LiteralPath $store -ErrorAction SilentlyContinue |
+        Where-Object { $_.Thumbprint -eq $thumbprint })
+      if ($hits.Count -eq 0) { continue }
+      $userScope = $store.StartsWith('Cert:\CurrentUser\',
+        [StringComparison]::OrdinalIgnoreCase)
+      $storeName = $store.Substring($store.LastIndexOf('\') + 1)
+      Remove-StoreEntry -Thumbprint $thumbprint -Store $storeName `
+        -UserScope:$userScope -Apply $Apply
+    }
+  }
+
+  if (Test-Path -LiteralPath $Script:LegacyThumbprintsPath) {
+    Write-Step "deleting legacy thumbprint list $Script:LegacyThumbprintsPath"
+    if (Invoke-ShouldProcess $Script:LegacyThumbprintsPath 'Remove-Item') {
+      Remove-Item -LiteralPath $Script:LegacyThumbprintsPath -Force `
+        -ErrorAction SilentlyContinue
+    }
+  }
+
+  if (Test-Path -LiteralPath $Script:LegacyBackupDir) {
+    $backupRoot = [IO.Path]::GetFullPath($Script:NanaZipDataRoot).TrimEnd(
+      [char[]]@('\\', '/')) + '\\'
+    $backupDir = [IO.Path]::GetFullPath($Script:LegacyBackupDir)
+    if (-not $backupDir.StartsWith($backupRoot,
+        [StringComparison]::OrdinalIgnoreCase)) {
+      throw "refusing to remove legacy backup outside ${Script:NanaZipDataRoot}: $backupDir"
+    }
+    $current = $backupDir
+    while ($true) {
+      if (Test-Path -LiteralPath $current) {
+        $item = Get-Item -LiteralPath $current -Force -ErrorAction Stop
+        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+          throw "refusing recursive deletion through a reparse point: $current"
+        }
+      }
+      if ($current.Equals($backupRoot.TrimEnd('\\'),
+          [StringComparison]::OrdinalIgnoreCase)) { break }
+      $parent = Split-Path -Parent $current
+      if (-not $parent -or $parent -eq $current -or
+          -not $current.StartsWith($backupRoot,
+            [StringComparison]::OrdinalIgnoreCase)) { break }
+      $current = $parent
+    }
+    Write-Step "deleting legacy certificate backup $backupDir"
+    if (Invoke-ShouldProcess $backupDir 'Remove-Item') {
+      Remove-Item -LiteralPath $backupDir -Recurse -Force `
+        -ErrorAction SilentlyContinue
     }
   }
 }
 
+function Remove-TrustedCertificate {
+  param([string]$Subject, [bool]$Apply = $true)
+
+  $certs = @(Get-ChildItem -LiteralPath 'Cert:\CurrentUser\My' `
+      -ErrorAction SilentlyContinue | Where-Object {
+        $_.Subject -eq $Subject -and $_.HasPrivateKey -and
+        $_.FriendlyName -eq 'NanaZip Rev local test'
+      })
+
+  foreach ($cert in $certs) {
+    Write-Step "removing certificate $($cert.Thumbprint)"
+    Remove-StoreEntry -Thumbprint $cert.Thumbprint -Store 'My' `
+      -UserScope -Apply $Apply
+    Remove-StoreEntry -Thumbprint $cert.Thumbprint -Store 'Root' `
+      -UserScope -Apply $Apply
+    if (Test-IsAdmin) {
+      Remove-StoreEntry -Thumbprint $cert.Thumbprint -Store 'Root' `
+        -Apply $Apply
+      Remove-StoreEntry -Thumbprint $cert.Thumbprint -Store 'TrustedPeople' `
+        -Apply $Apply
+    }
+  }
+}
 function Stop-PackageProcesses {
-  <#
-    Processes running out of the package folder hold its files and stall the
-    removal, so they are stopped first. Only executables below the install
-    location match, so explorer and dllhost are never touched.
-  #>
+  # Stop only processes launched from this package's install directory.
   param([string]$InstallLocation)
 
   if (-not $InstallLocation) { return 0 }
   if (-not (Test-Path -LiteralPath $InstallLocation)) { return 0 }
+  $installPrefix = $InstallLocation.TrimEnd([char[]]@('\', '/')) + '\'
   try {
     $running = @(Get-Process -ErrorAction SilentlyContinue | Where-Object {
       $_.Path -and
-      $_.Path.StartsWith($InstallLocation,
+      $_.Path.StartsWith($installPrefix,
         [StringComparison]::OrdinalIgnoreCase)
     })
   }
@@ -691,18 +920,18 @@ function Stop-PackageProcesses {
 }
 
 function Remove-PackageWithTimeout {
-  <#
-    Removal takes a minute or more and looks like a hang, so it runs in a
-    background job with a heartbeat, and gives up with an explanation instead
-    of waiting forever.
-  #>
+  # Report progress and time out if package removal stalls.
   param([string]$PackageFullName)
 
   $stopwatch = [Diagnostics.Stopwatch]::StartNew()
   try {
     $job = Start-Job -ErrorAction Stop -ArgumentList $PackageFullName `
       -ScriptBlock {
-        param($name) Remove-AppxPackage -Package $name -ErrorAction Stop
+        param($name)
+        if ($PSVersionTable.PSEdition -eq 'Core') {
+          Import-Module Appx -UseWindowsPowerShell -ErrorAction Stop
+        }
+        Remove-AppxPackage -Package $name -ErrorAction Stop
       }
   }
   catch {
@@ -740,28 +969,39 @@ function Remove-PackageWithTimeout {
 function Install-Package {
   param([string]$Path)
 
+  $subject = Get-PackagePublisher -Path $Path
+  if (-not $subject) {
+    throw "could not read the package Publisher; expected exactly '$Publisher'"
+  }
+  if ($subject -cne $Publisher) {
+    throw "package Publisher mismatch: manifest='$subject'; expected='$Publisher'"
+  }
+
   $signature = Get-AuthenticodeSignature -FilePath $Path
+  if ($signature.Status -eq 'Valid') {
+    if (-not $signature.SignerCertificate -or
+        $signature.SignerCertificate.Subject -cne $Publisher) {
+      $signerSubject = if ($signature.SignerCertificate) {
+        $signature.SignerCertificate.Subject
+      } else { '<missing signer certificate>' }
+      throw "signature signer mismatch: signer='$signerSubject'; expected='$Publisher'"
+    }
+  }
+
   if ($NoSign) {
     Write-Step "signing skipped, current status $($signature.Status)"
   }
   elseif ($signature.Status -eq 'Valid') {
     Write-Step "already signed by $($signature.SignerCertificate.Subject)"
-    # A release package keeps its signature, and deploying it needs that
-    # certificate trusted here.
+    # Trust only the exact verified signer certificate.
     Trust-Certificate -Certificate $signature.SignerCertificate `
       -Apply:(-not $WhatIf)
   }
   else {
-    Write-Step "not signed ($($signature.Status)), signing it"
+    Write-Step 'package is unsigned; signing it'
     if (-not $WhatIf) {
       $signTool = Find-SignTool
       Write-Note "signtool $signTool"
-    }
-
-    $subject = Get-PackagePublisher -Path $Path
-    if (-not $subject) { $subject = $Publisher }
-    if ($subject -ne $Publisher) {
-      Write-Note "the package asks for $subject, signing against that"
     }
 
     $certificate = Get-OrCreateCertificate -Subject $subject `
@@ -773,12 +1013,12 @@ function Install-Package {
         -ForegroundColor DarkGray
       return
     }
-    # signtool rejects an https timestamp URL outright, so this one stays http.
+    # Use DigiCert's HTTP RFC 3161 endpoint with this SignTool version.
     $stamp = 'http://timestamp.digicert.com'
     & $signTool sign /fd SHA256 /td SHA256 /tr $stamp `
       /sha1 $certificate.Thumbprint $Path
     if ($LASTEXITCODE -ne 0) {
-      throw "signtool failed with exit code $LASTEXITCODE"
+      throw "signtool failed with exit code $LASTEXITCODE using the HTTP RFC 3161 timestamp service"
     }
     & $signTool verify /pa $Path | Out-Null
     if ($LASTEXITCODE -ne 0) {
@@ -859,15 +1099,6 @@ function Uninstall-Package {
   }
 
   Remove-TrustedCertificate -Subject $Publisher -Apply:(-not $WhatIf)
-  if (Test-Path -LiteralPath $BackupDir) {
-    Write-Warn "$BackupDir is a backup left by an earlier version; it holds " +
-      'a pfx whose private key was protected by a hardcoded password'
-    Write-Step "deleting $BackupDir"
-    if (Invoke-ShouldProcess $BackupDir 'Remove-Item') {
-      Remove-Item -LiteralPath $BackupDir -Recurse -Force `
-        -ErrorAction SilentlyContinue
-    }
-  }
 
   Write-Host ''
   if (Get-AppxPackage -Name $PackageName -ErrorAction SilentlyContinue) {
@@ -878,6 +1109,8 @@ function Uninstall-Package {
   }
 }
 
+Remove-LegacyInstallerData -Apply:(-not $WhatIf)
+
 if ($Uninstall) {
   Uninstall-Package
   return
@@ -885,7 +1118,20 @@ if ($Uninstall) {
 
 $package = Resolve-PackagePath
 Write-Step "package : $package"
-Install-Package -Path $package
+try {
+  Install-Package -Path $package
+}
+finally {
+  if ($Script:DownloadedPackagePath -and
+      (Test-Path -LiteralPath $Script:DownloadedPackagePath)) {
+    Remove-Item -LiteralPath $Script:DownloadedPackagePath -Force `
+      -ErrorAction SilentlyContinue
+  }
+  if ($Script:SignToolTempRoot) {
+    Remove-TemporarySignToolDirectory -Root $Script:SignToolTempRoot
+    $Script:SignToolTempRoot = $null
+  }
+}
 
 if ($WhatIf) {
   Write-Host ''
