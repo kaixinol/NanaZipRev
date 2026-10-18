@@ -39,36 +39,36 @@ Uninstall:
 
 ## What this fork adds
 
-- A theme selector offering *Follow the system*, *Always light*, and *Always
-  dark*, stored per user and applied live to the windows that are already open,
-  including the hosted XAML islands.
-- A code page submenu on the archive file list, which re-decodes entry names
-  stored in a legacy encoding on demand. The choice is remembered per archive,
-  survives navigating between folders, applies to the archive comment as well,
-  and is dimmed where no code page applies.
-- A *Show file size units* setting, which formats file sizes with the IEC
-  binary prefixes instead of an exact byte count. It is off by default.
-- A language selector on the settings page of the Modern File Manager, which
-  offers the languages the modern experience library was built with.
-- A warning when a compression method the upstream 7-Zip has no built-in
-  support for, such as a 7-Zip ZS one, is selected for the 7z format,
-  because upstream 7-Zip and most other archive software cannot read those
-  archives.
-- A <kbd>Ctrl</kbd>+<kbd>W</kbd> shortcut for closing the File Manager window.
-- An install and uninstall script that signs the release bundle with a
-  certificate it creates on the machine, so no store account is needed.
-- A sort direction arrow on the column the file list is sorted by, redrawn
-  whenever the column, the direction or the visible columns change.
-- A denser path tree in the Modern File Manager, whose rows no longer
-  inherit a minimum height meant for a full icon and label.
-- An extract dialog that offers the free space left on the target volume, an
-  *Open* button that reveals the result, a *Filename* button that fills the
-  archive name into the path, and an *After extraction completes
-  successfully* group. The group can open the output folder, move the source
-  archives to the Recycle Bin once the extraction succeeded, and close the
-  File Manager that started it. Archives that cannot be moved are reported
-  instead of being erased.
+<details>
+
+- A theme selector offering *Follow the system*, *Always light*, and *Always dark*, stored per user and applied live to the windows that are already open, including the hosted XAML islands.
+- A code page submenu on the archive file list, which re-decodes entry names stored in a legacy encoding on demand. The choice is remembered per archive, survives navigating between folders, applies to the archive comment as well, and is dimmed where no code page applies.
+- A *Show file size units* setting, which formats file sizes with the IEC binary prefixes instead of an exact byte count. It is off by default. ([M2Team#1007](https://github.com/M2Team/NanaZip/pull/1007), Rejected)
+- A language selector on the settings page of the Modern File Manager, which offers the languages the modern experience library was built with. ([M2Team#1006](https://github.com/M2Team/NanaZip/pull/1006))
+- A warning when a compression method the upstream 7-Zip has no built-in support for, such as a 7-Zip ZS one, is selected for the 7z format, because upstream 7-Zip and most other archive software cannot read those archives.
+- A <kbd>Ctrl</kbd>+<kbd>W</kbd> shortcut for closing the File Manager window. ([M2Team#1005](https://github.com/M2Team/NanaZip/pull/1005))
+- A sort direction arrow on the column the file list is sorted by, redrawn whenever the column, the direction or the visible columns change. ([M2Team#1026](https://github.com/M2Team/NanaZip/pull/1026))
+- A denser path tree in the Modern File Manager, whose rows no longer inherit a minimum height meant for a full icon and label. ([M2Team#1025](https://github.com/M2Team/NanaZip/pull/1025))
+- An extract dialog with:
+  - Free space remaining on the target volume.
+  - An *Open* button that reveals the extraction result.
+  - A *Filename* button that fills the archive name into the destination path.
+  - An *After extraction completes successfully* group with options to:
+    - Open the output folder. (Related: [M2Team#979](https://github.com/M2Team/NanaZip/pull/979))
+    - Move the source archives to the Recycle Bin after successful extraction. (Related: [M2Team#952](https://github.com/M2Team/NanaZip/pull/952))
+    - Close the File Manager that started the extraction.
+  - Archives that cannot be moved are reported instead of being erased.
 - A percentage beside the progress bar, redrawn only when the value changes.
+
+</details>
+
+## Why NanaZip Rev is not available on the Microsoft Store
+
+<details open>
+
+NanaZip Rev is distributed as an MSIX package signed with a locally trusted self-signed certificate rather than through the Microsoft Store. Although the upstream NanaZip project permits forks to use the same icon, Microsoft Store rejected the submission because the icon was too similar to NanaZip's. Microsoft's extensive submission and certification requirements would also add significant complexity and maintenance overhead for this community fork, making independent, locally signed distribution the more practical approach.
+
+</details>
 
 ## Package identity
 
