@@ -437,7 +437,6 @@ unsigned CPanel::GetCodePage() const
 }
 // **************** NanaZip Modification End ****************
 
-
 UString GetFolderPath(IFolderFolder *folder)
 {
   {

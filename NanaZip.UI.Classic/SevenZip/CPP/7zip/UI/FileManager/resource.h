@@ -111,8 +111,8 @@
    dispatchers test "id >= kMenuCmdID_Plugin_Start" and hand anything that high
    to the plugin path before any first party command is considered, so a base at
    or above 1100 makes the submenu inert: the click is swallowed and the
-  checkmark never moves. The base sits at 962 because that is the lowest
-  id this file leaves free.
+   checkmark never moves. The base sits at 962 because that is the lowest
+   id this file leaves free.
 
   IDM_CODE_PAGE_COUNT is the number of code pages, and it is three things
   at once: the array length of kCodePages, the loop bound that builds the
@@ -126,29 +126,29 @@
 // **************** NanaZip Modification Start ****************
 /* String resource ids for the code page submenu. In the Classic tree these are
    7-Zip .lang file entries rather than Legacy.resw keys, but the numbering and
-   the fallback behaviour are the same. 4120..4149 was verified free in every
+   the fallback behaviour are the same. 4108..4128 was verified free in every
    shipped language. */
-#define IDS_CODE_PAGE_AUTO 4108
-#define IDS_CODE_PAGE_UTF8 4109
-#define IDS_CODE_PAGE_1252 4110
-#define IDS_CODE_PAGE_1251 4111
-#define IDS_CODE_PAGE_1250 4112
-#define IDS_CODE_PAGE_1253 4113
-#define IDS_CODE_PAGE_1254 4114
-#define IDS_CODE_PAGE_1255 4115
-#define IDS_CODE_PAGE_1256 4116
-#define IDS_CODE_PAGE_1257 4117
-#define IDS_CODE_PAGE_1258 4118
-#define IDS_CODE_PAGE_874 4119
-#define IDS_CODE_PAGE_932 4120
-#define IDS_CODE_PAGE_936 4121
-#define IDS_CODE_PAGE_949 4122
-#define IDS_CODE_PAGE_950 4123
-#define IDS_CODE_PAGE_866 4124
-#define IDS_CODE_PAGE_20866 4125
-#define IDS_CODE_PAGE_28591 4126
-#define IDS_CODE_PAGE_28592 4127
-#define IDS_CODE_PAGE_MENU 4128
+#define IDS_CODE_PAGE_AUTO            4108
+#define IDS_CODE_PAGE_UTF8            4109
+#define IDS_CODE_PAGE_1252            4110
+#define IDS_CODE_PAGE_1251            4111
+#define IDS_CODE_PAGE_1250            4112
+#define IDS_CODE_PAGE_1253            4113
+#define IDS_CODE_PAGE_1254            4114
+#define IDS_CODE_PAGE_1255            4115
+#define IDS_CODE_PAGE_1256            4116
+#define IDS_CODE_PAGE_1257            4117
+#define IDS_CODE_PAGE_1258            4118
+#define IDS_CODE_PAGE_874             4119
+#define IDS_CODE_PAGE_932             4120
+#define IDS_CODE_PAGE_936             4121
+#define IDS_CODE_PAGE_949             4122
+#define IDS_CODE_PAGE_950             4123
+#define IDS_CODE_PAGE_866             4124
+#define IDS_CODE_PAGE_20866           4125
+#define IDS_CODE_PAGE_28591           4126
+#define IDS_CODE_PAGE_28592           4127
+#define IDS_CODE_PAGE_MENU            4128
 // **************** NanaZip Modification End ****************
 
 #define IDS_OPTIONS                     2100

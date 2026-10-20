@@ -642,7 +642,7 @@ public:
       bool programMenu);
   void CreateFileMenu(HMENU menu);
 // **************** NanaZip Modification Start ****************
-  void AddCodePageMenuItem(HMENU menu);
+  void AddCodePageMenuItem(HMENU menuSpec);
 // **************** NanaZip Modification End ****************
   bool InvokePluginCommand(unsigned id);
   bool InvokePluginCommand(unsigned id, IContextMenu *sevenZipContextMenu,

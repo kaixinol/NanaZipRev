@@ -1031,9 +1031,9 @@ bool CPanel::CheckBeforeUpdate(UINT resourceID)
 /* Appends the Code page submenu in the style of the other archive only entries
    in this menu, with the code page in effect ticked. Does nothing when the
    panel is not showing an archive, since there is nothing to re-decode then.
-   The
-   entries are built in code rather than declared in resource.rc because the
-   labels are code page names, which are data rather than a fixed string set. */
+   The entries are built in code rather than declared in resource.rc because
+   the labels are code page names, which are data rather than a fixed string
+   set. */
 void CPanel::AddCodePageMenuItem(HMENU menuSpec)
 {
   if (!IsArcFolder())
@@ -1105,9 +1105,6 @@ void CPanel::AddCodePageMenuItem(HMENU menuSpec)
   for (unsigned i = 0; i < IDM_CODE_PAGE_COUNT; i++)
   {
     const unsigned codePage = GetCodePageForMenuIndex(i);
-    if (codePage == kCodePageNone)
-      continue;
-
     UString label;
     /* Prefer the translated name, fall back to the built-in English one. Only a
        handful of languages carry these strings so far, and a missing key must
@@ -1161,7 +1158,6 @@ void CPanel::AddCodePageMenuItem(HMENU menuSpec)
   menu.Detach();
 }
 // **************** NanaZip Modification End ****************
-
 
 void CPanel::CreateFileMenu(HMENU menuSpec,
     CMyComPtr<IContextMenu> &sevenZipContextMenu,

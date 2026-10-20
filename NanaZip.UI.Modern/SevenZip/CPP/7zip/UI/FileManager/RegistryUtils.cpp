@@ -8,6 +8,7 @@
 // numbers to text.
 #include "../../../Common/StringToInt.h"
 // **************** NanaZip Modification End ****************
+
 #include "../../../Windows/Registry.h"
 
 #include "RegistryUtils.h"
@@ -100,7 +101,6 @@ void ReadReg_VerCtrlPath(UString &path) { ReadCuString(kCU_FMPath, kVerCtrlPath,
    keeps that obvious in the registry. */
 void SaveRegCodePage(unsigned codePage)
 {
-  // **************** NanaZip Modification Start ****************
   /* Code page zero means automatic, which is the absence of a preference rather
      than a preference of its own, so the value is removed instead of stored as
      "0". A reader looking at the key then sees that nothing was chosen, rather
@@ -112,7 +112,6 @@ void SaveRegCodePage(unsigned codePage)
       key.DeleteValue(kCodePage);
     return;
   }
-  // **************** NanaZip Modification End ****************
   wchar_t buf[16];
   ConvertUInt32ToString(codePage, buf);
   SaveCuString(kCU_FMPath, kCodePage, buf);

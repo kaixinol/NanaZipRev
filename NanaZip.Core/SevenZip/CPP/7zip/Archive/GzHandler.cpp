@@ -483,14 +483,14 @@ Z7_CLASS_IMP_CHandler_IInArchive_3(
      discard the page that was just set for this very open. An open that
      carries no "cp" property keeps the constructor value, which means an
      ordinary open never inherits the page of an earlier archive. */
-  UInt32 _codePage;
+  UInt32 _specifiedCodePage;
 // **************** NanaZip Modification End ***************
 
 public:
   CHandler():
 // **************** NanaZip Modification Start ****************
       _isArc(false),
-      _codePage(CP_ACP)
+      _specifiedCodePage(CP_ACP)
 // **************** NanaZip Modification End ****************
       {}
   
@@ -544,7 +544,7 @@ Z7_COM7F_IMF(CHandler::GetArchiveProperty(PROPID propID, PROPVARIANT *value))
       if (_item.NameIsPresent())
       {
 // **************** NanaZip Modification Start ***************
-        UString s = MultiByteToUnicodeString(_item.Name, _codePage);
+        UString s = MultiByteToUnicodeString(_item.Name, _specifiedCodePage);
 // **************** NanaZip Modification End ***************
         s += ".gz";
         prop = s;
@@ -573,7 +573,7 @@ Z7_COM7F_IMF(CHandler::GetProperty(UInt32 /* index */, PROPID propID, PROPVARIAN
     case kpidPath:
       if (_item.NameIsPresent())
 // **************** NanaZip Modification Start ***************
-        prop = MultiByteToUnicodeString(_item.Name, _codePage);
+        prop = MultiByteToUnicodeString(_item.Name, _specifiedCodePage);
 // **************** NanaZip Modification End ***************
       break;
     // case kpidComment: if (_item.CommentIsPresent()) prop = MultiByteToUnicodeString(_item.Comment, CP_ACP); break;
@@ -1208,7 +1208,7 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
       UInt32 cp = CP_ACP;
       if (value.vt != VT_EMPTY)
         RINOK(ParsePropToUInt32(L"", value, cp))
-      _codePage = cp;
+      _specifiedCodePage = cp;
       continue;
     }
 // **************** NanaZip Modification End ***************

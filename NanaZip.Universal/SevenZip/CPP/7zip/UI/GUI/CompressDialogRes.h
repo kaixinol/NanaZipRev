@@ -109,8 +109,8 @@
 #define IDS_COMPRESS_NS                 4091
 
 // **************** NanaZip Modification Start ****************
-#define IDS_COMPRESS_METHOD_UNSUPPORTED 4106
-#define IDT_COMPRESS_METHOD_WARNING 4107
+#define IDS_COMPRESS_METHOD_UNSUPPORTED  4106
+#define IDT_COMPRESS_METHOD_WARNING      4107
 // **************** NanaZip Modification End ****************
 
 #define IDC_COMPRESS_TIME_PREC          190

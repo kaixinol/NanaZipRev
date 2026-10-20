@@ -263,13 +263,14 @@ public:
      path, and it used to pass no properties at all. */
   HRESULT ReOpenWithCodePage(unsigned codePage);
   unsigned GetCodePage() const { return _codePage; }
-  // **************** NanaZip Modification End ****************
+
   /* Code page applied to every archive opened from now on, or zero to leave the
      handler to decode names as it sees fit. The FileManager sets this from the
      user's last choice at startup, which keeps the registry read in the UI
      layer where the other settings live. */
   static unsigned g_DefaultCodePage;
   void SetCodePage(unsigned codePage) { _codePage = codePage; }
+  // **************** NanaZip Modification End ****************
   CProxyArc *_proxy;
   CProxyArc2 *_proxy2;
   CArchiveLink _archiveLink;

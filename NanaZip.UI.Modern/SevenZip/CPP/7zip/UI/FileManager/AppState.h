@@ -88,7 +88,10 @@ struct CAppState
   // **************** NanaZip Modification End ****************
 
   // **************** NanaZip Modification Start ****************
-  CAppState(): CodePage(0) {}
+  CAppState():
+      CodePage(0)
+  {
+  }
   // **************** NanaZip Modification End ****************
 
   void Save()
