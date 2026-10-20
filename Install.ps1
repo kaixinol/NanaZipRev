@@ -21,7 +21,7 @@
 
   A published package carries no signature, so one is made on the machine,
   the package is signed with it and it is trusted. Its private key stays in
-  Cert:\CurrentUser\My and is never exported. A package that already
+  Cert:\CurrentUser\My and can never be exported. A package that already
   carries a signature keeps it, and its certificate is trusted here instead.
 
   Where the package comes from, first hit wins:
@@ -78,7 +78,7 @@
 .NOTES
   The signing certificate is a local test one. It is created on demand, reused
   while it is in Cert:\CurrentUser\My, and rebuilt and re-signed whenever it is
-  gone, so its private key is never exported to disk.
+  gone. Its private key is created non-exportable and never leaves the store.
 
   Deploying a package this script signed itself needs sideloading, so either
   developer mode or the Allow sideloading of apps policy. Runs on Windows
@@ -91,6 +91,8 @@ param(
   [switch]$Uninstall,
   [switch]$NoSign,
   [switch]$ForceUpdateFromAnyVersion,
+  # Wildcards would make Get-AppxPackage -Name match every package.
+  [ValidatePattern('^[^*?\[\]]+$')]
   [string]$PackageName = 'Kaesinol.NanaZipRev',
   [ValidateSet('CN=23EBD860-A383-4AEA-836A-B041352C93FF')]
   [string]$Publisher = 'CN=23EBD860-A383-4AEA-836A-B041352C93FF',
@@ -233,35 +235,29 @@ function Invoke-ProvisionedPackageCleanup {
     throw "Windows PowerShell 5.1 not found: $host5"
   }
 
-  $helper = Join-Path ([IO.Path]::GetTempPath()) `
-    ('NanaZipRevProvisioned-' + [guid]::NewGuid().ToString('N') + '.ps1')
-
-  $body = @'
-param([string]$Name, [switch]$Apply)
-$ErrorActionPreference = 'Stop'
-$found = @(Get-AppxProvisionedPackage -Online -ErrorAction Stop |
-           Where-Object { $_.DisplayName -eq $Name })
-foreach ($p in $found) {
-  if ($Apply) {
-    Remove-AppxProvisionedPackage -Online -PackageName $p.PackageName `
+  # Pass the script through -EncodedCommand instead of a temporary file, so
+  # nothing writable sits between this process and the child. The name is
+  # escaped for a single-quoted literal; -PackageName is validated upstream.
+  $nameLiteral = "'" + ($Name -replace "'", "''") + "'"
+  $applyLiteral = if ($Apply) { '$true' } else { '$false' }
+  $body = @"
+`$ErrorActionPreference = 'Stop'
+`$found = @(Get-AppxProvisionedPackage -Online -ErrorAction Stop |
+           Where-Object { `$_.DisplayName -eq $nameLiteral })
+foreach (`$p in `$found) {
+  if ($applyLiteral) {
+    Remove-AppxProvisionedPackage -Online -PackageName `$p.PackageName `
       -ErrorAction Stop | Out-Null
   }
-  Write-Output ('HIT ' + $p.PackageName)
+  Write-Output ('HIT ' + `$p.PackageName)
 }
-if ($found.Count -eq 0) { Write-Output 'NONE' }
-'@
-
-  Set-Content -LiteralPath $helper -Value $body -Encoding UTF8
-  # Pass the switch only when needed; native arguments are strings.
+if (`$found.Count -eq 0) { Write-Output 'NONE' }
+"@
+  $encoded = [Convert]::ToBase64String(
+    [Text.Encoding]::Unicode.GetBytes($body))
   $childArgs = @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
-    '-File', $helper, '-Name', $Name)
-  if ($Apply) { $childArgs += '-Apply' }
-  try {
-    $output = & $host5 @childArgs 2>&1
-  }
-  finally {
-    Remove-Item -LiteralPath $helper -Force -ErrorAction SilentlyContinue
-  }
+    '-EncodedCommand', $encoded)
+  $output = & $host5 @childArgs 2>&1
 
   $hits = @()
   foreach ($line in @($output)) {
@@ -332,9 +328,14 @@ function Get-PackagePublisher {
   foreach ($entry in $candidates) {
     $text = Read-EntryText -Archive $Path -EntryName $entry
     if (-not $text) { continue }
-    $pattern = 'Identity\b[^>]*?Publisher\s*=\s*"([^"]+)"'
-    $match = [regex]::Match($text, $pattern)
-    if ($match.Success) { return $match.Groups[1].Value }
+    # Parse as XML; a regex would also match text inside comments.
+    try { $xml = [xml]$text }
+    catch { continue }
+    $identity = $xml.SelectSingleNode("//*[local-name()='Identity']")
+    if ($identity) {
+      $publisher = $identity.GetAttribute('Publisher')
+      if ($publisher) { return $publisher }
+    }
   }
   return $null
 }
@@ -514,9 +515,16 @@ function Test-MicrosoftSignedBinary {
 
   try { $signature = Get-AuthenticodeSignature -FilePath $Path -ErrorAction Stop }
   catch { return $false }
+  # Anchored common-name match: a loose -match also accepts subjects that
+  # merely contain the string. The trailing comma pins the end of the CN, so
+  # "CN=Microsoft Corporation Fake" is rejected. The same SDK ships builds
+  # signed with either CN (x86/x64 use "Microsoft Corporation", arm64 uses
+  # "Microsoft Windows Kits Publisher"). A PATH signtool that matches neither
+  # is rejected here, and Find-SignTool falls back to the pinned SDK.
+  $msCn = '^CN=Microsoft (Corporation|Windows Kits Publisher),'
   return ($signature.Status -eq 'Valid' -and
     $signature.SignerCertificate -and
-    $signature.SignerCertificate.Subject -match 'CN=Microsoft Corporation')
+    $signature.SignerCertificate.Subject -cmatch $msCn)
 }
 
 function Test-NewEnoughSignTool {
@@ -771,6 +779,12 @@ function Find-SignTool {
   }
 }
 
+function Test-KeyExportPolicy {
+  # New-SelfSignedCertificate has no -KeyExportPolicy on older hosts.
+  return (Get-Command 'New-SelfSignedCertificate').Parameters.ContainsKey(
+    'KeyExportPolicy')
+}
+
 function Get-OrCreateCertificate {
   param([string]$Subject, [bool]$Apply = $true)
 
@@ -779,8 +793,17 @@ function Get-OrCreateCertificate {
     Where-Object { $_.Subject -eq $Subject -and $_.HasPrivateKey } |
     Select-Object -First 1
   if ($existing) {
-    Write-Step "reusing certificate $($existing.Thumbprint)"
-    return $existing
+    if ($existing.NotAfter -lt (Get-Date)) {
+      Write-Warn ("certificate $($existing.Thumbprint) expired " +
+        "$($existing.NotAfter.ToString('u')); recreating it")
+      # Drop the expired one so the lookup above cannot pick it again.
+      Remove-StoreEntry -Thumbprint $existing.Thumbprint -Store 'My' `
+        -UserScope -Apply:$Apply
+    }
+    else {
+      Write-Step "reusing certificate $($existing.Thumbprint)"
+      return $existing
+    }
   }
 
   if (-not $Apply) {
@@ -789,13 +812,24 @@ function Get-OrCreateCertificate {
   }
 
   Write-Step "creating a self-signed code-signing certificate for $Subject"
-  $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject $Subject `
-    -CertStoreLocation 'Cert:\CurrentUser\My' `
-    -KeyAlgorithm RSA -KeyLength 2048 `
-    -HashAlgorithm SHA256 -NotAfter (Get-Date).AddYears($Years) `
-    -FriendlyName 'NanaZip Rev local test'
+  $certParams = @{
+    Type              = 'CodeSigningCert'
+    Subject           = $Subject
+    CertStoreLocation = 'Cert:\CurrentUser\My'
+    KeyAlgorithm      = 'RSA'
+    KeyLength         = 2048
+    HashAlgorithm     = 'SHA256'
+    NotAfter          = (Get-Date).AddYears($Years)
+    FriendlyName      = 'NanaZip Rev local test'
+  }
+  # Keep the private key inside the KSP: NonExportable is what stops the
+  # standard export tools from copying it.
+  if (Test-KeyExportPolicy) {
+    $certParams.KeyExportPolicy = 'NonExportable'
+  }
+  $cert = New-SelfSignedCertificate @certParams
 
-  # The private key is never exported.
+  # The private key is never exported and cannot be exported.
   return $cert
 }
 
@@ -870,6 +904,13 @@ function Remove-LegacyInstallerData {
       $hits = @(Get-ChildItem -LiteralPath $store -ErrorAction SilentlyContinue |
         Where-Object { $_.Thumbprint -eq $thumbprint })
       if ($hits.Count -eq 0) { continue }
+      # The list file is user-writable, so only ever remove certificates
+      # this script itself issued; anything else is skipped.
+      if ($hits[0].Subject -cne $Publisher) {
+        Write-Warn ("ignoring $thumbprint in $store : subject is " +
+          "'$($hits[0].Subject)', expected '$Publisher'")
+        continue
+      }
       $userScope = $store.StartsWith('Cert:\CurrentUser\',
         [StringComparison]::OrdinalIgnoreCase)
       $storeName = $store.Substring($store.LastIndexOf('\') + 1)
@@ -1028,24 +1069,36 @@ function Install-Package {
   }
 
   $signature = Get-AuthenticodeSignature -FilePath $Path
-  if ($signature.Status -eq 'Valid') {
-    if (-not $signature.SignerCertificate -or
-        $signature.SignerCertificate.Subject -cne $Publisher) {
-      $signerSubject = if ($signature.SignerCertificate) {
-        $signature.SignerCertificate.Subject
-      } else { '<missing signer certificate>' }
-      throw "signature signer mismatch: signer='$signerSubject'; expected='$Publisher'"
-    }
+  # A signature from anyone but this fork's publisher is refused, whether
+  # its chain is trusted or not.
+  if ($signature.SignerCertificate -and
+      $signature.SignerCertificate.Subject -cne $Publisher) {
+    throw ("signature signer mismatch: signer='" +
+      "$($signature.SignerCertificate.Subject)'; expected='$Publisher'")
   }
 
   if ($NoSign) {
     Write-Step "signing skipped, current status $($signature.Status)"
   }
-  elseif ($signature.Status -eq 'Valid') {
-    Write-Step "already signed by $($signature.SignerCertificate.Subject)"
-    # Trust only the exact verified signer certificate.
+  elseif ($signature.SignerCertificate) {
+    # The package keeps its signature and its signer is trusted here. A
+    # signature that is not Valid yet has a self-signed signer from the
+    # machine that built the package, and an already signed package cannot
+    # be signed again, so the signer is trusted instead of re-signing.
+    if ($signature.Status -eq 'Valid') {
+      Write-Step "already signed by $($signature.SignerCertificate.Subject)"
+    }
+    else {
+      Write-Step ("signed by $($signature.SignerCertificate.Subject), " +
+        'trusting the signer for the existing signature')
+    }
+    # Trust only the exact signer certificate.
     Trust-Certificate -Certificate $signature.SignerCertificate `
       -Apply:(-not $WhatIf)
+    if (-not $WhatIf -and
+        (Get-AuthenticodeSignature -FilePath $Path).Status -ne 'Valid') {
+      throw 'the package signature still does not verify after trusting its signer'
+    }
   }
   else {
     Write-Step 'package is unsigned; signing it'
