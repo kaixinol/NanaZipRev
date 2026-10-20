@@ -1274,6 +1274,24 @@ namespace
                     *pColor = g_DarkModeForegroundColor;
                 }
             }
+            // The dropdown list of a combo box paints its selected item from
+            // the theme data of the "Listbox" class as soon as the list box
+            // itself is told to use dark mode. That class has no dark variant
+            // in the theme file, so the fill of the selected item resolves to
+            // the light theme value, which is white, and the previewed
+            // selection turns into a white block on the black list. The
+            // selection has to keep the classic highlight color instead, which
+            // is what a list box uses when it paints that item itself.
+            else if (0 == ::_wcsicmp(ClassName, VSCLASS_LISTBOX))
+            {
+                if (TMT_FILLCOLOR == iPropId &&
+                    LBCP_ITEM == iPartId &&
+                    (LBPSI_SELECTED == iStateId ||
+                        LBPSI_SELECTEDNOTFOCUS == iStateId))
+                {
+                    *pColor = ::OriginalGetSysColor(COLOR_HIGHLIGHT);
+                }
+            }
         }
 
         return S_OK;
