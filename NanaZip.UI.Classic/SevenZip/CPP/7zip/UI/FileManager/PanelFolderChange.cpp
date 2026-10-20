@@ -474,6 +474,23 @@ static int GetRealIconIndex(CFSTR path, DWORD attributes)
 void CPanel::LoadFullPathAndShow()
 {
   LoadFullPath();
+  // **************** NanaZip Modification Start ****************
+  /* Record the trail for the mouse back and forward buttons. A refresh
+     revisits the same prefix, so only a real move appends; a navigation
+     from the trail itself is excluded because the caller syncs the stacks
+     once the target folder is open. */
+  if (!_navigatingFromHistory
+      && !_currentFolderPrefix.IsEmpty()
+      && (_backFolders.IsEmpty()
+          || _backFolders.Back() != _currentFolderPrefix))
+  {
+    const unsigned kMaxSize = 100;
+    _backFolders.Add(_currentFolderPrefix);
+    if (_backFolders.Size() > kMaxSize)
+      _backFolders.Delete(0);
+    _forwardFolders.Clear();
+  }
+  // **************** NanaZip Modification End ****************
   _appState->FolderHistory.AddString(_currentFolderPrefix);
 
   _headerComboBox.SetText(_currentFolderPrefix);
@@ -927,6 +944,37 @@ void CPanel::OpenParentFolder()
   RefreshListCtrl(state);
   // _listView.EnsureVisible(_listView.GetFocusedItem(), false);
 }
+
+
+// **************** NanaZip Modification Start ****************
+void CPanel::GoBack()
+{
+  if (_backFolders.Size() < 2)
+    return;
+  UString target = _backFolders[_backFolders.Size() - 2];
+  _navigatingFromHistory = true;
+  HRESULT res = BindToPathAndRefresh(target);
+  _navigatingFromHistory = false;
+  if (res != S_OK)
+    return;
+  _forwardFolders.Add(_backFolders.Back());
+  _backFolders.DeleteBack();
+}
+
+void CPanel::GoForward()
+{
+  if (_forwardFolders.IsEmpty())
+    return;
+  UString target = _forwardFolders.Back();
+  _navigatingFromHistory = true;
+  HRESULT res = BindToPathAndRefresh(target);
+  _navigatingFromHistory = false;
+  if (res != S_OK)
+    return;
+  _backFolders.Add(target);
+  _forwardFolders.DeleteBack();
+}
+// **************** NanaZip Modification End ****************
 
 
 void CPanel::CloseOneLevel()

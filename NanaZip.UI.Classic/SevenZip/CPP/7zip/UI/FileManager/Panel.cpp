@@ -245,6 +245,23 @@ LRESULT CMyListView::OnMessage(UINT message, WPARAM wParam, LPARAM lParam)
     _panel->_lastFocusedIsList = true;
     _panel->_panelCallback->PanelWasFocused();
   }
+  // **************** NanaZip Modification Start ****************
+  /* The extended mouse buttons navigate the folder history like a browser.
+     The list view owns the message, so it has to be taken here; anything
+     that is not one of the two side buttons falls through untouched. */
+  if (message == WM_XBUTTONDOWN)
+  {
+    switch (GET_XBUTTON_WPARAM(wParam))
+    {
+      case XBUTTON1:
+        _panel->GoBack();
+        return 0;
+      case XBUTTON2:
+        _panel->GoForward();
+        return 0;
+    }
+  }
+  // **************** NanaZip Modification End ****************
   return CListView2::OnMessage(message, wParam, lParam);
 }
 

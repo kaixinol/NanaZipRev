@@ -529,6 +529,16 @@ public:
 
   UStringVector _fastFolders;
 
+  // **************** NanaZip Modification Start ****************
+  /* Folder history trail for the mouse back and forward buttons. The back
+     trail always ends with the current folder, and the forward trail holds
+     what a back step left behind. Session only; the persisted address bar
+     history in CAppState is a different thing and stays untouched. */
+  UStringVector _backFolders;
+  UStringVector _forwardFolders;
+  bool _navigatingFromHistory = false;
+  // **************** NanaZip Modification End ****************
+
   void GetSelectedNames(UStringVector &selectedNames);
   void SaveSelectedState(CSelectedState &s);
   HRESULT RefreshListCtrl(const CSelectedState &s);
@@ -564,6 +574,10 @@ public:
   void LoadFullPathAndShow();
   void FoldersHistory();
   void OpenParentFolder();
+  // **************** NanaZip Modification Start ****************
+  void GoBack();
+  void GoForward();
+  // **************** NanaZip Modification End ****************
   void CloseOneLevel();
   void CloseOpenFolders();
   void OpenRootFolder();
