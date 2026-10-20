@@ -14,6 +14,11 @@
 #include "LangUtils.h"
 #include "MyLoadMenu.h"
 #include "RegistryUtils.h"
+// **************** NanaZip Modification Start ****************
+// CAgent::g_DefaultCodePage lets a new code page choice become the default for
+// archives opened from now on.
+#include "../Agent/Agent.h"
+// **************** NanaZip Modification End ****************
 
 #include "resource.h"
 
@@ -666,7 +671,16 @@ bool ExecuteFileCommand(unsigned id)
     unsigned codePage;
     if (CodePageFromMenuID(id, codePage))
     {
-      g_App.GetFocusedPanel().ReOpenWithCodePage(codePage);
+      if (g_App.GetFocusedPanel().ReOpenWithCodePage(codePage) != S_OK)
+        return true;
+      g_App.AppState.CodePage = codePage;
+      CAgent::g_DefaultCodePage = codePage;
+      /* A page is remembered so the next archive opens the same way. Auto is
+         the opposite of a preference, so choosing it has to erase what was
+         stored: leaving the old value in place made every later archive open
+         with that page and skip detection entirely, which is exactly what
+         Auto is meant to undo. */
+      SaveRegCodePage(codePage);
       return true;
     }
 // **************** NanaZip Modification End ****************

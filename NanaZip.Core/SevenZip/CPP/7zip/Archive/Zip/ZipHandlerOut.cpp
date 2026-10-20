@@ -595,9 +595,33 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
     else if (name.IsEqualTo("cp"))
     {
       UInt32 cp = CP_OEMCP;
-      RINOK(ParsePropToUInt32(L"", prop, cp))
-      _forceCodePage = true;
-      _specifiedCodePage = cp;
+      // **************** NanaZip Modification Start ****************
+      /* "cp" is sent on every reopen, so that the caller can put back a page it
+         previously set, and an empty value means "no explicit choice". That
+         check comes first because the empty string is not a number and parsing
+         it would fail.
+
+         Zero cannot be used for it instead. Win32 reads zero as CP_ACP, and the
+         decoding path treats the OEM code page as "use the system default",
+         which on a UTF-8 system means the names are decoded as UTF-8 whatever
+         they are. A legacy archive then came out as a row of replacement
+         characters rather than as the mojibake it started as.
+
+         An empty value is unambiguous because no real code page is empty, and
+         it leaves the flag that decides whether a page was specified cleared,
+         so the handler goes back to probing the name itself. */
+      if (prop.vt == VT_BSTR && prop.bstrVal != NULL && prop.bstrVal[0] == 0)
+      {
+        _forceCodePage = false;
+        _specifiedCodePage = CP_OEMCP;
+      }
+      else
+      {
+        RINOK(ParsePropToUInt32(L"", prop, cp))
+        _forceCodePage = true;
+        _specifiedCodePage = cp;
+      }
+      // **************** NanaZip Modification End ****************
     }
     else if (name.IsEqualTo("rsfx"))
     {

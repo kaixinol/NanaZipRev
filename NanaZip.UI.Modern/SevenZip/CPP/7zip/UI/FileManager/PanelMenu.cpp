@@ -1029,8 +1029,9 @@ bool CPanel::CheckBeforeUpdate(UINT resourceID)
 
 // **************** NanaZip Modification Start ****************
 /* Appends the Code page submenu in the style of the other archive only entries
-   in this menu, with the code page in effect ticked. Does nothing when the panel
-   is not showing an archive, since there is nothing to re-decode then. The
+   in this menu, with the code page in effect ticked. Does nothing when the
+   panel is not showing an archive, since there is nothing to re-decode then.
+   The
    entries are built in code rather than declared in resource.rc because the
    labels are code page names, which are data rather than a fixed string set. */
 void CPanel::AddCodePageMenuItem(HMENU menuSpec)
@@ -1040,6 +1041,33 @@ void CPanel::AddCodePageMenuItem(HMENU menuSpec)
 
   CMenu menu;
   menu.Attach(menuSpec);
+
+  /* Legacy.resw resource ids, in the same order as kCodePageNames below. They
+     line up with IDM_CODE_PAGE_BASE so one index drives the label, the command
+     id and the checkmark. */
+  static const unsigned kCodePageStringIds[IDM_CODE_PAGE_COUNT] =
+  {
+    IDS_CODE_PAGE_AUTO,
+    IDS_CODE_PAGE_UTF8,
+    IDS_CODE_PAGE_1252,
+    IDS_CODE_PAGE_1251,
+    IDS_CODE_PAGE_1250,
+    IDS_CODE_PAGE_1253,
+    IDS_CODE_PAGE_1254,
+    IDS_CODE_PAGE_1255,
+    IDS_CODE_PAGE_1256,
+    IDS_CODE_PAGE_1257,
+    IDS_CODE_PAGE_1258,
+    IDS_CODE_PAGE_874,
+    IDS_CODE_PAGE_932,
+    IDS_CODE_PAGE_936,
+    IDS_CODE_PAGE_949,
+    IDS_CODE_PAGE_950,
+    IDS_CODE_PAGE_866,
+    IDS_CODE_PAGE_20866,
+    IDS_CODE_PAGE_28591,
+    IDS_CODE_PAGE_28592,
+  };
 
   // A code page name is a proper noun in every language, so these stay
   // untranslated. Auto has no number because it passes no code page at all.
@@ -1080,7 +1108,16 @@ void CPanel::AddCodePageMenuItem(HMENU menuSpec)
     if (codePage == kCodePageNone)
       continue;
 
-    UString label = kCodePageNames[i];
+    UString label;
+    /* Prefer the translated name, fall back to the built-in English one. Only a
+       handful of languages carry these strings so far, and a missing key must
+       degrade to English rather than to an empty menu entry. */
+    const wchar_t *localized = ::K7ModernGetLegacyStringResource(
+        kCodePageStringIds[i]);
+    if (localized != NULL && *localized != 0)
+      label = localized;
+    else
+      label = kCodePageNames[i];
     if (i != 0)
     {
       wchar_t num[16];
@@ -1098,9 +1135,16 @@ void CPanel::AddCodePageMenuItem(HMENU menuSpec)
   }
 
   menu.AppendItem(MF_SEPARATOR, 0, (LPCTSTR)0);
+  UString menuLabel;
+  const wchar_t *localizedMenu = ::K7ModernGetLegacyStringResource(
+      IDS_CODE_PAGE_MENU);
+  if (localizedMenu != NULL && *localizedMenu != 0)
+    menuLabel = localizedMenu;
+  else
+    menuLabel = L"&Code page";
   // MF_POPUP hands the submenu over to the parent menu, so the destroyer has
   // to be released and the handle taken away from the wrapper.
-  menu.AppendItem(MF_POPUP, (UINT_PTR)subMenu.Detach(), L"&Code page");
+  menu.AppendItem(MF_POPUP, (UINT_PTR)subMenu.Detach(), menuLabel);
   subMenuDestroyer.Disable();
 
   menu.Detach();

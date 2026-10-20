@@ -79,6 +79,17 @@ struct CAppState
 {
   CFastFolders FastFolders;
   CFolderHistory FolderHistory;
+  // **************** NanaZip Modification Start ****************
+  /* Filename code page the user last chose, or 0 to let the automatic
+     detection decide. Seeded from the registry at startup and written back
+     when the user picks a code page from the submenu, so a legacy archive opens
+     the same way after a restart. */
+  unsigned CodePage;
+  // **************** NanaZip Modification End ****************
+
+  // **************** NanaZip Modification Start ****************
+  CAppState(): CodePage(0) {}
+  // **************** NanaZip Modification End ****************
 
   void Save()
   {

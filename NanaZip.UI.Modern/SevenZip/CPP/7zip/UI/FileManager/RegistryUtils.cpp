@@ -3,7 +3,11 @@
 #include "StdAfx.h"
 
 #include "../../../Common/IntToString.h"
-
+// **************** NanaZip Modification Start ****************
+// ConvertStringToUInt32 lives here, not in IntToString.h, which only converts
+// numbers to text.
+#include "../../../Common/StringToInt.h"
+// **************** NanaZip Modification End ****************
 #include "../../../Windows/Registry.h"
 
 #include "RegistryUtils.h"
@@ -51,6 +55,10 @@ static LPCTSTR const kFlatViewName = TEXT("FlatViewArc");
 static LPCTSTR const kShowFileSizeUnits = TEXT("ShowFileSizeUnits");
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+static LPCTSTR const kCodePage = TEXT("CodePage");
+// **************** NanaZip Modification End ****************
+
 static void SaveCuString(LPCTSTR keyPath, LPCWSTR valuePath, LPCWSTR value)
 {
   CKey key;
@@ -76,6 +84,45 @@ void SaveRegDiff(const UString &path) { SaveCuString(kCU_FMPath, kDiff, path); }
 void ReadRegDiff(UString &path) { ReadCuString(kCU_FMPath, kDiff, path); }
 
 void ReadReg_VerCtrlPath(UString &path) { ReadCuString(kCU_FMPath, kVerCtrlPath, path); }
+
+// **************** NanaZip Modification Start ****************
+/* The remembered code page is stored as text, not as a DWORD, because a value
+   that means "no choice" has to be distinguishable from a page number, and text
+   keeps that obvious in the registry. */
+void SaveRegCodePage(unsigned codePage)
+{
+  // **************** NanaZip Modification Start ****************
+  /* Code page zero means automatic, which is the absence of a preference rather
+     than a preference of its own, so the value is removed instead of stored as
+     "0". A reader looking at the key then sees that nothing was chosen, rather
+     than having to know what zero means. */
+  if (codePage == 0)
+  {
+    CKey key;
+    if (key.Open(HKEY_CURRENT_USER, kCU_FMPath, KEY_WRITE) == ERROR_SUCCESS)
+      key.DeleteValue(kCodePage);
+    return;
+  }
+  // **************** NanaZip Modification End ****************
+  wchar_t buf[16];
+  ConvertUInt32ToString(codePage, buf);
+  SaveCuString(kCU_FMPath, kCodePage, buf);
+}
+
+void ReadRegCodePage(unsigned &codePage)
+{
+  codePage = 0;
+  UString s;
+  ReadCuString(kCU_FMPath, kCodePage, s);
+  if (s.IsEmpty())
+    return;
+  const wchar_t *end;
+  const UInt32 value = ConvertStringToUInt32(s, &end);
+  if (*end != 0)   // a hand-edited or truncated value is not a code page
+    return;
+  codePage = value;
+}
+// **************** NanaZip Modification End ****************
 
 static void Save7ZipOption(LPCTSTR value, bool enabled)
 {

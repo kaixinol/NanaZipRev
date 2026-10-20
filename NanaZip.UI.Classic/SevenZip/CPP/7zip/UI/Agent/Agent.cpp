@@ -29,6 +29,13 @@ using namespace NWindows;
 
 CCodecs *g_CodecsObj;
 
+// **************** NanaZip Modification Start ****************
+/* Zero until the FileManager seeds it from the user's last choice, so an
+   archive opened before that is decoded by the handler's own choice. */
+unsigned CAgent::g_DefaultCodePage = 0;
+// **************** NanaZip Modification End ****************
+
+
 static const bool k_keepEmptyDirPrefixes =
     false; // 22.00
     // true; // 21.07

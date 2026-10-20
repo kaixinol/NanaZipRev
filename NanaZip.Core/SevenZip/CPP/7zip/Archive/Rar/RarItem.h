@@ -67,12 +67,22 @@ struct CItem
   // int BaseFileIndex;
   // bool IsAltStream;
 
-  UString GetName() const
+  // **************** NanaZip Modification Start ****************
+  /* codePageOnlyWhenNoUnicodeName selects what happens for a name that carries
+     no Unicode form. Passing true keeps the historic behaviour of decoding
+     those bytes with the OEM code page and nothing else, which is what the
+     RAR5 and ISO paths want. Passing false decodes them with codePage. */
+  UString GetName(
+      UInt32 codePage = CP_OEMCP,
+      bool codePageOnlyWhenNoUnicodeName = true) const
   {
     if (( /* IsAltStream || */ HasUnicodeName()) && !UnicodeName.IsEmpty())
       return UnicodeName;
-    return MultiByteToUnicodeString(Name, CP_OEMCP);
+    if (codePageOnlyWhenNoUnicodeName)
+      return MultiByteToUnicodeString(Name, CP_OEMCP);
+    return MultiByteToUnicodeString(Name, codePage);
   }
+  // **************** NanaZip Modification End ****************
 
   void Clear()
   {

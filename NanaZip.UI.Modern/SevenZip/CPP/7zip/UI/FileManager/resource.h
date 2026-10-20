@@ -121,6 +121,35 @@
 #define IDM_CODE_PAGE_COUNT       20
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+/* String resource ids for the code page submenu. These are Legacy.resw keys,
+   not command ids: K7ModernGetLegacyStringResource resolves them by number, and
+   the submenu indexes them with the same 0-based order as IDM_CODE_PAGE_BASE.
+   4120..4149 was verified free in every shipped language, so a translation can
+   land in any of them without colliding with an existing entry. */
+#define IDS_CODE_PAGE_AUTO            4120
+#define IDS_CODE_PAGE_UTF8            4121
+#define IDS_CODE_PAGE_1252            4122
+#define IDS_CODE_PAGE_1251            4123
+#define IDS_CODE_PAGE_1250            4124
+#define IDS_CODE_PAGE_1253            4125
+#define IDS_CODE_PAGE_1254            4126
+#define IDS_CODE_PAGE_1255            4127
+#define IDS_CODE_PAGE_1256            4128
+#define IDS_CODE_PAGE_1257            4129
+#define IDS_CODE_PAGE_1258            4130
+#define IDS_CODE_PAGE_874             4131
+#define IDS_CODE_PAGE_932             4132
+#define IDS_CODE_PAGE_936             4133
+#define IDS_CODE_PAGE_949             4134
+#define IDS_CODE_PAGE_950             4135
+#define IDS_CODE_PAGE_866             4136
+#define IDS_CODE_PAGE_20866           4137
+#define IDS_CODE_PAGE_28591           4138
+#define IDS_CODE_PAGE_28592           4139
+#define IDS_CODE_PAGE_MENU            4140
+// **************** NanaZip Modification End ****************
+
 #define IDS_OPTIONS                     2100
 
 #define IDS_N_SELECTED_ITEMS            3002
