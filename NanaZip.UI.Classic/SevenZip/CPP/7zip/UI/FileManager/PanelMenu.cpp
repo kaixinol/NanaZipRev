@@ -1027,6 +1027,87 @@ bool CPanel::CheckBeforeUpdate(UINT resourceID)
   return true;
 }
 
+// **************** NanaZip Modification Start ****************
+/* Appends the Code page submenu in the style of the other archive only entries
+   in this menu, with the code page in effect ticked. Does nothing when the panel
+   is not showing an archive, since there is nothing to re-decode then. The
+   entries are built in code rather than declared in resource.rc because the
+   labels are code page names, which are data rather than a fixed string set. */
+void CPanel::AddCodePageMenuItem(HMENU menuSpec)
+{
+  if (!IsArcFolder())
+    return;
+
+  CMenu menu;
+  menu.Attach(menuSpec);
+
+  // A code page name is a proper noun in every language, so these stay
+  // untranslated. Auto has no number because it passes no code page at all.
+  static const wchar_t *const kCodePageNames[IDM_CODE_PAGE_COUNT] =
+  {
+    L"Auto",
+    L"UTF-8",
+    L"Latin I, Western European",
+    L"Cyrillic",
+    L"Central European",
+    L"Greek",
+    L"Turkish",
+    L"Hebrew",
+    L"Arabic",
+    L"Baltic",
+    L"Vietnamese",
+    L"Thai",
+    L"Shift-JIS, Japanese",
+    L"GBK, Chinese Simplified",
+    L"EUC-KR, Korean",
+    L"Big5, Chinese Traditional",
+    L"DOS Cyrillic, Russian",
+    L"KOI8-R, Russian",
+    L"ISO 8859-1, Latin I",
+    L"ISO 8859-2, Latin II",
+  };
+
+  const unsigned currentCodePage = GetCodePage();
+
+  CMenu subMenu;
+  CMenuDestroyer subMenuDestroyer(subMenu);
+  if (!subMenu.CreatePopup())
+    return;
+
+  for (unsigned i = 0; i < IDM_CODE_PAGE_COUNT; i++)
+  {
+    const unsigned codePage = GetCodePageForMenuIndex(i);
+    if (codePage == kCodePageNone)
+      continue;
+
+    UString label = kCodePageNames[i];
+    if (i != 0)
+    {
+      wchar_t num[16];
+      ConvertUInt32ToString(codePage, num);
+      label += L" (";
+      label += num;
+      label += L")";
+    }
+
+    UINT flags = MF_STRING;
+    if (codePage == currentCodePage)
+      flags |= MF_CHECKED;
+
+    subMenu.AppendItem(flags, IDM_CODE_PAGE_BASE + i, label);
+  }
+
+  menu.AppendItem(MF_SEPARATOR, 0, (LPCTSTR)0);
+  // MF_POPUP hands the submenu over to the parent menu, so the destroyer has
+  // to be released and the handle taken away from the wrapper.
+  menu.AppendItem(MF_POPUP, (UINT_PTR)subMenu.Detach(), L"&Code page");
+  subMenuDestroyer.Disable();
+
+  menu.Detach();
+}
+// **************** NanaZip Modification End ****************
+
+
 void CPanel::CreateFileMenu(HMENU menuSpec,
     CMyComPtr<IContextMenu> &sevenZipContextMenu,
     CMyComPtr<IContextMenu> &systemContextMenu,
@@ -1095,6 +1176,9 @@ void CPanel::CreateFileMenu(HMENU menuSpec,
       fm.isAltStreamsSupported = IsFolder_with_FsItems();
   }
 
+// **************** NanaZip Modification Start ****************
+  AddCodePageMenuItem(menu);
+// **************** NanaZip Modification End ****************
   fm.Load(menu, menu.GetItemCount());
 }
 

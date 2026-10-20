@@ -638,6 +638,9 @@ public:
       CMyComPtr<IContextMenu> &systemContextMenu,
       bool programMenu);
   void CreateFileMenu(HMENU menu);
+// **************** NanaZip Modification Start ****************
+  void AddCodePageMenuItem(HMENU menu);
+// **************** NanaZip Modification End ****************
   bool InvokePluginCommand(unsigned id);
   bool InvokePluginCommand(unsigned id, IContextMenu *sevenZipContextMenu,
       IContextMenu *systemContextMenu);
@@ -806,6 +809,18 @@ public:
 
 
   void OpenAltStreams();
+
+  // **************** NanaZip Modification Start ****************
+  /* Reopens the archive in this panel with a "cp" open property, so the
+     handler decodes entry names with the given code page, and refreshes the
+     list. codePage 0 means "no cp property", leaving the handler at its own
+     default. Does nothing when the panel is not showing an archive. */
+  HRESULT ReOpenWithCodePage(unsigned codePage);
+// **************** NanaZip Modification Start ****************
+  /* The code page currently in effect for this panel's archive, or zero if the
+     panel is not showing an archive. Used to tick the Code page submenu. */
+  unsigned GetCodePage() const;
+// **************** NanaZip Modification End ****************  // **************** NanaZip Modification End ****************
 
   void OpenFocusedItemAsInternal(const wchar_t *type = NULL);
   void OpenSelectedItems(bool internal);

@@ -111,6 +111,21 @@
 
 #define IDM_ABOUT                961
 
+// **************** NanaZip Modification Start ****************
+/* Filename code pages offered by the Code page submenu on the archive panel.
+   The values are offsets from the base, so a single range check in
+   ExecuteFileCommand maps a command id back to a code page.
+
+   These must stay BELOW kMenuCmdID_Plugin_Start (1100). Both context menu
+   dispatchers test "id >= kMenuCmdID_Plugin_Start" and hand anything that high
+   to the plugin path before any first party command is considered, so a base at
+   or above 1100 makes the submenu inert: the click is swallowed and the
+   checkmark never moves. 962 is the lowest free id above IDM_ABOUT (961) and
+   962..1099 is unused in this file. */
+#define IDM_CODE_PAGE_BASE        962
+#define IDM_CODE_PAGE_COUNT       20
+// **************** NanaZip Modification End ****************
+
 #define IDS_OPTIONS                     2100
 
 #define IDS_N_SELECTED_ITEMS            3002

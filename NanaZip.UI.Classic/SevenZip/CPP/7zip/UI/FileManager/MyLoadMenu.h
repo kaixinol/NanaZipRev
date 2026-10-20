@@ -37,4 +37,18 @@ struct CFileMenu
 
 bool ExecuteFileCommand(unsigned id);
 
+// **************** NanaZip Modification Start ****************
+/* Maps a Code page submenu command id to a code page number. Returns false if
+   the id is not in the submenu, so the caller can fall through to the rest of
+   the first party commands. codePage 0 means "no cp property at all". */
+bool CodePageFromMenuID(unsigned id, unsigned &codePage);
+// **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
+/* Code page number for a Code page submenu index, or the sentinel below when the
+   index is out of range. Shared with the menu builder in PanelMenu.cpp. */
+#define kCodePageNone ((unsigned)(-1))
+unsigned GetCodePageForMenuIndex(unsigned index);
+// **************** NanaZip Modification End ****************
+
 #endif

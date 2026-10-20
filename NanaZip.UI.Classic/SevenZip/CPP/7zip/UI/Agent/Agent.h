@@ -122,6 +122,19 @@ public:
 
   STDMETHOD(GetAgentFolder)(CAgentFolder **agentFolder);
 
+  // **************** NanaZip Modification Start ****************
+  /* Reopens the archive with a "cp" open property, so the handler decodes
+     entry names with the given code page. This cannot go through
+     IInFolderArchive::ReOpen, whose signature is fixed.
+
+     The reopened tree is bound into resultFolder, which the caller must adopt
+     with SetNewFolder. "this" is deliberately left untouched: it still carries
+     the old path, decoded with the old code page, and the panel holds other
+     CAgentFolder objects for the same agent, so nothing here may be repaired
+     in place. */
+  HRESULT ReOpenWithCodePage(unsigned codePage, CMyComPtr<IFolderFolder> &resultFolder);
+  // **************** NanaZip Modification End ****************
+
   STDMETHOD(GetStream)(UInt32 index, ISequentialInStream **stream);
 
   #ifdef NEW_FOLDER_INTERFACE
@@ -242,6 +255,13 @@ public:
 private:
   HRESULT ReadItems();
 public:
+  // **************** NanaZip Modification Start ****************
+  /* Reopens the archive with a "cp" open property, so the handler decodes
+     entry names with the given code page. CAgent::ReOpen is the only reopen
+     path, and it used to pass no properties at all. */
+  HRESULT ReOpenWithCodePage(unsigned codePage);
+  unsigned GetCodePage() const { return _codePage; }
+  // **************** NanaZip Modification End ****************
   CProxyArc *_proxy;
   CProxyArc2 *_proxy2;
   CArchiveLink _archiveLink;
@@ -263,6 +283,12 @@ public:
   bool _isDeviceFile;
   bool _isHashHandler;
   FString _hashBaseFolderPrefix;
+  // **************** NanaZip Modification Start ****************
+  /* Code page for the next reopen, or zero to pass no cp property at all and
+     leave the handler at its own default. Kept as a number so the menu can
+     read back what is in effect; CProperty itself carries text. */
+  unsigned _codePage;
+  // **************** NanaZip Modification End ****************
 
   #ifndef EXTRACT_ONLY
   CObjectVector<UString> m_PropNames;
