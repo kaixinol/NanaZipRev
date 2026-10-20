@@ -35,7 +35,6 @@ CCodecs *g_CodecsObj;
 unsigned CAgent::g_DefaultCodePage = 0;
 // **************** NanaZip Modification End ****************
 
-
 static const bool k_keepEmptyDirPrefixes =
     false; // 22.00
     // true; // 21.07
@@ -1707,6 +1706,30 @@ bool CAgent::CanUpdate() const
   return true;
 }
 
+// **************** NanaZip Modification Start ****************
+/* Appends the "cp" open property for the code page in effect, which is zero
+   when no page was chosen. Zero goes out as an empty value rather than as the
+   number zero, because Win32 reads zero as CP_ACP, which the decoding path
+   then treats as the system default: a legacy archive came out as replacement
+   characters instead of the mojibake it started as.
+
+   The caller keeps the vector alive across the open call, because
+   SetProperties copies from it while the handler reads. */
+static void AddCodePageProperty(
+    CObjectVector<CProperty> &props,
+    unsigned codePage)
+{
+  wchar_t buf[16];
+  if (codePage != 0)
+    ConvertUInt32ToString(codePage, buf);
+  else
+    buf[0] = 0;
+  CProperty &prop = props.AddNew();
+  prop.Name = L"cp";
+  prop.Value = buf;
+}
+// **************** NanaZip Modification End ****************
+
 STDMETHODIMP CAgent::Open(
     IInStream *inStream,
     const wchar_t *filePath,
@@ -1756,7 +1779,14 @@ STDMETHODIMP CAgent::Open(
   */
 
   COpenOptions options;
-  options.props = NULL;
+  // **************** NanaZip Modification Start ****************
+  /* Send the code page on the first open too, not only on a reopen. An ordinary
+     open passed no properties at all, so the page the user chose last was
+     ignored until something reopened the archive. */
+  CObjectVector<CProperty> props;
+  AddCodePageProperty(props, _codePage);
+  options.props = &props;
+  // **************** NanaZip Modification End ****************
   options.codecs = g_CodecsObj;
   options.types = &types;
   CIntVector exl;
@@ -1786,7 +1816,6 @@ STDMETHODIMP CAgent::Open(
     if (arc.IsHashHandler(options))
       _isHashHandler = true;
   }
-
 
   return res;
 
@@ -1819,28 +1848,13 @@ STDMETHODIMP CAgent::ReOpen(IArchiveOpenCallback *openArchiveCallback)
      The property is always sent, including for code page zero. A handler only
      learns a code page through SetProperties, and SetProperties is never called
      when there are no properties, so omitting it left the previous choice in
-     place and selecting Auto had no effect. Zero is passed explicitly as the
-     value that means "use your own default", which the handlers already accept
-     because it is the value they initialise themselves with.
+     place and selecting Auto had no effect.
 
      The vector has to outlive the ReOpen call below, so it is declared here
      rather than inside a block. Scoping it tightly leaves options.props
      dangling and SetProperties copies freed memory. */
   CObjectVector<CProperty> props;
-  {
-    wchar_t buf[16];
-    /* Code page zero means no explicit choice, and it is sent as an empty value
-       rather than as the number zero. Win32 reads zero as CP_ACP, which the
-       decoding path then treats as the system default, so a legacy archive came
-       out as replacement characters instead of the mojibake it started as. */
-    if (_codePage != 0)
-      ConvertUInt32ToString(_codePage, buf);
-    else
-      buf[0] = 0;
-    CProperty &prop = props.AddNew();
-    prop.Name = L"cp";
-    prop.Value = buf;
-  }
+  AddCodePageProperty(props, _codePage);
   options.props = &props;
   // **************** NanaZip Modification End ****************
   options.codecs = g_CodecsObj;
@@ -1854,7 +1868,6 @@ STDMETHODIMP CAgent::ReOpen(IArchiveOpenCallback *openArchiveCallback)
   return ReadItems();
   COM_TRY_END
 }
-
 
 // **************** NanaZip Modification Start ****************
 /* Reopen the archive so its entry names are decoded with the given code page.
