@@ -597,9 +597,10 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
       UInt32 cp = CP_OEMCP;
       // **************** NanaZip Modification Start ****************
       /* "cp" is sent on every reopen, so that the caller can put back a page it
-         previously set, and an empty value means "no explicit choice". That
-         check comes first because the empty string is not a number and parsing
-         it would fail.
+         previously set, and an empty value means "no explicit choice".
+         SetProperties turns an empty value into VT_EMPTY rather than into an
+         empty string, and an empty string is not a number either, so both forms
+         are settled here before ParsePropToUInt32 would reject them.
 
          Zero cannot be used for it instead. Win32 reads zero as CP_ACP, and the
          decoding path treats the OEM code page as "use the system default",
@@ -610,7 +611,9 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
          An empty value is unambiguous because no real code page is empty, and
          it leaves the flag that decides whether a page was specified cleared,
          so the handler goes back to probing the name itself. */
-      if (prop.vt == VT_BSTR && prop.bstrVal != NULL && prop.bstrVal[0] == 0)
+      if (prop.vt == VT_EMPTY
+          || (prop.vt == VT_BSTR
+              && prop.bstrVal != NULL && prop.bstrVal[0] == 0))
       {
         _forceCodePage = false;
         _specifiedCodePage = CP_OEMCP;

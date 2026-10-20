@@ -1039,10 +1039,26 @@ Z7_COM7F_IMF(CHandler::SetProperties(const wchar_t * const *names, const PROPVAR
     }
     else if (name.IsEqualTo("cp"))
     {
-      UInt32 cp = CP_OEMCP;
-      RINOK(ParsePropToUInt32(L"", prop, cp))
-      _forceCodePage = true;
-      _curCodePage = _specifiedCodePage = cp;
+      // **************** NanaZip Modification Start ****************
+      /* An empty value is the menu put back to automatic, which is the state
+         the handler initialises itself with: the name is probed rather than
+         decoded with a fixed page. ParsePropToUInt32 leaves its output
+         untouched for VT_EMPTY, so the flag has to be cleared here. Otherwise
+         every reopen that carries no page would force the OEM page and skip
+         the probing that Init() sets up. */
+      if (prop.vt == VT_EMPTY)
+      {
+        _forceCodePage = false;
+        _curCodePage = _specifiedCodePage = CP_UTF8;
+      }
+      else
+      {
+        UInt32 cp = CP_OEMCP;
+        RINOK(ParsePropToUInt32(L"", prop, cp))
+        _forceCodePage = true;
+        _curCodePage = _specifiedCodePage = cp;
+      }
+      // **************** NanaZip Modification End ****************
     }
     else if (name.IsPrefixedBy_Ascii_NoCase("mt"))
     {
