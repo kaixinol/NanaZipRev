@@ -24,6 +24,7 @@
   <Import Project="..\NanaZip.Project\NanaZip.Project.Runtime.props" />
   <Import Project="..\K7Base\K7Base.props" />
   <Import Project="..\K7User\K7User.props" />
+  <Import Project="..\VaultCore\VaultCore.props" />
   <Import Project="..\NanaZip.Modern\NanaZip.Modern.props" />
   <ItemDefinitionGroup>
     <ClCompile>

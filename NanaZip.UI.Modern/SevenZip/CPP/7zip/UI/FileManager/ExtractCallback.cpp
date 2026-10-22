@@ -37,6 +37,24 @@ using namespace NWindows;
 using namespace NFile;
 using namespace NFind;
 
+// **************** NanaZip Modification Start ****************
+// Not every flavor's precompiled header provides this.
+#include <string>
+//
+// Optional vault-password hooks: see VaultCore/VaultHooks.h for the typedefs
+// and the FM-layer registration contract. The FM layer registers them at
+// startup and leaves them nullptr otherwise, so nothing below the UI layer
+// needs a vault include or a link dependency.
+#ifndef _SFX
+#include <VaultHooks.h>
+FNVaultHasMatchFn g_VaultHasMatchHook = nullptr;
+FNVaultAutoFillFn g_VaultAutoFillHook = nullptr;
+FNVaultListFn g_VaultListHook = nullptr;
+FNVaultRevealFn g_VaultRevealHook = nullptr;
+FNVaultSaveFn g_VaultSaveHook = nullptr;
+#endif
+// **************** NanaZip Modification End ****************
+
 CExtractCallbackImp::~CExtractCallbackImp() {}
 
 void CExtractCallbackImp::Init()
@@ -663,11 +681,41 @@ STDMETHODIMP CExtractCallbackImp::CryptoGetTextPassword(BSTR *password)
   PasswordWasAsked = true;
   if (!PasswordIsDefined)
   {
+// **************** NanaZip Modification Start ****************
+#ifndef _SFX
+    // Same flow as the open callback: try a silent auto-fill first, and only
+    // fall back to the dialog when the vault has no usable password.
+    if (g_VaultAutoFillHook && !_currentArchivePath.IsEmpty())
+    {
+      std::wstring ArchivePath(
+          _currentArchivePath.Ptr(), _currentArchivePath.Len());
+      std::wstring AutoPwd;
+      if (g_VaultAutoFillHook(ArchivePath, AutoPwd))
+      {
+        Password = AutoPwd.c_str();
+        PasswordIsDefined = true;
+        return StringToBstr(Password, password);
+      }
+    }
+#endif
+// **************** NanaZip Modification End ****************
+
     CPasswordDialog dialog;
+// **************** NanaZip Modification Start ****************
     #ifndef _SFX
     bool showPassword = NExtract::Read_ShowPassword();
     dialog.ShowPassword = showPassword;
+    if (!_currentArchivePath.IsEmpty())
+    {
+      dialog.ArchivePath = std::wstring(
+          _currentArchivePath.Ptr(), _currentArchivePath.Len());
+    }
+    // The extract path does not wire deferred save yet, so hide the
+    // "save to vault" checkbox. The "use vault" button still works.
+    dialog.ShowSaveToVault = false;
     #endif
+// **************** NanaZip Modification End ****************
+
     ProgressDialog->WaitCreating();
     if (dialog.Create(*ProgressDialog) != IDOK)
       return E_ABORT;

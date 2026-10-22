@@ -50,6 +50,11 @@ HRESULT CUpdateCallbackGUI2::SetOperation_Base(UInt32 notifyOp, const wchar_t *n
 HRESULT CUpdateCallbackGUI2::ShowAskPasswordDialog()
 {
   CPasswordDialog dialog;
+  // **************** NanaZip Modification Start ****************
+  // This path never reads the save flag, so the checkbox would only promise
+  // a password that is not stored.
+  dialog.ShowSaveToVault = false;
+  // **************** NanaZip Modification End ****************
   ProgressDialog->WaitCreating();
   if (dialog.Create(*ProgressDialog) != IDOK)
     return E_ABORT;

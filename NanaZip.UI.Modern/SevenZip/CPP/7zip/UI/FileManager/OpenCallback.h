@@ -11,6 +11,12 @@
 
 #include "../../Archive/IArchive.h"
 
+// **************** NanaZip Modification Start ****************
+#ifndef _SFX
+#include <string>
+#endif
+// **************** NanaZip Modification End ****************
+
 #ifdef _SFX
 #include "ProgressDialog.h"
 #else
@@ -39,6 +45,16 @@ public:
   HWND ParentWindow;
   CProgressDialog ProgressDialog;
 
+  // **************** NanaZip Modification Start ****************
+  // The dialog records the save request here; the FM layer commits it only
+  // after the archive opens, so a mistyped password is never persisted.
+#ifndef _SFX
+  bool SavePasswordRequested;
+  std::wstring SavePasswordPath;
+  std::wstring SavePasswordLabel;
+#endif
+  // **************** NanaZip Modification End ****************
+
   MY_UNKNOWN_IMP5(
     IArchiveOpenCallback,
     IArchiveOpenVolumeCallback,
@@ -66,6 +82,11 @@ public:
     _subArchiveMode = false;
     PasswordIsDefined = false;
     PasswordWasAsked = false;
+// **************** NanaZip Modification Start ****************
+#ifndef _SFX
+    SavePasswordRequested = false;
+#endif
+// **************** NanaZip Modification End ****************
   }
   /*
   void Init()

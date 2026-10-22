@@ -18,6 +18,15 @@
 #include "PropertyName.h"
 #include "RegistryPlugins.h"
 
+// **************** NanaZip Modification Start ****************
+// The vault save hook is registered by the FM layer; it runs here, not in
+// the password dialog, so a mistyped password is never persisted.
+#ifndef _SFX
+#include <string>
+#include <VaultHooks.h>
+#endif
+// **************** NanaZip Modification End ****************
+
 using namespace NWindows;
 
 struct CThreadArchiveOpen
@@ -345,6 +354,35 @@ HRESULT CFfpOpen::OpenFileFolderPlugin(IInStream *inStream,
 
     if (t.Result == S_OK)
     {
+// **************** NanaZip Modification Start ****************
+#ifndef _SFX
+      // The archive opened, so the password is verified: only now honor the
+      // "save to vault" request. This runs on the UI thread, so a Hello
+      // prompt would be owned by the main window.
+      if (t.OpenCallbackSpec->SavePasswordRequested && g_VaultSaveHook)
+      {
+        std::wstring Pwd(
+            t.OpenCallbackSpec->Password.Ptr(),
+            t.OpenCallbackSpec->Password.Len());
+        // False means Hello was cancelled or the write failed; say so rather
+        // than let the "save to vault" checkbox imply otherwise.
+        bool Saved = g_VaultSaveHook(
+            t.OpenCallbackSpec->SavePasswordPath,
+            t.OpenCallbackSpec->SavePasswordLabel,
+            Pwd,
+            parentWindow);
+        if (!Saved)
+        {
+          UString Message = LangString(IDS_VAULT_SAVE_FAILED);
+          ::MessageBoxW(
+              parentWindow,
+              Message.Ptr(),
+              L"NanaZip Rev",
+              MB_OK | MB_ICONINFORMATION);
+        }
+      }
+#endif
+// **************** NanaZip Modification End ****************
       Library.Attach(library.Detach());
       // Folder.Attach(t.Folder.Detach());
       Folder = t.Folder;

@@ -22,3 +22,11 @@
 #define IDS_SETTINGS_THEME_MODE_LIGHT    4104
 #define IDS_SETTINGS_THEME_MODE_DARK     4105
 // **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
+/* The Hello consent lines the password dialog passes down, since the core
+   library holds no resources. They start at 4130, right after the code page
+   block (4108..4128), which was verified free in every shipped language. */
+#define IDS_VAULT_PROMPT_USE            4130
+#define IDS_VAULT_PROMPT_SAVE           4131
+// **************** NanaZip Modification End ****************

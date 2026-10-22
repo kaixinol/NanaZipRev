@@ -61,6 +61,12 @@ namespace NanaZip::Vault
             _In_ std::wstring const& Field,
             _In_ SecureBuffer const& Plaintext);
 
+        // Replaces the path text of one entry and nothing else: an archive
+        // that moved is not a password that changed.
+        bool SetEntryPath(
+            _In_ std::wstring const& Id,
+            _In_ std::wstring const& Path);
+
         bool DeleteEntry(_In_ std::wstring const& Id);
 
         // The decrypted secret, or nothing when the blob is missing or the

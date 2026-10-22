@@ -602,6 +602,40 @@ bool NanaZip::Vault::VaultStore::UpsertEntry(
     return this->WriteIndex(Entries);
 }
 
+bool NanaZip::Vault::VaultStore::SetEntryPath(
+    _In_ std::wstring const& Id,
+    _In_ std::wstring const& Path)
+{
+    // The same read-modify-write as an upsert, less the secret: a path is
+    // index text, so no blob is written and no password can be blanked.
+    HeldIndexMutex Lock;
+    if (!Lock.Held())
+    {
+        return false;
+    }
+    std::optional<std::vector<EntryMeta>> Listed = this->TryListEntries();
+    if (!Listed)
+    {
+        return false;
+    }
+    std::vector<EntryMeta>& Entries = *Listed;
+    bool Found = false;
+    for (EntryMeta& Entry : Entries)
+    {
+        if (Entry.Id == Id)
+        {
+            Entry.Path = Path;
+            Found = true;
+            break;
+        }
+    }
+    if (!Found)
+    {
+        return false;
+    }
+    return this->WriteIndex(Entries);
+}
+
 std::optional<NanaZip::Vault::SecureBuffer>
 NanaZip::Vault::VaultStore::GetSecret(
     _In_ std::wstring const& Id,

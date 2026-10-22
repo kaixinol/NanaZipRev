@@ -932,6 +932,12 @@ Do you want to update it in the archive?</value>
   <data name="Resource3807" xml:space="preserve">
     <value>Password</value>
   </data>
+  <data name="Resource3808" xml:space="preserve">
+    <value>Save password to &amp;vault</value>
+  </data>
+  <data name="Resource3809" xml:space="preserve">
+    <value>Vault:</value>
+  </data>
   <data name="Resource3900" xml:space="preserve">
     <value>Elapsed time:</value>
   </data>
@@ -1174,6 +1180,12 @@ Do you want to update it in the archive?</value>
   </data>
   <data name="Resource4128" xml:space="preserve">
     <value>&amp;Code page</value>
+  </data>
+  <data name="Resource4130" xml:space="preserve">
+    <value>Unlock the NanaZip vault to use this password</value>
+  </data>
+  <data name="Resource4131" xml:space="preserve">
+    <value>Save password to the NanaZip vault</value>
   </data>
   <data name="Resource6000" xml:space="preserve">
     <value>Copy</value>

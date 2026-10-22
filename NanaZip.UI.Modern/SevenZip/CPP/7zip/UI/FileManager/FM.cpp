@@ -717,9 +717,17 @@ static int WINAPI WinMain2(int nCmdShow)
 }
 
 // **************** NanaZip Modification Start ****************
+#include <ArchiveKey.h>
 #include <K7Base.h>
 #include <K7User.h>
 #include <NanaZip.Modern.h>
+#include <VaultCore.h>
+#include <utility>
+#include <VaultHooks.h>
+
+// Hook typedefs and globals now live in VaultCore/VaultHooks.h; the core layer
+// only knows these pointers, so it needs no VaultCore include or link
+// dependency. They are registered by NanaZipInitialize below.
 
 void NanaZipInitialize()
 {
@@ -738,6 +746,113 @@ void NanaZipInitialize()
     {
         ::ErrorMessage(L"K7BaseDisableDynamicCodeGeneration Failed");
     }
+
+    // Registered unconditionally: each hook re-reads the Enabled flag, so
+    // turning the vault on in Settings takes effect without a restart.
+    g_VaultHasMatchHook = [](const std::wstring& ArchivePath,
+        bool& HasMatch)
+    {
+        if (!::NanaZip::Vault::VaultSettings::Load().Enabled)
+        {
+            HasMatch = false;
+            return;
+        }
+        auto Key = ::NanaZip::Vault::ArchiveKey::Compute(ArchivePath);
+        if (!Key.has_value())
+        {
+            HasMatch = false;
+            return;
+        }
+        auto Suggs = ::NanaZip::Vault::VaultCore::QueryPasswordSuggestions(
+            *Key);
+        HasMatch = !Suggs.empty();
+    };
+
+    // Silent auto-fill: only succeeds when the session is already unlocked,
+    // so no Hello prompt is ever triggered from here.
+    g_VaultAutoFillHook = [](const std::wstring& ArchivePath,
+        std::wstring& Out) -> bool
+    {
+        if (!::NanaZip::Vault::VaultSettings::Load().Enabled)
+        {
+            return false;
+        }
+        auto Key = ::NanaZip::Vault::ArchiveKey::Compute(ArchivePath);
+        if (!Key.has_value())
+        {
+            return false;
+        }
+        auto Pwd = ::NanaZip::Vault::VaultCore::TryAutoFill(*Key, ArchivePath);
+        if (!Pwd.has_value())
+        {
+            return false;
+        }
+        Out = std::move(*Pwd);
+        return true;
+    };
+
+    // Every vault entry for the dialog's dropdown, so a password saved under
+    // one archive can be picked for another. Only labels travel here.
+    g_VaultListHook = []() ->
+        std::vector<std::pair<std::wstring, std::wstring>>
+    {
+        std::vector<std::pair<std::wstring, std::wstring>> Result;
+        if (!::NanaZip::Vault::VaultSettings::Load().Enabled)
+        {
+            return Result;
+        }
+        for (const auto& Sug :
+            ::NanaZip::Vault::VaultCore::QueryAllPasswordSuggestions())
+        {
+            Result.emplace_back(Sug.Id, Sug.Label);
+        }
+        return Result;
+    };
+
+    // Reveals the chosen entry's secret, prompting Hello when locked.
+    g_VaultRevealHook = [](const std::wstring& EntryId, HWND Window,
+        std::wstring& Out) -> bool
+    {
+        if (!::NanaZip::Vault::VaultSettings::Load().Enabled)
+        {
+            return false;
+        }
+        auto Pwd = ::NanaZip::Vault::VaultCore::RevealSuggestionPassword(
+            EntryId,
+            std::wstring(LangString(IDS_VAULT_PROMPT_USE).Ptr()),
+            Window);
+        if (!Pwd.has_value())
+        {
+            return false;
+        }
+        Out = std::move(*Pwd);
+        return true;
+    };
+
+    // Stores the typed password under the archive content fingerprint.
+    g_VaultSaveHook = [](const std::wstring& ArchivePath,
+        const std::wstring& Label, const std::wstring& Password,
+        HWND Window) -> bool
+    {
+        // Off is not a failure: reporting it would pop the "not saved" notice
+        // for a vault the user never turned on.
+        if (!::NanaZip::Vault::VaultSettings::Load().Enabled)
+        {
+            return true;
+        }
+        auto Key = ::NanaZip::Vault::ArchiveKey::Compute(ArchivePath);
+        if (!Key.has_value())
+        {
+            return false;
+        }
+        return ::NanaZip::Vault::VaultCore::SavePassword(
+            *Key,
+            ArchivePath,
+            Label,
+            Password,
+            std::wstring(LangString(IDS_VAULT_PROMPT_SAVE).Ptr()),
+            Window);
+    };
 
     if (S_OK != ::K7ModernInitialize())
     {

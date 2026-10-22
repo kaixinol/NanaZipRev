@@ -929,6 +929,12 @@
   <data name="Resource3807" xml:space="preserve">
     <value>密码</value>
   </data>
+  <data name="Resource3808" xml:space="preserve">
+    <value>保存密码到密码库(&amp;V)</value>
+  </data>
+  <data name="Resource3809" xml:space="preserve">
+    <value>密码库：</value>
+  </data>
   <data name="Resource3900" xml:space="preserve">
     <value>已用时间：</value>
   </data>
@@ -1159,6 +1165,12 @@
   </data>
   <data name="Resource4128" xml:space="preserve">
     <value>代码页(&amp;C)</value>
+  </data>
+  <data name="Resource4130" xml:space="preserve">
+    <value>解锁 NanaZip 密码库以使用此密码</value>
+  </data>
+  <data name="Resource4131" xml:space="preserve">
+    <value>将密码保存到 NanaZip 密码库</value>
   </data>
   <data name="Resource6000" xml:space="preserve">
     <value>复制</value>

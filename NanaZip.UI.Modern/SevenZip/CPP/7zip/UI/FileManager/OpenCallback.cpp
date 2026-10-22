@@ -15,6 +15,16 @@
 #include "OpenCallback.h"
 #include "PasswordDialog.h"
 
+// **************** NanaZip Modification Start ****************
+// The vault hooks are declared here and registered by FM.cpp; the settings
+// alongside them come from VaultCore.
+#ifndef _SFX
+#include <string>
+#include <VaultCore.h>
+#include <VaultHooks.h>
+#endif
+// **************** NanaZip Modification End ****************
+
 using namespace NWindows;
 
 STDMETHODIMP COpenArchiveCallback::SetTotal(const UInt64 *numFiles, const UInt64 *numBytes)
@@ -111,10 +121,58 @@ STDMETHODIMP COpenArchiveCallback::CryptoGetTextPassword(BSTR *password)
   PasswordWasAsked = true;
   if (!PasswordIsDefined)
   {
+// **************** NanaZip Modification Start ****************
+#ifndef _SFX
+    // Every hook fingerprints the content itself, so a moved or renamed
+    // archive still matches.
+    std::wstring ArchivePath;
+    std::wstring ArchiveLabel;
+    if (!_fileInfo.Name.IsEmpty())
+    {
+      // Absolute, because the entry shows this path to the user: a
+      // relative open would record one that only means something from
+      // one directory.
+      FString FullPath;
+      if (!NFile::NName::GetFullPath(_folderPrefix, _fileInfo.Name,
+          FullPath))
+        FullPath = _folderPrefix + _fileInfo.Name;
+      const UString ArchivePathText = fs2us(FullPath);
+      ArchivePath.assign(ArchivePathText.Ptr(), ArchivePathText.Len());
+      const UString Base = fs2us(_fileInfo.Name);
+      ArchiveLabel.assign(Base.Ptr(), Base.Len());
+    }
+
+    // Silent auto-fill first: a matching entry in an already unlocked
+    // session opens the archive with no dialog at all.
+    if (g_VaultAutoFillHook && !ArchivePath.empty())
+    {
+      std::wstring AutoPwd;
+      if (g_VaultAutoFillHook(ArchivePath, AutoPwd))
+      {
+        Password = AutoPwd.c_str();
+        PasswordIsDefined = true;
+        return StringToBstr(Password, password);
+      }
+    }
+#endif
+// **************** NanaZip Modification End ****************
+
     CPasswordDialog dialog;
     bool showPassword = NExtract::Read_ShowPassword();
     dialog.ShowPassword = showPassword;
-   
+
+// **************** NanaZip Modification Start ****************
+#ifndef _SFX
+    if (!ArchivePath.empty())
+    {
+      dialog.ArchivePath = ArchivePath;
+      dialog.ArchiveLabel = ArchiveLabel;
+      dialog.SaveToVault =
+          ::NanaZip::Vault::VaultSettings::Load().SavePasswordByDefault;
+    }
+#endif
+// **************** NanaZip Modification End ****************
+
     ProgressDialog.WaitCreating();
     if (dialog.Create(ProgressDialog) != IDOK)
       return E_ABORT;
@@ -123,6 +181,29 @@ STDMETHODIMP COpenArchiveCallback::CryptoGetTextPassword(BSTR *password)
     PasswordIsDefined = true;
     if (dialog.ShowPassword != showPassword)
       NExtract::Save_ShowPassword(dialog.ShowPassword);
+
+// **************** NanaZip Modification Start ****************
+#ifndef _SFX
+    // Remember the checkbox state for the next dialog. When a match hid the
+    // checkbox, the value still holds the stored default, so this is a no-op.
+    if (dialog.ShowSaveToVault)
+    {
+      ::NanaZip::Vault::VaultSettings Settings =
+          ::NanaZip::Vault::VaultSettings::Load();
+      if (Settings.SavePasswordByDefault != dialog.SaveToVault)
+      {
+        Settings.SavePasswordByDefault = dialog.SaveToVault;
+        Settings.Save();
+      }
+    }
+
+    // Record the save request without committing it: the password is not
+    // verified yet, so the FM layer persists it only after a successful open.
+    SavePasswordRequested = dialog.SaveRequested;
+    SavePasswordPath = dialog.ArchivePath;
+    SavePasswordLabel = dialog.ArchiveLabel;
+#endif
+// **************** NanaZip Modification End ****************
   }
   return StringToBstr(Password, password);
   COM_TRY_END

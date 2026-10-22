@@ -929,6 +929,12 @@
   <data name="Resource3807" xml:space="preserve">
     <value>密碼</value>
   </data>
+  <data name="Resource3808" xml:space="preserve">
+    <value>儲存密碼至密碼庫(&amp;V)</value>
+  </data>
+  <data name="Resource3809" xml:space="preserve">
+    <value>密碼庫：</value>
+  </data>
   <data name="Resource3900" xml:space="preserve">
     <value>經過時間:</value>
   </data>
@@ -1159,6 +1165,12 @@
   </data>
   <data name="Resource4128" xml:space="preserve">
     <value>代碼頁(&amp;C)</value>
+  </data>
+  <data name="Resource4130" xml:space="preserve">
+    <value>解鎖 NanaZip 密碼庫以使用此密碼</value>
+  </data>
+  <data name="Resource4131" xml:space="preserve">
+    <value>將密碼儲存至 NanaZip 密碼庫</value>
   </data>
   <data name="Resource6000" xml:space="preserve">
     <value>複製</value>

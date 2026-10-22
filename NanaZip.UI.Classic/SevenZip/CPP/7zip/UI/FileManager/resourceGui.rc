@@ -24,4 +24,12 @@ BEGIN
   IDS_SETTINGS_THEME_MODE_LIGHT    "Always light"
   IDS_SETTINGS_THEME_MODE_DARK     "Always dark"
   // **************** NanaZip Modification End ****************
+
+  // **************** NanaZip Modification Start ****************
+  // The Hello consent lines for the password dialog's vault buttons; the
+  // core library carries no resources of its own.
+  IDS_VAULT_PROMPT_USE  "Unlock the NanaZip vault to use this password"
+  IDS_VAULT_PROMPT_SAVE "Save password to the NanaZip vault"
+  // **************** NanaZip Modification End ****************
+
 END

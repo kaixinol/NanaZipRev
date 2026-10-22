@@ -40,10 +40,17 @@ namespace NanaZip::Vault
         static std::vector<VaultPasswordSuggestion> QueryPasswordSuggestions(
             _In_ std::wstring const& ArchiveKey);
 
+        // Every entry, deduplicated by label with the most recently saved one
+        // kept, so a password saved for one archive can be picked for another.
+        static std::vector<VaultPasswordSuggestion>
+        QueryAllPasswordSuggestions();
+
         // The decrypted password for ArchiveKey with no prompt at all, and
-        // only while the session is already unlocked.
+        // only while the session is already unlocked. ArchivePath is what
+        // the entry records as its archive, not part of the lookup.
         static std::optional<std::wstring> TryAutoFill(
-            _In_ std::wstring const& ArchiveKey);
+            _In_ std::wstring const& ArchiveKey,
+            _In_ std::wstring const& ArchivePath);
 
         // Stores a password under ArchiveKey, along with the absolute path
         // the save came from. ConsentMessage is what the Hello prompt shows;

@@ -277,9 +277,54 @@ NanaZip::Vault::VaultCore::QueryPasswordSuggestions(
     return Result;
 }
 
+std::vector<NanaZip::Vault::VaultPasswordSuggestion>
+NanaZip::Vault::VaultCore::QueryAllPasswordSuggestions()
+{
+    std::vector<VaultPasswordSuggestion> Result;
+
+    VaultSettings Settings = VaultSettings::Load();
+    if (!Settings.Enabled)
+    {
+        return Result;
+    }
+
+    std::optional<VaultStore> Store = VaultStore::Open();
+    if (!Store.has_value())
+    {
+        return Result;
+    }
+
+    // The last entry under a label is the one a new save would replace, so
+    // it is what the list keeps. Blank labels are not identities: own row.
+    std::vector<EntryMeta> Entries = Store->ListEntries();
+    for (EntryMeta const& Meta : Entries)
+    {
+        bool Replaced = false;
+        for (VaultPasswordSuggestion& Known : Result)
+        {
+            if (!Known.Label.empty() && Known.Label == Meta.Label)
+            {
+                Known.Id = Meta.Id;
+                Replaced = true;
+                break;
+            }
+        }
+        if (!Replaced)
+        {
+            VaultPasswordSuggestion Suggestion;
+            Suggestion.Label = Meta.Label;
+            Suggestion.Id = Meta.Id;
+            Result.push_back(std::move(Suggestion));
+        }
+    }
+
+    return Result;
+}
+
 std::optional<std::wstring>
 NanaZip::Vault::VaultCore::TryAutoFill(
-    _In_ std::wstring const& ArchiveKey)
+    _In_ std::wstring const& ArchiveKey,
+    _In_ std::wstring const& ArchivePath)
 {
     VaultSettings Settings = VaultSettings::Load();
     if (!Settings.Enabled)
@@ -306,6 +351,16 @@ NanaZip::Vault::VaultCore::TryAutoFill(
     if (Match == nullptr)
     {
         return std::nullopt;
+    }
+
+    // A match means the file at ArchivePath is the archive this entry was
+    // saved for, so the entry's path follows it: one saved before the path
+    // was recorded gets one now, and an archive that moved stops showing
+    // where it used to be. Best effort, because the password is what this
+    // call owes the caller.
+    if (!ArchivePath.empty() && Match->Path != ArchivePath)
+    {
+        Store->SetEntryPath(Match->Id, ArchivePath);
     }
 
     return ReadSecret(*Store, Match->Id, VaultStore::PasswordField);
@@ -358,7 +413,6 @@ bool NanaZip::Vault::VaultCore::SavePassword(
         {
             return false;
         }
-
     }
 
     EntryMeta Meta;
@@ -409,7 +463,6 @@ NanaZip::Vault::VaultCore::RevealSuggestionPassword(
         {
             return std::nullopt;
         }
-
     }
 
     std::optional<VaultStore> Store = VaultStore::Open();
