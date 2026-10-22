@@ -416,4 +416,20 @@
   NanaZip.Modern.FileManager, which may cause issues in the WAP project.
   -->
   <Target Name="_ComputeInputPriFiles" />
+  <!--
+  _CopyResourcesPri
+
+  Desktop Debug/Release output directories do not have the WAP stage that
+  merges project PRIs into resources.pri. NanaZip.Modern.dll's
+  K7ModernInitialize uses winrt::ResourceManager::Current(), which defaults
+  to looking for a file named resources.pri. Without this the debug build
+  falls through GetMainResourceMap() returning nullptr and K7ModernInitialize
+  fails with E_NOINTERFACE. Copy the merged output next to the exe after build.
+  -->
+  <Target Name="_CopyResourcesPri" AfterTargets="Build">
+    <Copy
+      SourceFiles="$(OutputPath)NanaZip.Modern.pri"
+      DestinationFiles="$(OutputPath)resources.pri"
+      Condition="Exists('$(OutputPath)NanaZip.Modern.pri') and !Exists('$(OutputPath)resources.pri')" />
+  </Target>
 </Project>
