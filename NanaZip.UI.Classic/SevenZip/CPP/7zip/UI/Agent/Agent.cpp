@@ -1780,12 +1780,11 @@ STDMETHODIMP CAgent::Open(
 
   COpenOptions options;
   // **************** NanaZip Modification Start ****************
-  /* Send the code page on the first open too, not only on a reopen. An ordinary
-     open passed no properties at all, so the page the user chose last was
-     ignored until something reopened the archive. */
-  CObjectVector<CProperty> props;
-  AddCodePageProperty(props, _codePage);
-  options.props = &props;
+  /* A first open sends no properties, as upstream does. Sending a "cp" with
+     an empty value made handlers that do not accept it answer E_INVALIDARG,
+     which surfaced as "The parameter is incorrect". A picked page is still
+     sent by ReOpen, the one path with a previous choice to override. */
+  options.props = NULL;
   // **************** NanaZip Modification End ****************
   options.codecs = g_CodecsObj;
   options.types = &types;
