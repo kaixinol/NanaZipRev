@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BF7D572D-F116-4739-A183-8B3C7739AE35}</ProjectGuid>
+    <RootNamespace>VaultCore</RootNamespace>
+    <MileProjectType>StaticLibrary</MileProjectType>
+    <MileProjectEnableCppWinRTSupport>true</MileProjectEnableCppWinRTSupport>
+    <MileWindowsHelpersNoCppWinRTHelpers>true</MileWindowsHelpersNoCppWinRTHelpers>
+  </PropertyGroup>
+  <Import Project="..\NanaZip.Project\NanaZip.Project.props" />
+  <Import Sdk="Mile.Project.Configurations" Project="Mile.Project.Platform.x64.props" />
+  <Import Sdk="Mile.Project.Configurations" Project="Mile.Project.Platform.ARM64.props" />
+  <Import Sdk="Mile.Project.Configurations" Project="Mile.Project.Cpp.Default.props" />
+  <Import Sdk="Mile.Project.Configurations" Project="Mile.Project.Cpp.props" />
+  <Import Project="..\NanaZip.Project\NanaZip.Project.Runtime.props" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!--
+        The Windows Hello gate awaits a projected async operation, and the
+        consumer defines the same macro, so the two must agree on it.
+      -->
+      <PreprocessorDefinitions>WINRT_NO_SOURCE_LOCATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="VaultCore.props" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ArchiveKey.cpp" />
+    <ClCompile Include="HelloGate.cpp" />
+    <ClCompile Include="Keystream.cpp" />
+    <ClCompile Include="SecureBuffer.cpp" />
+    <ClCompile Include="Session.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="VaultCore.cpp" />
+    <ClCompile Include="VaultStore.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ArchiveKey.h" />
+    <ClInclude Include="HelloGate.h" />
+    <ClInclude Include="Keystream.h" />
+    <ClInclude Include="SecureBuffer.h" />
+    <ClInclude Include="Session.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="VaultCore.h" />
+    <ClInclude Include="VaultStore.h" />
+  </ItemGroup>
+  <Import Sdk="Mile.Project.Configurations" Project="Mile.Project.Cpp.targets" />
+</Project>

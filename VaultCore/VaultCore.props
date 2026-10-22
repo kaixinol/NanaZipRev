@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PROJECT:    NanaZip Vault Core Library
+  FILE:       VaultCore.props
+  PURPOSE:    MSBuild Properties for referencing the VaultCore static library
+
+  LICENSE:    The MIT License
+
+  MAINTAINER: Kaesinol (keiplyer#gmail.com)
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <IncludePath>$(MSBuildThisFileDirectory);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <!-- runtimeobject.lib backs the C++/WinRT projections the Hello gate
+           uses; crypt32.lib backs DPAPI. -->
+      <AdditionalDependencies>runtimeobject.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)VaultCore.vcxproj">
+      <Project>{BF7D572D-F116-4739-A183-8B3C7739AE35}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
