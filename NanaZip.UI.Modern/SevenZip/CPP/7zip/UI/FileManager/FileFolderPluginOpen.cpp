@@ -328,6 +328,30 @@ HRESULT CFfpOpen::OpenFileFolderPlugin(IInStream *inStream,
       t.OpenCallbackSpec->StartProgressDialog(progressTitle, thread);
     }
 
+    // **************** NanaZip Modification Start ****************
+    // The password dialog and any Windows Hello prompt run on the archive
+    // worker thread, and the progress window is not a true modal dialog, so
+    // the main window is not reactivated when the operation finishes. We must
+    // not steal foreground from the user, so instead flash the taskbar button
+    // to draw attention. Flashing is the documented behavior for a window that
+    // cannot force itself to the foreground.
+    if (parentWindow)
+    {
+      const HWND Foreground = ::GetForegroundWindow();
+      // Only flash when another process owns the foreground; if our own dialog
+      // is foreground, the user is already looking at it.
+      DWORD ForegroundProcessId = 0;
+      ::GetWindowThreadProcessId(Foreground, &ForegroundProcessId);
+      if (Foreground != nullptr &&
+          ForegroundProcessId != ::GetCurrentProcessId())
+      {
+        FLASHWINFO FlashInfo = {sizeof(FlashInfo), parentWindow,
+            FLASHW_TRAY | FLASHW_TIMERNOFG, 0, 0};
+        ::FlashWindowEx(&FlashInfo);
+      }
+    }
+    // **************** NanaZip Modification End ****************
+
     if (t.Result != S_FALSE && t.Result != S_OK)
       return t.Result;
 
