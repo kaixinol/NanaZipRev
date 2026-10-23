@@ -519,6 +519,19 @@ function Test-MicrosoftSignedBinary {
     $signature.SignerCertificate.Subject -match 'CN=Microsoft Corporation')
 }
 
+function Test-NewEnoughSignTool {
+  param(
+    [string]$Path,
+    [System.Version]$MinimumVersion = [System.Version]'10.0.17763'
+  )
+
+  try {
+    $ver = (Get-Item -LiteralPath $Path -ErrorAction Stop).VersionInfo.ProductVersion
+    return ([System.Version]$ver) -ge $MinimumVersion
+  }
+  catch { return $false }
+}
+
 function Get-Sha512Base64FromBytes {
   param([byte[]]$Bytes)
 
@@ -633,18 +646,55 @@ function Remove-TemporarySignToolDirectory {
 }
 
 function Find-SignTool {
-  # Prefer a Microsoft-signed SignTool on PATH; do not reuse temporary tools.
+  $minimumSignToolVersion = [System.Version]'10.0.17763'
+
+  # Stage 1: PATH candidates — must be Microsoft-signed AND new enough.
   $pathCandidates = @(Get-Command 'signtool.exe' -CommandType Application -All `
-    -ErrorAction SilentlyContinue)
+    -ErrorAction SilentlyContinue) | Select-Object -ExpandProperty Source
+  $pathCandidates = $pathCandidates | Select-Object -Unique
+  $qualified = @()
   foreach ($candidate in $pathCandidates) {
-    if (Test-MicrosoftSignedBinary -Path $candidate.Source) {
-      Write-Note "using Microsoft-signed signtool from PATH: $($candidate.Source)"
-      return $candidate.Source
+    if (-not (Test-MicrosoftSignedBinary -Path $candidate)) {
+      Write-Warn "ignoring signtool on PATH because its Microsoft Authenticode signature is not valid: $candidate"
+      continue
     }
-    Write-Warn "ignoring signtool on PATH because its Microsoft Authenticode signature is not valid: $($candidate.Source)"
+    if (-not (Test-NewEnoughSignTool -Path $candidate -MinimumVersion $minimumSignToolVersion)) {
+      Write-Warn ("ignoring signtool on PATH because its ProductVersion is older than {0}: {1}" -f $minimumSignToolVersion, $candidate)
+      continue
+    }
+    $qualified += $candidate
+  }
+  if ($qualified.Count -gt 0) {
+    $best = $qualified |
+      Sort-Object { [System.Version]((Get-Item -LiteralPath $_).VersionInfo.ProductVersion) } -Descending |
+      Select-Object -First 1
+    Write-Note "using Microsoft-signed signtool from PATH: $best"
+    return $best
   }
 
-  Write-Step 'no trusted signtool.exe on PATH, downloading the Windows SDK build tools'
+  # Stage 2: Windows SDK bin directory — latest version dir, Microsoft-signed, new enough.
+  $wsRoot = 'C:\Program Files (x86)\Windows Kits\10\bin'
+  if (Test-Path -LiteralPath $wsRoot) {
+    $all = @(Get-ChildItem -LiteralPath $wsRoot -Filter 'signtool.exe' -Recurse `
+              -ErrorAction SilentlyContinue)
+    $wsQualified = $all | Where-Object {
+      (Test-MicrosoftSignedBinary -Path $_.FullName) -and
+      (Test-NewEnoughSignTool -Path $_.FullName -MinimumVersion $minimumSignToolVersion)
+    }
+    foreach ($arch in (Get-SignToolArchOrder)) {
+      $hit = $wsQualified |
+        Where-Object { $_.Directory.Name -eq $arch } |
+        Sort-Object { [System.Version]$_.VersionInfo.ProductVersion } -Descending |
+        Select-Object -First 1
+      if ($hit) {
+        Write-Note "using Microsoft-signed signtool from Windows SDK: $($hit.FullName)"
+        return $hit.FullName
+      }
+    }
+  }
+
+  # Stage 3: fall back to downloading the Windows SDK build tools.
+  Write-Step 'no trusted signtool.exe on PATH or in Windows SDK; downloading the Windows SDK build tools'
   $version = '10.0.26100.9169'
   $id = 'microsoft.windows.sdk.buildtools'
   $uri = "https://api.nuget.org/v3-flatcontainer/$id/$version" +
