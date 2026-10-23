@@ -339,6 +339,14 @@ static int Main2()
 
     ecs->MultiArcMode = (ArchivePathsSorted.Size() > 1);
 
+    // **************** NanaZip Modification Start ****************
+    // Reset the per-operation error flag before extraction starts so that
+    // the after-extraction actions (open folder, close manager, delete
+    // source) can rely on it to detect whether this extraction succeeded.
+    // Without this reset the flag stays true forever after the first error.
+    g_ProcessErrorOccurred = false;
+    // **************** NanaZip Modification End ****************
+
     HRESULT result = ExtractGUI(
           // EXTERNAL_CODECS_VARS_L
           codecs,
@@ -371,13 +379,15 @@ static int Main2()
       PostMessage(options.ParentWindowFM, WM_CLOSE, 0, 0);
     // **************** NanaZip Modification End ****************
     // **************** NanaZip Modification Start ****************
-    // Any error has already returned above, so the source archives are
-    // removed only after a fully successful extraction. They go to the
-    // Recycle Bin rather than being erased outright, and FOF_WANTNUKEWARNING
-    // asks before the shell falls back to a permanent delete. The shell
-    // reports nothing per file, so the paths that are still there afterwards
-    // are collected and shown.
-    if (eo.DeleteSource.Val && !eo.TestMode)
+    // The source archives are removed only after a fully successful
+    // extraction: any error has already returned above, and
+    // g_ProcessErrorOccurred confirms that no error or warning message
+    // was reported during this operation. They go to the Recycle Bin
+    // rather than being erased outright, and FOF_WANTNUKEWARNING asks
+    // before the shell falls back to a permanent delete. The shell
+    // reports nothing per file, so the paths that are still there
+    // afterwards are collected and shown.
+    if (eo.DeleteSource.Val && !eo.TestMode && !g_ProcessErrorOccurred)
     {
       // SHFileOperationW wants a double null terminated list of paths.
       UString pathList;
