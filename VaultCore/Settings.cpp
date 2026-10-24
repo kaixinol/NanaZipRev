@@ -18,11 +18,8 @@
 // that resetting the latter does not touch the vault.
 static constexpr wchar_t const* g_RootKeyPath = L"Software\\NanaZipRev\\Vault";
 
-// A timer outside these ranges falls back to its default: a hand-edited
-// value of zero would lock the vault on every idle moment and a huge one
-// would disable the absolute timer altogether. The bounds live on the
-// settings struct so that the settings dialog can validate against the very
-// same numbers.
+// Out-of-range timers fall back to the default; the bounds live on
+// VaultSettings so the dialog validates against the same numbers.
 static constexpr DWORD g_MinimumTimeoutMs =
     NanaZip::Vault::VaultSettings::MinimumTimeoutMs;
 static constexpr DWORD g_MaximumTimeoutMs =
@@ -76,6 +73,30 @@ static DWORD ReadTimeout(
     return Value.value();
 }
 
+// Lock timers also honor zero: never re-lock, and the key dies
+// with the process. Any other out-of-range value takes the default.
+static DWORD ReadLockTimeout(
+    wchar_t const* Name,
+    DWORD DefaultValue,
+    DWORD MinimumValue,
+    DWORD MaximumValue)
+{
+    std::optional<DWORD> Value = ::ReadValue(Name);
+    if (!Value.has_value())
+    {
+        return DefaultValue;
+    }
+    if (Value.value() == 0)
+    {
+        return 0;
+    }
+    if (Value.value() < MinimumValue || Value.value() > MaximumValue)
+    {
+        return DefaultValue;
+    }
+    return Value.value();
+}
+
 static bool ReadFlag(wchar_t const* Name, bool DefaultValue)
 {
     std::optional<DWORD> Value = ::ReadValue(Name);
@@ -119,12 +140,12 @@ NanaZip::Vault::VaultSettings NanaZip::Vault::VaultSettings::Load()
 {
     VaultSettings Settings;
     Settings.Enabled = ::ReadFlag(L"Enabled", Settings.Enabled);
-    Settings.AbsoluteTimeoutMs = ReadTimeout(
+    Settings.AbsoluteTimeoutMs = ::ReadLockTimeout(
         L"AbsoluteTimeoutMs",
         Settings.AbsoluteTimeoutMs,
         g_MinimumTimeoutMs,
         g_MaximumTimeoutMs);
-    Settings.IdleTimeoutMs = ReadTimeout(
+    Settings.IdleTimeoutMs = ::ReadLockTimeout(
         L"IdleTimeoutMs",
         Settings.IdleTimeoutMs,
         g_MinimumTimeoutMs,

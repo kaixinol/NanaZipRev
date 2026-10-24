@@ -23,7 +23,7 @@ namespace NanaZip::Vault
     {
         // Published so the settings dialog validates against the same numbers
         // the loader falls back on; a value outside them is rejected, not
-        // clamped.
+        // clamped. The two lock timers also accept zero, which disables them.
         static constexpr DWORD MinimumTimeoutMs = 1 * 1000;
         static constexpr DWORD MaximumTimeoutMs = 24 * 60 * 60 * 1000;
         static constexpr DWORD MinimumClipboardClearMs = 1 * 1000;
@@ -31,9 +31,10 @@ namespace NanaZip::Vault
 
         // Ships off: enabling it is an explicit trust decision.
         bool Enabled = false;
-        // Milliseconds from unlock to the unconditional re-lock.
+        // Milliseconds from unlock to the unconditional re-lock. Zero keeps
+        // the vault unlocked for the session; the key is only in memory.
         DWORD AbsoluteTimeoutMs = 15 * 60 * 1000;
-        // Vault-dialog inactivity before the re-lock.
+        // Vault-dialog inactivity before the re-lock. Zero disables it too.
         DWORD IdleTimeoutMs = 5 * 60 * 1000;
         DWORD ClipboardClearMs = 30 * 1000;
         bool Audit = false;
@@ -42,7 +43,7 @@ namespace NanaZip::Vault
         bool SavePasswordByDefault = true;
 
         // Reads HKCU\Software\NanaZipRev\Vault. A missing, mistyped or out of
-        // range value falls back to the default.
+        // range value falls back to the default; zero on a lock timer is kept.
         static VaultSettings Load();
 
         void Save() const;

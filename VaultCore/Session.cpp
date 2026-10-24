@@ -224,13 +224,22 @@ void NanaZip::Vault::Session::MonitorLoop()
 
         if (this->m_Unlocked)
         {
-            Next = Earlier(
-                Next,
-                Earlier(
+            // Zero disables the timer: the vault stays unlocked until
+            // the process exits, and the key dies with it.
+            if (this->m_Settings.AbsoluteTimeoutMs != 0)
+            {
+                Next = Earlier(
+                    Next,
                     this->m_UnlockAt + std::chrono::milliseconds(
-                        m_Settings.AbsoluteTimeoutMs),
+                        this->m_Settings.AbsoluteTimeoutMs));
+            }
+            if (this->m_Settings.IdleTimeoutMs != 0)
+            {
+                Next = Earlier(
+                    Next,
                     this->m_LastActivity + std::chrono::milliseconds(
-                        m_Settings.IdleTimeoutMs)));
+                        this->m_Settings.IdleTimeoutMs));
+            }
         }
         if (this->m_ClipboardPending)
         {
@@ -246,10 +255,13 @@ void NanaZip::Vault::Session::MonitorLoop()
         bool LockDue = false;
         if (this->m_Unlocked)
         {
-            LockDue = Now >= m_UnlockAt + std::chrono::milliseconds(
-                m_Settings.AbsoluteTimeoutMs)
-                || Now >= m_LastActivity + std::chrono::milliseconds(
-                    m_Settings.IdleTimeoutMs);
+            LockDue = (this->m_Settings.AbsoluteTimeoutMs != 0
+                && Now >= this->m_UnlockAt + std::chrono::milliseconds(
+                    this->m_Settings.AbsoluteTimeoutMs))
+                || (this->m_Settings.IdleTimeoutMs != 0
+                    && Now >= this->m_LastActivity
+                        + std::chrono::milliseconds(
+                            this->m_Settings.IdleTimeoutMs));
         }
         bool ClipboardDue =
             this->m_ClipboardPending && Now >= this->m_ClipboardAt;
