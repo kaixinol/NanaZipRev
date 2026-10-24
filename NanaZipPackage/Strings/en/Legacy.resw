@@ -672,6 +672,63 @@
   <data name="Resource2901" xml:space="preserve">
     <value>NanaZip Rev is free software</value>
   </data>
+  <data name="Resource2902" xml:space="preserve">
+    <value>Vault</value>
+  </data>
+  <data name="Resource2903" xml:space="preserve">
+    <value>Entry</value>
+  </data>
+  <data name="Resource2904" xml:space="preserve">
+    <value>Vault settings</value>
+  </data>
+  <data name="Resource2912" xml:space="preserve">
+    <value>&amp;Unlock</value>
+  </data>
+  <data name="Resource2914" xml:space="preserve">
+    <value>&amp;Edit</value>
+  </data>
+  <data name="Resource2915" xml:space="preserve">
+    <value>&amp;Delete</value>
+  </data>
+  <data name="Resource2916" xml:space="preserve">
+    <value>&amp;Copy Password</value>
+  </data>
+  <data name="Resource2917" xml:space="preserve">
+    <value>&amp;Settings</value>
+  </data>
+  <data name="Resource2920" xml:space="preserve">
+    <value>&amp;Archive:</value>
+  </data>
+  <data name="Resource2922" xml:space="preserve">
+    <value>&amp;Label:</value>
+  </data>
+  <data name="Resource2926" xml:space="preserve">
+    <value>&amp;Password:</value>
+  </data>
+  <data name="Resource2928" xml:space="preserve">
+    <value>Sho&amp;w password</value>
+  </data>
+  <data name="Resource2940" xml:space="preserve">
+    <value>&amp;Enable the vault</value>
+  </data>
+  <data name="Resource2941" xml:space="preserve">
+    <value>Lock after (&amp;seconds):</value>
+  </data>
+  <data name="Resource2944" xml:space="preserve">
+    <value>Lock when &amp;idle (seconds):</value>
+  </data>
+  <data name="Resource2947" xml:space="preserve">
+    <value>Clear clipboard after (seco&amp;nds):</value>
+  </data>
+  <data name="Resource2950" xml:space="preserve">
+    <value>&amp;Write an audit log</value>
+  </data>
+  <data name="Resource2951" xml:space="preserve">
+    <value>A timer set to 0 keeps the vault unlocked until NanaZip exits.</value>
+  </data>
+  <data name="Resource2952" xml:space="preserve">
+    <value>Changes apply immediately, even while the vault is unlocked.</value>
+  </data>
   <data name="Resource3000" xml:space="preserve">
     <value>The system cannot allocate the required amount of memory</value>
   </data>
@@ -1103,6 +1160,9 @@ Do you want to update it in the archive?</value>
   <data name="Resource4091" xml:space="preserve">
     <value>ns</value>
   </data>
+  <data name="Resource4096" xml:space="preserve">
+    <value>Enable &amp;vault</value>
+  </data>
   <data name="Resource4101" xml:space="preserve">
     <value>&amp;Theme:</value>
   </data>
@@ -1186,6 +1246,80 @@ Do you want to update it in the archive?</value>
   </data>
   <data name="Resource4131" xml:space="preserve">
     <value>Save password to the NanaZip vault</value>
+  </data>
+  <data name="Resource4132" xml:space="preserve">
+    <value>Enable the vault?</value>
+  </data>
+  <data name="Resource4133" xml:space="preserve">
+    <value>Windows Hello is a convenience here, not a data lock:
+
+1. Any program running as you can read the vault files without Hello. The real boundary is your Windows sign-in and DPAPI.
+2. Anyone with physical access to an unlocked session can read the vault.
+3. If an administrator resets your Windows password, the vault data cannot be recovered; a backup of the vault folder cannot be decrypted either.
+4. The vault asks for Hello when it unlocks, then stays unlocked until a timer locks it or the app closes; reading or copying an entry while unlocked is not asked again, and none of this is absolute security.</value>
+  </data>
+  <data name="Resource4134" xml:space="preserve">
+    <value>Windows Hello is not available on this device. Set up a PIN or Windows Hello in the Settings app, then try again.</value>
+  </data>
+  <data name="Resource4135" xml:space="preserve">
+    <value>The vault storage could not be opened.</value>
+  </data>
+  <data name="Resource4136" xml:space="preserve">
+    <value>The entry could not be saved.</value>
+  </data>
+  <data name="Resource4137" xml:space="preserve">
+    <value>The vault is locked.</value>
+  </data>
+  <data name="Resource4138" xml:space="preserve">
+    <value>&amp;Unlock</value>
+  </data>
+  <data name="Resource4139" xml:space="preserve">
+    <value>&amp;Lock</value>
+  </data>
+  <data name="Resource4140" xml:space="preserve">
+    <value>Archive</value>
+  </data>
+  <data name="Resource4141" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="Resource4142" xml:space="preserve">
+    <value>{0} entry(s)</value>
+  </data>
+  <data name="Resource4143" xml:space="preserve">
+    <value>Unlock the NanaZip vault</value>
+  </data>
+  <data name="Resource4146" xml:space="preserve">
+    <value>Windows Hello did not verify. The vault stays locked.</value>
+  </data>
+  <data name="Resource4147" xml:space="preserve">
+    <value>The secret could not be read. The Windows account that wrote it may have changed.</value>
+  </data>
+  <data name="Resource4148" xml:space="preserve">
+    <value>The password was copied to the clipboard. It will be cleared automatically.</value>
+  </data>
+  <data name="Resource4149" xml:space="preserve">
+    <value>The clipboard was cleared.</value>
+  </data>
+  <data name="Resource4150" xml:space="preserve">
+    <value>Delete the entry '{0}'?</value>
+  </data>
+  <data name="Resource4152" xml:space="preserve">
+    <value>Each timer needs a whole number of seconds inside the range the vault allows. The two lock timers also accept 0, which keeps the vault unlocked until NanaZip exits; the clipboard timer does not.</value>
+  </data>
+  <data name="Resource4153" xml:space="preserve">
+    <value>The vault could not be unlocked. Nothing was read or written; try again.</value>
+  </data>
+  <data name="Resource4154" xml:space="preserve">
+    <value>The password could not be copied to the clipboard.</value>
+  </data>
+  <data name="Resource4155" xml:space="preserve">
+    <value>The entry could not be deleted.</value>
+  </data>
+  <data name="Resource4156" xml:space="preserve">
+    <value>The vault is disabled.</value>
+  </data>
+  <data name="Resource4157" xml:space="preserve">
+    <value>The clipboard could not be cleared. The password may still be on it.</value>
   </data>
   <data name="Resource6000" xml:space="preserve">
     <value>Copy</value>
@@ -1333,6 +1467,9 @@ Do you want to update it in the archive?</value>
   </data>
   <data name="Resource7206" xml:space="preserve">
     <value>Info</value>
+  </data>
+  <data name="Resource7207" xml:space="preserve">
+    <value>Vault</value>
   </data>
   <data name="Resource7300" xml:space="preserve">
     <value>Split File</value>

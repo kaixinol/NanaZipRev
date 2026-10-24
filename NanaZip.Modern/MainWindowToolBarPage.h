@@ -62,6 +62,10 @@ namespace winrt::NanaZip::Modern::implementation
             winrt::IInspectable const& sender,
             winrt::RoutedEventArgs const& e);
 
+        void VaultButtonClick(
+            winrt::IInspectable const& sender,
+            winrt::RoutedEventArgs const& e);
+
         void BenchmarkButtonClick(
             winrt::IInspectable const& sender,
             winrt::RoutedEventArgs const& e);

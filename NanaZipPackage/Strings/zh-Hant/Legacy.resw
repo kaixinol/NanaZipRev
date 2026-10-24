@@ -672,6 +672,63 @@
   <data name="Resource2901" xml:space="preserve">
     <value>NanaZip Rev 為自由軟體</value>
   </data>
+  <data name="Resource2902" xml:space="preserve">
+    <value>密碼庫</value>
+  </data>
+  <data name="Resource2903" xml:space="preserve">
+    <value>條目</value>
+  </data>
+  <data name="Resource2904" xml:space="preserve">
+    <value>密碼庫設定</value>
+  </data>
+  <data name="Resource2912" xml:space="preserve">
+    <value>解鎖(&amp;U)</value>
+  </data>
+  <data name="Resource2914" xml:space="preserve">
+    <value>編輯(&amp;E)</value>
+  </data>
+  <data name="Resource2915" xml:space="preserve">
+    <value>刪除(&amp;D)</value>
+  </data>
+  <data name="Resource2916" xml:space="preserve">
+    <value>複製密碼(&amp;C)</value>
+  </data>
+  <data name="Resource2917" xml:space="preserve">
+    <value>設定(&amp;S)</value>
+  </data>
+  <data name="Resource2920" xml:space="preserve">
+    <value>壓縮檔(&amp;A)：</value>
+  </data>
+  <data name="Resource2922" xml:space="preserve">
+    <value>標籤(&amp;L)：</value>
+  </data>
+  <data name="Resource2926" xml:space="preserve">
+    <value>密碼(&amp;P)：</value>
+  </data>
+  <data name="Resource2928" xml:space="preserve">
+    <value>顯示密碼(&amp;W)</value>
+  </data>
+  <data name="Resource2940" xml:space="preserve">
+    <value>啟用密碼庫(&amp;E)</value>
+  </data>
+  <data name="Resource2941" xml:space="preserve">
+    <value>鎖定延遲(&amp;S)（秒）：</value>
+  </data>
+  <data name="Resource2944" xml:space="preserve">
+    <value>閒置時鎖定(&amp;I)（秒）：</value>
+  </data>
+  <data name="Resource2947" xml:space="preserve">
+    <value>清除剪貼簿延遲(&amp;N)（秒）：</value>
+  </data>
+  <data name="Resource2950" xml:space="preserve">
+    <value>寫入稽核記錄(&amp;W)</value>
+  </data>
+  <data name="Resource2951" xml:space="preserve">
+    <value>計時器設為 0 時，密碼庫將保持解鎖，直到 NanaZip 結束。</value>
+  </data>
+  <data name="Resource2952" xml:space="preserve">
+    <value>變更會立即生效，密碼庫解鎖期間也是如此。</value>
+  </data>
   <data name="Resource3000" xml:space="preserve">
     <value>系統未能提供所需記憶體空間</value>
   </data>
@@ -1100,6 +1157,9 @@
   <data name="Resource4091" xml:space="preserve">
     <value>ns</value>
   </data>
+  <data name="Resource4096" xml:space="preserve">
+    <value>啟用密碼庫(&amp;V)</value>
+  </data>
   <data name="Resource4106" xml:space="preserve">
     <value>警告：上游 7-Zip 及大多數其他壓縮軟件都不支援 {0}。</value>
   </data>
@@ -1171,6 +1231,80 @@
   </data>
   <data name="Resource4131" xml:space="preserve">
     <value>將密碼儲存至 NanaZip 密碼庫</value>
+  </data>
+  <data name="Resource4132" xml:space="preserve">
+    <value>啟用密碼庫?</value>
+  </data>
+  <data name="Resource4133" xml:space="preserve">
+    <value>Windows Hello 在這裡只是一種便利，而不是資料鎖:
+
+1. 任何以你的身分執行的程式都能在未經 Hello 的情況下讀取密碼庫檔案。真正的防護邊界是你的 Windows 登入與 DPAPI。
+2. 任何能實體接觸到已解鎖工作階段的人都能讀取密碼庫。
+3. 如果管理員重設了你的 Windows 密碼，密碼庫中的資料將無法恢復；備份的密碼庫資料夾同樣無法解密。
+4. 密碼庫在解鎖時要求 Hello 驗證，之後會保持解鎖直到計時器將其鎖定或應用關閉；在此期間讀取或複製項目不會再次要求驗證，而這些都並非絕對安全。</value>
+  </data>
+  <data name="Resource4134" xml:space="preserve">
+    <value>此裝置沒有 Windows Hello。請在設定應用中設定 PIN 或 Windows Hello，然後再試一次。</value>
+  </data>
+  <data name="Resource4135" xml:space="preserve">
+    <value>無法開啟密碼庫儲存。</value>
+  </data>
+  <data name="Resource4136" xml:space="preserve">
+    <value>無法儲存該條目。</value>
+  </data>
+  <data name="Resource4137" xml:space="preserve">
+    <value>密碼庫已鎖定。</value>
+  </data>
+  <data name="Resource4138" xml:space="preserve">
+    <value>解鎖(&amp;U)</value>
+  </data>
+  <data name="Resource4139" xml:space="preserve">
+    <value>鎖定(&amp;L)</value>
+  </data>
+  <data name="Resource4140" xml:space="preserve">
+    <value>壓縮檔</value>
+  </data>
+  <data name="Resource4141" xml:space="preserve">
+    <value>標籤</value>
+  </data>
+  <data name="Resource4142" xml:space="preserve">
+    <value>{0} 個條目</value>
+  </data>
+  <data name="Resource4143" xml:space="preserve">
+    <value>解鎖 NanaZip 密碼庫</value>
+  </data>
+  <data name="Resource4146" xml:space="preserve">
+    <value>Windows Hello 未通過驗證。密碼庫保持鎖定。</value>
+  </data>
+  <data name="Resource4147" xml:space="preserve">
+    <value>無法讀取該機密。寫入它的 Windows 帳戶可能已變更。</value>
+  </data>
+  <data name="Resource4148" xml:space="preserve">
+    <value>密碼已複製到剪貼簿。它將自動清除。</value>
+  </data>
+  <data name="Resource4149" xml:space="preserve">
+    <value>剪貼簿已清除。</value>
+  </data>
+  <data name="Resource4150" xml:space="preserve">
+    <value>刪除條目 '{0}'?</value>
+  </data>
+  <data name="Resource4152" xml:space="preserve">
+    <value>每個計時器都需要一個處於密碼庫允許範圍內的整數秒數。兩個鎖定計時器也接受 0，它會讓密碼庫保持解鎖直到 NanaZip 結束；剪貼簿計時器則不接受 0。</value>
+  </data>
+  <data name="Resource4153" xml:space="preserve">
+    <value>無法解鎖密碼庫。未讀取或寫入任何內容；請重試。</value>
+  </data>
+  <data name="Resource4154" xml:space="preserve">
+    <value>無法將密碼複製到剪貼簿。</value>
+  </data>
+  <data name="Resource4155" xml:space="preserve">
+    <value>無法刪除該條目。</value>
+  </data>
+  <data name="Resource4156" xml:space="preserve">
+    <value>密碼庫已停用。</value>
+  </data>
+  <data name="Resource4157" xml:space="preserve">
+    <value>無法清除剪貼簿。密碼可能仍留在剪貼簿上。</value>
   </data>
   <data name="Resource6000" xml:space="preserve">
     <value>複製</value>
@@ -1318,6 +1452,9 @@
   </data>
   <data name="Resource7206" xml:space="preserve">
     <value>資訊</value>
+  </data>
+  <data name="Resource7207" xml:space="preserve">
+    <value>密碼庫</value>
   </data>
   <data name="Resource7300" xml:space="preserve">
     <value>分割檔案</value>

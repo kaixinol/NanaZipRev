@@ -19,6 +19,9 @@
 // archives opened from now on.
 #include "../Agent/Agent.h"
 // **************** NanaZip Modification End ****************
+// **************** NanaZip Modification Start ****************
+#include "VaultDialog.h"
+// **************** NanaZip Modification End ****************
 
 #include "resource.h"
 
@@ -841,6 +844,16 @@ bool OnMenuCommand(HWND hWnd, unsigned id)
           
     case IDM_BENCHMARK: MyBenchmark(false); break;
     case IDM_BENCHMARK2: MyBenchmark(true); break;
+
+    // **************** NanaZip Modification Start ****************
+    case IDM_VAULT:
+    {
+        // Opens regardless of the flag: its settings page is where a
+        // disabled vault gets turned back on.
+        NanaZip::FileManager::VaultDialog::Show(hWnd);
+        break;
+    }
+    // **************** NanaZip Modification End ****************
 
     case IDM_ABOUT:
     {

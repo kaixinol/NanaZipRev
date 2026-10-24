@@ -209,6 +209,9 @@
     <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\SplitDialog.cpp">
       <Filter>SevenZip\Dialog</Filter>
     </ClCompile>
+    <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\VaultDialog.cpp">
+      <Filter>SevenZip\Dialog</Filter>
+    </ClCompile>
     <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\ExtractCallback.cpp">
       <Filter>SevenZip\FM Common</Filter>
     </ClCompile>
@@ -606,6 +609,12 @@
       <Filter>SevenZip\Dialog</Filter>
     </ClInclude>
     <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\SplitDialog.h">
+      <Filter>SevenZip\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\VaultDialog.h">
+      <Filter>SevenZip\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\VaultDialogRes.h">
       <Filter>SevenZip\Dialog</Filter>
     </ClInclude>
     <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\ExtractCallback.h">

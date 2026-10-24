@@ -16,7 +16,8 @@ The source code from 7-Zip or other 7-Zip derivatives (these contents are only
 in the `NanaZip.Core\SevenZip`, `NanaZip.Core\Extensions\ZSCodecs`,
 `NanaZip.Universal\SevenZip`, `NanaZip.UI.Classic\SevenZip`,
 `NanaZip.ZS.Codecs\SevenZip` and `NanaZip.UI.Modern\SevenZip` folders) is
-distributed under the 7-Zip License.
+distributed under the 7-Zip License, except for the files the NanaZip
+project added to those folders, which are MIT licensed.
 
 The source code from third-party libraries is distributed under their respective
 original licenses.

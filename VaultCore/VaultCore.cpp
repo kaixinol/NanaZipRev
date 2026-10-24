@@ -68,32 +68,27 @@ namespace
         BOOL m_WasEnabled;
     };
 
-    // Runs HelloGate::VerifyAsync on the calling thread and pumps messages
-    // until it completes. The Hello broker needs the UI thread's foreground
-    // lock, and IAsyncOperation::get() would block the STA it resumes on.
-    bool VerifyOnUiThread(
-        _In_opt_ HWND Window,
-        _In_ std::wstring const& Message)
+    // Classic never brings WinRT up, and init_apartment is a no-op when
+    // the thread is already STA from the file manager's OleInitialize.
+    bool InitApartment()
     {
-        // Classic never brings WinRT up, and init_apartment is a no-op when
-        // the thread is already STA from the file manager's OleInitialize.
         try
         {
             winrt::init_apartment(winrt::apartment_type::single_threaded);
+            return true;
         }
         catch (...)
         {
             // A conflicting apartment mode is a refusal, not a crash.
             return false;
         }
+    }
 
-        // The consent window takes the foreground, but every other window
-        // of this thread stays live. On the deferred-save path the owner
-        // sits in its own WM_CREATE chain, so disabling gives modality.
-        DisabledOwnerGuard OwnerGuard(Window);
-
-        auto Op = NanaZip::Vault::HelloGate::VerifyAsync(Window, Message);
-
+    // Pumps messages until the operation completes: the Hello broker needs
+    // the UI thread's foreground lock, and get() would block its STA.
+    bool PumpUntilDone(
+        _In_ winrt::Windows::Foundation::IAsyncOperation<bool> const& Op)
+    {
         while (Op.Status() == winrt::Windows::Foundation::AsyncStatus::Started)
         {
             MSG Msg;
@@ -121,6 +116,25 @@ namespace
             // A prompt that cannot be shown is a refusal like any other.
             return false;
         }
+    }
+
+    // Runs HelloGate::VerifyAsync on the calling thread.
+    bool VerifyOnUiThread(
+        _In_opt_ HWND Window,
+        _In_ std::wstring const& Message)
+    {
+        if (!InitApartment())
+        {
+            return false;
+        }
+
+        // The consent window takes the foreground, but every other window
+        // of this thread stays live. On the deferred-save path the owner
+        // sits in its own WM_CREATE chain, so disabling gives modality.
+        DisabledOwnerGuard OwnerGuard(Window);
+
+        return PumpUntilDone(
+            NanaZip::Vault::HelloGate::VerifyAsync(Window, Message));
     }
 }
 
@@ -186,6 +200,16 @@ void NanaZip::Vault::VaultCore::Initialize()
     // CFG needs no runtime call: the file managers are linked with
     // /guard:cf, so the loader enables it. Export suppression must never
     // ride along; it breaks the WPF based K7Modern.dll stack.
+}
+
+bool NanaZip::Vault::VaultCore::IsHelloAvailableOnUiThread()
+{
+    if (!InitApartment())
+    {
+        return false;
+    }
+    return PumpUntilDone(
+        NanaZip::Vault::HelloGate::IsAvailableAsync());
 }
 
 NanaZip::Vault::Session& NanaZip::Vault::VaultCore::GetSession()

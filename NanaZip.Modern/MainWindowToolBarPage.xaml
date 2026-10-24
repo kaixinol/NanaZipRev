@@ -91,6 +91,16 @@
           Icon="Setting"
           ToolTipService.ToolTip="[Options]" />
         <AppBarButton
+          x:Name="VaultButton"
+          Width="48"
+          AutomationProperties.Name="[Vault]"
+          Click="VaultButtonClick"
+          ToolTipService.ToolTip="[Vault]">
+          <AppBarButton.Content>
+            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72E;" />
+          </AppBarButton.Content>
+        </AppBarButton>
+        <AppBarButton
           x:Name="BenchmarkButton"
           Width="48"
           AutomationProperties.Name="[Benchmark]"

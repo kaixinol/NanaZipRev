@@ -71,6 +71,10 @@ namespace NanaZip::Vault
             _In_ std::wstring const& ConsentMessage,
             _In_opt_ HWND Window);
 
+        // Whether this device can show a Hello prompt at all, probed on the
+        // calling UI thread. False when the probe cannot even be started.
+        static bool IsHelloAvailableOnUiThread();
+
         // The one session every caller shares, so dialog and query agree.
         static Session& GetSession();
 

@@ -15,6 +15,9 @@
 #define IDX_SETTINGS_WANT_FOLDER_HISTORY    2512
 #define IDX_SETTINGS_LOWERCASE_HASHES       2513
 // **************** NanaZip Modification Start ****************
+// The vault switch gates the vault entry and the password-dialog suggestions.
+// 25xx is a live upstream range, so the fork keeps ids in 4096..5999.
+#define IDX_SETTINGS_VAULT_ENABLED          4096
 #define IDX_SETTINGS_SHOW_FILE_SIZE_UNITS   4098
 // **************** NanaZip Modification End ****************
 

@@ -11,6 +11,9 @@
 #define IDB_MOVE     104
 #define IDB_DELETE   105
 #define IDB_INFO     106
+// **************** NanaZip Modification Start ****************
+#define IDB_VAULT    107
+// **************** NanaZip Modification End ****************
 
 #define IDB_ADD2     150
 #define IDB_EXTRACT2 151
@@ -19,6 +22,9 @@
 #define IDB_MOVE2    154
 #define IDB_DELETE2  155
 #define IDB_INFO2    156
+// **************** NanaZip Modification Start ****************
+#define IDB_VAULT2   157
+// **************** NanaZip Modification End ****************
 
 #define IDB_PARENT_FOLDER 160
 
@@ -124,6 +130,14 @@
 // **************** NanaZip Modification End ****************
 
 // **************** NanaZip Modification Start ****************
+/* The Vault command id. It must stay below kMenuCmdID_Plugin_Start (1100):
+   both context menu dispatchers hand anything at or above 1100 to the plugin
+   path, so a click on a higher id is swallowed. It sits one past the code
+   page range (962..981). */
+#define IDM_VAULT                982
+// **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
 /* String resource ids for the code page submenu. In the Classic tree these are
    7-Zip .lang file entries rather than Legacy.resw keys, but the numbering and
    the fallback behaviour are the same. 4108..4128 was verified free in every
@@ -218,6 +232,9 @@
 #define IDS_BUTTON_MOVE                 7204
 #define IDS_BUTTON_DELETE               7205
 #define IDS_BUTTON_INFO                 7206
+// **************** NanaZip Modification Start ****************
+#define IDS_VAULT                       7207
+// **************** NanaZip Modification End ****************
 
 #define IDS_SPLITTING                   7303
 #define IDS_SPLIT_CONFIRM_TITLE         7304

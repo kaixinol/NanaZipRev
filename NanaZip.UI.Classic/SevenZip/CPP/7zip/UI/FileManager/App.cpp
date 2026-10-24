@@ -204,7 +204,14 @@ static const CButtonInfo g_StandardButtons[] =
   { IDM_COPY_TO,    IDB_COPY,   IDB_COPY2,   IDS_BUTTON_COPY },
   { IDM_MOVE_TO,    IDB_MOVE,   IDB_MOVE2,   IDS_BUTTON_MOVE },
   { IDM_DELETE,     IDB_DELETE, IDB_DELETE2, IDS_BUTTON_DELETE } ,
-  { IDM_PROPERTIES, IDB_INFO,   IDB_INFO2,   IDS_BUTTON_INFO }
+  // **************** NanaZip Modification Start ****************
+  // { IDM_PROPERTIES, IDB_INFO,   IDB_INFO2,   IDS_BUTTON_INFO }
+  { IDM_PROPERTIES, IDB_INFO,   IDB_INFO2,   IDS_BUTTON_INFO },
+  // The vault has no menu entry outside Tools, so the same command gets a
+  // button here. Its id is IDM_VAULT rather than kMenuCmdID_Toolbar_*, which
+  // routes it to the menu handler in MyLoadMenu.cpp.
+  { IDM_VAULT,      IDB_VAULT,  IDB_VAULT2,  IDS_VAULT },
+  // **************** NanaZip Modification End ****************
 };
 
 static const CButtonInfo g_ArchiveButtons[] =

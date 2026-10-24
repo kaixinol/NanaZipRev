@@ -84,6 +84,12 @@
     <Image Include="Assets\Toolbar\Test_32x32.bmp">
       <DeploymentContent>false</DeploymentContent>
     </Image>
+    <Image Include="Assets\Toolbar\Vault_24x24.bmp">
+      <DeploymentContent>false</DeploymentContent>
+    </Image>
+    <Image Include="Assets\Toolbar\Vault_32x32.bmp">
+      <DeploymentContent>false</DeploymentContent>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SevenZip\CPP\7zip\Archive\Common\ItemNameUtils.cpp" />
@@ -229,6 +235,7 @@
     <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\SysIconUtils.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\TextPairs.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\UpdateCallback100.cpp" />
+    <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\VaultDialog.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\VerCtrl.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\FileManager\ViewSettings.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
@@ -403,6 +410,8 @@
     <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\SysIconUtils.h" />
     <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\TextPairs.h" />
     <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\UpdateCallback100.h" />
+    <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\VaultDialog.h" />
+    <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\VaultDialogRes.h" />
     <ClInclude Include="SevenZip\CPP\7zip\UI\FileManager\ViewSettings.h" />
     <ClInclude Include="AboutDialog.h" />
   </ItemGroup>

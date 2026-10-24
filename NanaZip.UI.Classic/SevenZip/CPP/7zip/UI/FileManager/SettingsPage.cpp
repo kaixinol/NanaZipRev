@@ -19,7 +19,10 @@
 
 // **************** NanaZip Modification Start ****************
 #include "App.h"
+#include "VaultDialog.h"
 #include <K7User.h>
+#include <Settings.h>
+#include <VaultCore.h>
 // **************** NanaZip Modification End ****************
 
 using namespace NWindows;
@@ -41,6 +44,7 @@ static const UInt32 kLangIDs[] =
   IDX_SETTINGS_LOWERCASE_HASHES,
   // **************** NanaZip Modification Start ****************
   IDX_SETTINGS_SHOW_FILE_SIZE_UNITS,
+  IDX_SETTINGS_VAULT_ENABLED,
   IDT_SETTINGS_THEME_MODE,
   // **************** NanaZip Modification End ****************
   // , IDT_COMPRESS_MEMORY
@@ -150,6 +154,9 @@ bool CSettingsPage::OnInit()
   CheckButton(IDX_SETTINGS_LOWERCASE_HASHES, st.LowercaseHashes);
   // **************** NanaZip Modification Start ****************
   CheckButton(IDX_SETTINGS_SHOW_FILE_SIZE_UNITS, st.ShowFileSizeUnits);
+  CheckButton(
+      IDX_SETTINGS_VAULT_ENABLED,
+      ::NanaZip::Vault::VaultSettings::Load().Enabled);
 
   NWindows::NControl::CComboBox ThemeModeComboBox;
   ThemeModeComboBox.Attach(GetItem(IDC_SETTINGS_THEME_MODE));
@@ -265,6 +272,54 @@ LONG CSettingsPage::OnApply()
 
     st.Save();
     _wasChanged = false;
+
+    // **************** NanaZip Modification Start ****************
+    // The vault switch keeps its own registry key because the vault core owns
+    // that state, but it is edited here like every other option.
+    ::NanaZip::Vault::VaultSettings VaultState =
+        ::NanaZip::Vault::VaultSettings::Load();
+    bool VaultWasEnabled = VaultState.Enabled;
+    bool VaultEnabled = IsButtonCheckedBool(IDX_SETTINGS_VAULT_ENABLED);
+    // Turning it on is the same trust step as opening the vault, so the
+    // dialog owns the warning and the Hello probe for both entry points.
+    if (VaultEnabled && !VaultWasEnabled)
+    {
+        // RequestEnable shows a modal dialog; guard against re-entrant
+        // OnApply calls while it pumps messages, which would toggle the
+        // vault twice. The guard resets even if RequestEnable throws.
+        static bool VaultEnableInFlight = false;
+        if (VaultEnableInFlight)
+        {
+            VaultEnabled = VaultWasEnabled;
+        }
+        else
+        {
+            struct ReenterGuard
+            {
+                bool* Flag;
+                ~ReenterGuard()
+                {
+                    *Flag = false;
+                }
+            } Guard{ &VaultEnableInFlight };
+            VaultEnabled =
+                ::NanaZip::FileManager::VaultDialog::RequestEnable(
+                    (HWND)*this);
+        }
+        if (!VaultEnabled)
+        {
+            CheckButton(IDX_SETTINGS_VAULT_ENABLED, false);
+        }
+    }
+    VaultState.Enabled = VaultEnabled;
+    VaultState.Save();
+    // Off retires a warm session, as the vault dialog's settings page does:
+    // the flag stops auto-fill, but only a lock clears the key from memory.
+    if (VaultWasEnabled && !VaultEnabled)
+    {
+        ::NanaZip::Vault::VaultCore::GetSession().Lock();
+    }
+    // **************** NanaZip Modification End ****************
   }
 
   #ifndef UNDER_CE
@@ -407,6 +462,7 @@ bool CSettingsPage::OnButtonClicked(int buttonID, HWND buttonHWND)
     case IDX_SETTINGS_LOWERCASE_HASHES:
     // **************** NanaZip Modification Start ****************
     case IDX_SETTINGS_SHOW_FILE_SIZE_UNITS:
+    case IDX_SETTINGS_VAULT_ENABLED:
     // **************** NanaZip Modification End ****************
       _wasChanged = true;
       break;

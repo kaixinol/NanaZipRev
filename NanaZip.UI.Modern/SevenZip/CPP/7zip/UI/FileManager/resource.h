@@ -117,6 +117,15 @@
 // **************** NanaZip Modification End ****************
 
 // **************** NanaZip Modification Start ****************
+/* The Vault command id. It must stay below kMenuCmdID_Plugin_Start (1100):
+   both context menu dispatchers hand anything at or above 1100 to the plugin
+   path, so a click on a higher id is swallowed. It sits one past the code
+   page range (962..981). The classic tree uses the same number; the two
+   trees have separate resource tables, so the ids never meet. */
+#define IDM_VAULT                982
+// **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
 /* String resource ids for the code page submenu. These are Legacy.resw keys,
    not command ids: K7ModernGetLegacyStringResource resolves them by number, and
    the submenu indexes them with the same 0-based order as IDM_CODE_PAGE_BASE.

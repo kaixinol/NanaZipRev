@@ -276,6 +276,9 @@ namespace
             Info = 551,
             Options = 900,
             Benchmark = 901,
+            // Vault, with the id the classic tree uses so the same window
+            // procedure dispatches it in both trees.
+            Vault = 983,
             About = 961
         };
     }
@@ -349,6 +352,21 @@ namespace winrt::NanaZip::Modern::implementation
                 ToolBarButtons[i],
                 winrt::box_value(Resource));
         }
+
+        // Named apart from the loop above: 7207 has not reached every
+        // language pack, the map returns null for an unknown id, and an
+        // hstring cannot hold null. Fall back to the English word.
+        LPCWSTR VaultName = ::K7ModernGetLegacyStringResource(7207);
+        winrt::hstring VaultResource =
+            VaultName
+            ? winrt::hstring(VaultName)
+            : winrt::hstring(L"Vault");
+        winrt::AutomationProperties::SetName(
+            this->VaultButton(),
+            VaultResource);
+        winrt::ToolTipService::SetToolTip(
+            this->VaultButton(),
+            winrt::box_value(VaultResource));
 
         this->m_DispatcherQueue =
             winrt::DispatcherQueue::GetForCurrentThread();
@@ -496,6 +514,24 @@ namespace winrt::NanaZip::Modern::implementation
             WM_COMMAND,
             MAKEWPARAM(
                 ToolBarCommandID::Options,
+                BN_CLICKED),
+            0);
+    }
+
+    void MainWindowToolBarPage::VaultButtonClick(
+        winrt::IInspectable const& sender,
+        winrt::RoutedEventArgs const& e)
+    {
+        UNREFERENCED_PARAMETER(sender);
+        UNREFERENCED_PARAMETER(e);
+
+        // The dialog is a classic window, so replay the window command the
+        // classic menu produces and share one implementation.
+        ::PostMessageW(
+            this->m_WindowHandle,
+            WM_COMMAND,
+            MAKEWPARAM(
+                ToolBarCommandID::Vault,
                 BN_CLICKED),
             0);
     }

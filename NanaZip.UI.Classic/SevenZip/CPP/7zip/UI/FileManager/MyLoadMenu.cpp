@@ -20,6 +20,9 @@
 // archives opened from now on.
 #include "../Agent/Agent.h"
 // **************** NanaZip Modification End ****************
+// **************** NanaZip Modification Start ****************
+#include "VaultDialog.h"
+// **************** NanaZip Modification End ****************
 
 #include "resource.h"
 
@@ -305,6 +308,12 @@ void OnMenuActivating(HWND /* hWnd */, HMENU hMenu, int position)
     #endif
     ;
   
+  // **************** NanaZip Modification Start ****************
+  // Keep the vault entry enabled even while the feature is off: the dialog
+  // is where it gets turned on, so greying it out would strand it off.
+  ::EnableMenuItem(mainMenu, IDM_VAULT, MF_BYCOMMAND | MF_ENABLED);
+  // **************** NanaZip Modification End ****************
+
   if (::GetSubMenu(mainMenu, position) != hMenu)
     return;
   
@@ -864,6 +873,16 @@ bool OnMenuCommand(HWND hWnd, unsigned id)
           
     case IDM_BENCHMARK: MyBenchmark(false); break;
     case IDM_BENCHMARK2: MyBenchmark(true); break;
+
+    // **************** NanaZip Modification Start ****************
+    case IDM_VAULT:
+    {
+        // Opens regardless of the flag: its settings page is where a
+        // disabled vault gets turned back on.
+        NanaZip::FileManager::VaultDialog::Show(hWnd);
+        break;
+    }
+    // **************** NanaZip Modification End ****************
 
     case IDM_ABOUT:
     {
