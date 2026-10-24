@@ -36,12 +36,20 @@ NanaZip::Vault::Session::~Session()
     {
         std::lock_guard<std::mutex> Guard(this->m_Mutex);
         this->m_Stop = true;
+        if (this->m_ClipboardPending)
+        {
+            // Exiting is the last chance to take our secret back off the
+            // clipboard, so a pending wipe is pulled forward.
+            this->m_ClipboardAt = std::chrono::steady_clock::now();
+        }
     }
     this->m_Condition.notify_all();
     if (this->m_Thread.joinable())
     {
         this->m_Thread.join();
     }
+    // The loop exits before a due wipe, so the pull-forward is applied here.
+    ClearClipboardNow();
     // The session may end unlocked; the key must not outlive it.
     Keystream::Erase();
 }
@@ -136,12 +144,36 @@ void NanaZip::Vault::Session::ScheduleClipboardClear()
         this->m_ClipboardPending = true;
         this->m_ClipboardAt = std::chrono::steady_clock::now()
             + std::chrono::milliseconds(this->m_Settings.ClipboardClearMs);
+        // Record our copy's sequence; the wipe compares against it
+        // so a clipboard the user replaced is never erased.
+        this->m_ClipboardSequence = ::GetClipboardSequenceNumber();
     }
     this->m_Condition.notify_all();
 }
 
 void NanaZip::Vault::Session::ClearClipboardNow()
 {
+    DWORD Sequence = 0;
+    {
+        std::lock_guard<std::mutex> Guard(this->m_Mutex);
+        if (!this->m_ClipboardPending)
+        {
+            return;
+        }
+        // Stale firing: the newer schedule wipes at its own deadline.
+        if (std::chrono::steady_clock::now() < this->m_ClipboardAt)
+        {
+            return;
+        }
+        Sequence = this->m_ClipboardSequence;
+        this->m_ClipboardPending = false;
+    }
+    // The sequence moved, so the clipboard is no longer ours to
+    // erase; skipping the wipe also skips the notify.
+    if (::GetClipboardSequenceNumber() != Sequence)
+    {
+        return;
+    }
     // Opening the clipboard here beats posting to the UI thread,
     // which can stall behind a pumped message.
     bool Cleared = false;
@@ -151,15 +183,21 @@ void NanaZip::Vault::Session::ClearClipboardNow()
         ::CloseClipboard();
         Cleared = true;
     }
+    // Only the pass owning the current sequence reports the wipe;
+    // a re-armed schedule reports at its own pass.
+    bool Notify = false;
     {
         std::lock_guard<std::mutex> Guard(this->m_Mutex);
-        m_ClipboardPending = false;
+        Notify = this->m_ClipboardSequence == Sequence;
     }
-    // A refused open leaves the secret where it is, which is not the
-    // report the user needs after a copy.
-    NotifyAll(Cleared
-        ? NotifyClipboardCleared
-        : NotifyClipboardClearFailed);
+    if (Notify)
+    {
+        // A refused open leaves the secret where it is, which is not the
+        // report the user needs after a copy.
+        NotifyAll(Cleared
+            ? NotifyClipboardCleared
+            : NotifyClipboardClearFailed);
+    }
 }
 
 void NanaZip::Vault::Session::AddNotifyWindow(_In_ HWND Window)

@@ -61,11 +61,12 @@ namespace NanaZip::Vault
         // were computed from the old values and are not rearmed.
         void Reconfigure(_In_ VaultSettings const& Settings);
 
-        // Arms the wipe that follows a revealed secret. The dialog calls it
-        // once per reveal, which restarts the timer.
+        // Arms the post-reveal wipe; one call per reveal restarts it.
+        // Captures the sequence so a user-replaced clipboard is left alone.
         void ScheduleClipboardClear();
 
-        // Wipes the clipboard immediately, whatever it holds.
+        // Wipes the clipboard only if it still holds our secret; a
+        // replaced one is skipped without a notify.
         void ClearClipboardNow();
 
         // Every open dialog that can show a secret registers here, and must
@@ -86,6 +87,7 @@ namespace NanaZip::Vault
         std::chrono::steady_clock::time_point m_UnlockAt;
         std::chrono::steady_clock::time_point m_LastActivity;
         std::chrono::steady_clock::time_point m_ClipboardAt;
+        DWORD m_ClipboardSequence = 0;
         std::vector<HWND> m_NotifyWindows;
         std::thread m_Thread;
         std::condition_variable m_Condition;
