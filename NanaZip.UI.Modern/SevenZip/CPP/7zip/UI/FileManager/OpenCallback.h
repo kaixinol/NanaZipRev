@@ -46,6 +46,11 @@ public:
   CProgressDialog ProgressDialog;
 
   // **************** NanaZip Modification Start ****************
+  // A retry must not reuse the vault password that was just rejected.
+  bool SkipPasswordAutoFill;
+  // **************** NanaZip Modification End ****************
+
+  // **************** NanaZip Modification Start ****************
   // The dialog records the save request here; the FM layer commits it only
   // after the archive opens, so a mistyped password is never persisted.
 #ifndef _SFX
@@ -86,6 +91,7 @@ public:
 #ifndef _SFX
     SavePasswordRequested = false;
 #endif
+    SkipPasswordAutoFill = false;
 // **************** NanaZip Modification End ****************
   }
   /*

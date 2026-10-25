@@ -475,12 +475,45 @@ HRESULT CPanel::OpenAsArc(IInStream *inStream,
   folderLink.VirtualPath = virtualFilePath;
 
   CFfpOpen ffp;
+// **************** NanaZip Modification Start ****************
+#if 0 // ******** Annotated 7-Zip Mainline Source Code snippet Start ********
   HRESULT res = ffp.OpenFileFolderPlugin(inStream,
       folderLink.FilePath.IsEmpty() ? us2fs(virtualFilePath) : folderLink.FilePath,
       arcFormat, GetParent());
 
   openRes.Encrypted = ffp.Encrypted;
   openRes.ErrorMessage = ffp.ErrorMessage;
+#endif // ******** Annotated 7-Zip Mainline Source Code snippet End ********
+  HRESULT res;
+  /* A rejected password returns S_FALSE, which OpenItem hands to the shell.
+     Retry in place without the vault autofill that would replay it. */
+  bool SkipPasswordAutoFill = false;
+  for (;;)
+  {
+    // Clear the rejected password, or the next attempt reuses it.
+    ffp.Encrypted = false;
+    ffp.Password.Empty();
+    ffp.SkipPasswordAutoFill = SkipPasswordAutoFill;
+
+    res = ffp.OpenFileFolderPlugin(inStream,
+        folderLink.FilePath.IsEmpty() ?
+            us2fs(virtualFilePath) : folderLink.FilePath,
+        arcFormat, GetParent());
+
+    openRes.Encrypted = ffp.Encrypted;
+    openRes.ErrorMessage = ffp.ErrorMessage;
+
+    if (res != S_FALSE || !ffp.Encrypted)
+      break;
+
+    MessageBox_Error(MyFormatNew(
+        IDS_CANT_OPEN_ENCRYPTED_ARCHIVE,
+        virtualFilePath));
+    if (inStream)
+      RINOK(inStream->Seek(0, STREAM_SEEK_SET, NULL));
+    SkipPasswordAutoFill = true;
+  }
+// **************** NanaZip Modification End ****************
 
   RINOK(res);
 

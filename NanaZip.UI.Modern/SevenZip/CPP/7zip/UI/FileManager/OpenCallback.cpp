@@ -144,7 +144,7 @@ STDMETHODIMP COpenArchiveCallback::CryptoGetTextPassword(BSTR *password)
 
     // Silent auto-fill first: a matching entry in an already unlocked
     // session opens the archive with no dialog at all.
-    if (g_VaultAutoFillHook && !ArchivePath.empty())
+    if (g_VaultAutoFillHook && !SkipPasswordAutoFill && !ArchivePath.empty())
     {
       std::wstring AutoPwd;
       if (g_VaultAutoFillHook(ArchivePath, AutoPwd))

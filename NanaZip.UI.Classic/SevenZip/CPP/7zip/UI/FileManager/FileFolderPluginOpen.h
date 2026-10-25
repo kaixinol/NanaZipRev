@@ -9,6 +9,10 @@ struct CFfpOpen
 {
   CLASS_NO_COPY(CFfpOpen)
 public:
+// **************** NanaZip Modification Start ****************
+  // A retry after a wrong password must not reuse the vault's stored one.
+  bool SkipPasswordAutoFill;
+// **************** NanaZip Modification End ****************
   // out:
   bool Encrypted;
   UString Password;
@@ -17,7 +21,10 @@ public:
   CMyComPtr<IFolderFolder> Folder;
   UString ErrorMessage;
 
-  CFfpOpen(): Encrypted (false) {}
+// **************** NanaZip Modification Start ****************
+  // CFfpOpen(): Encrypted (false) {}
+  CFfpOpen(): SkipPasswordAutoFill(false), Encrypted (false) {}
+// **************** NanaZip Modification End ****************
 
   HRESULT OpenFileFolderPlugin(IInStream *inStream,
       const FString &path, const UString &arcFormat, HWND parentWindow);

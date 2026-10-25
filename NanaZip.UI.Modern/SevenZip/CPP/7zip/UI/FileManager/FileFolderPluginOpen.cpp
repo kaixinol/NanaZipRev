@@ -300,6 +300,9 @@ HRESULT CFfpOpen::OpenFileFolderPlugin(IInStream *inStream,
     t.OpenCallback = t.OpenCallbackSpec;
     t.OpenCallbackSpec->PasswordIsDefined = Encrypted;
     t.OpenCallbackSpec->Password = Password;
+// **************** NanaZip Modification Start ****************
+    t.OpenCallbackSpec->SkipPasswordAutoFill = SkipPasswordAutoFill;
+// **************** NanaZip Modification End ****************
     t.OpenCallbackSpec->ParentWindow = parentWindow;
 
     if (inStream)
