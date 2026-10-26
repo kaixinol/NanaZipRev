@@ -398,6 +398,8 @@ HRESULT CFfpOpen::OpenFileFolderPlugin(IInStream *inStream,
             t.OpenCallbackSpec->SavePasswordLabel,
             Pwd,
             parentWindow);
+        // The hook made its own copy; this one must not outlive the call.
+        ::SecureZeroMemory(Pwd.data(), Pwd.size() * sizeof(wchar_t));
         if (!Saved)
         {
           UString Message = LangString(IDS_VAULT_SAVE_FAILED);

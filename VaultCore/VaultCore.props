@@ -14,9 +14,9 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <!-- runtimeobject.lib backs the C++/WinRT projections the Hello gate
-           uses; crypt32.lib backs DPAPI. -->
-      <AdditionalDependencies>runtimeobject.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!-- runtimeobject.lib backs the C++/WinRT projections the key gate
+           uses; bcrypt.lib backs HKDF, HMAC and AES-GCM. -->
+      <AdditionalDependencies>runtimeobject.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

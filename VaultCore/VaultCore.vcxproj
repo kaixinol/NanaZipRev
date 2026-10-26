@@ -27,7 +27,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArchiveKey.cpp" />
-    <ClCompile Include="HelloGate.cpp" />
+    <ClCompile Include="Crypto.cpp" />
+    <ClCompile Include="KeyGate.cpp" />
     <ClCompile Include="Keystream.cpp" />
     <ClCompile Include="SecureBuffer.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -37,12 +38,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArchiveKey.h" />
-    <ClInclude Include="HelloGate.h" />
+    <ClInclude Include="Crypto.h" />
+    <ClInclude Include="KeyGate.h" />
     <ClInclude Include="Keystream.h" />
     <ClInclude Include="SecureBuffer.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="VaultCore.h" />
+    <ClInclude Include="VaultKey.h" />
     <ClInclude Include="VaultStore.h" />
   </ItemGroup>
   <Import Sdk="Mile.Project.Configurations" Project="Mile.Project.Cpp.targets" />

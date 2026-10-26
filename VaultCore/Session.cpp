@@ -11,6 +11,7 @@
 #include "Session.h"
 
 #include <algorithm>
+#include <cstring>
 
 namespace
 {
@@ -50,7 +51,8 @@ NanaZip::Vault::Session::~Session()
     }
     // The loop exits before a due wipe, so the pull-forward is applied here.
     ClearClipboardNow();
-    // The session may end unlocked; the key must not outlive it.
+    // The session may end unlocked; the keys must not outlive it.
+    this->m_Key.reset();
     Keystream::Erase();
 }
 
@@ -66,21 +68,53 @@ void NanaZip::Vault::Session::Start()
     this->m_Thread = std::thread([this]() { this->MonitorLoop(); });
 }
 
-bool NanaZip::Vault::Session::Unlock()
+bool NanaZip::Vault::Session::Unlock(_In_ VaultKey const& Key)
 {
-    // A fresh key keeps old sessions' buffers unreadable. The key must
-    // exist before the session reports unlocked.
+    // A fresh keystream keeps old sessions' buffers unreadable. Both keys
+    // must exist before the session reports unlocked.
     if (!Keystream::Install())
     {
         return false;
     }
+    try
     {
-        std::lock_guard<std::mutex> Guard(this->m_Mutex);
-        this->m_Unlocked = true;
-        this->m_UnlockAt = std::chrono::steady_clock::now();
-        this->m_LastActivity = this->m_UnlockAt;
+        SecureBuffer Scrambled =
+            SecureBuffer::FromBytes(Key.Bytes, VaultKey::Size);
+        if (Scrambled.Size() != VaultKey::Size)
+        {
+            return false;
+        }
+        {
+            std::lock_guard<std::mutex> Guard(this->m_Mutex);
+            this->m_Key = std::move(Scrambled);
+            this->m_Unlocked = true;
+            this->m_UnlockAt = std::chrono::steady_clock::now();
+            this->m_LastActivity = this->m_UnlockAt;
+        }
+    }
+    catch (...)
+    {
+        // Allocation failure leaves the session locked and its old key
+        // unreadable, which is the closed state.
+        return false;
     }
     this->m_Condition.notify_all();
+    return true;
+}
+
+bool NanaZip::Vault::Session::CopyKey(_Out_ VaultKey& Key) const
+{
+    std::lock_guard<std::mutex> Guard(this->m_Mutex);
+    if (!this->m_Unlocked || !this->m_Key.has_value())
+    {
+        return false;
+    }
+    SecureBuffer::Reader Reader = this->m_Key->Read();
+    if (Reader.Size() != VaultKey::Size || !Reader.Data())
+    {
+        return false;
+    }
+    std::memcpy(Key.Bytes, Reader.Data(), VaultKey::Size);
     return true;
 }
 
@@ -94,6 +128,9 @@ void NanaZip::Vault::Session::Lock()
             return;
         }
         this->m_Unlocked = false;
+        // The data key goes first, while the keystream that scrambles it
+        // still exists; the erase below then leaves nothing behind.
+        this->m_Key.reset();
         if (this->m_ClipboardPending)
         {
             // Locking is the deadline the user chose for every secret this
@@ -104,6 +141,7 @@ void NanaZip::Vault::Session::Lock()
     }
     // Erasing the key makes every scrambled buffer permanently unreadable.
     Keystream::Erase();
+    VaultSettings::WriteAudit("lock");
     NotifyAll(NotifyLocked);
     if (Wipe)
     {
@@ -179,9 +217,10 @@ void NanaZip::Vault::Session::ClearClipboardNow()
     bool Cleared = false;
     if (::OpenClipboard(nullptr))
     {
-        ::EmptyClipboard();
+        // A refused empty leaves the secret on the clipboard; reporting it
+        // cleared would be worse than not reporting at all.
+        Cleared = ::EmptyClipboard() != FALSE;
         ::CloseClipboard();
-        Cleared = true;
     }
     // Only the pass owning the current sequence reports the wipe;
     // a re-armed schedule reports at its own pass.

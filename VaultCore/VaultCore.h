@@ -53,26 +53,25 @@ namespace NanaZip::Vault
             _In_ std::wstring const& ArchivePath);
 
         // Stores a password under ArchiveKey, along with the absolute path
-        // the save came from. ConsentMessage is what the Hello prompt shows;
-        // this library holds no resources of its own.
+        // the save came from. A locked session unlocks first, which is where
+        // the Hello prompt fires.
         static bool SavePassword(
             _In_ std::wstring const& ArchiveKey,
             _In_ std::wstring const& ArchivePath,
             _In_ std::wstring const& Label,
             _In_ std::wstring const& Password,
-            _In_ std::wstring const& ConsentMessage,
             _In_opt_ HWND Window);
 
-        // Decrypts one entry, prompting Hello first when the session is
-        // locked. Nothing when the vault is off, refused or unreadable.
+        // Decrypts one entry, unlocking first when the session is locked.
+        // Nothing when the vault is off, refused or unreadable.
         static std::optional<std::wstring>
         RevealSuggestionPassword(
             _In_ std::wstring const& Id,
-            _In_ std::wstring const& ConsentMessage,
             _In_opt_ HWND Window);
 
-        // Whether this device can show a Hello prompt at all, probed on the
-        // calling UI thread. False when the probe cannot even be started.
+        // Whether this device can create a Hello key credential at all,
+        // probed on the calling UI thread. False is a reason to keep the
+        // vault off; a probe that cannot be started counts as false.
         static bool IsHelloAvailableOnUiThread();
 
         // The one session every caller shares, so dialog and query agree.
@@ -80,7 +79,8 @@ namespace NanaZip::Vault
 
         // One secret field of one entry, as a wide string, and only while the
         // session is unlocked. Nothing when the vault is locked, the blob is
-        // missing, it belongs to another account, or it is not whole chars.
+        // missing, it does not decrypt under the current key, or it is not
+        // whole chars.
         static std::optional<std::wstring> ReadSecret(
             _In_ VaultStore const& Store,
             _In_ std::wstring const& Id,

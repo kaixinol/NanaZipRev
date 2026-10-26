@@ -35,7 +35,7 @@ namespace NanaZip::Vault
         // Copies a UTF-16 string. The caller stays responsible for its copy.
         static SecureBuffer FromString(_In_ std::wstring const& Text);
 
-        // Copies raw bytes: the DPAPI output is already a byte string.
+        // Copies raw bytes: decrypted text arrives as a byte string.
         static SecureBuffer FromBytes(
             _In_reads_bytes_(Size) std::uint8_t const* Data,
             _In_ size_t Size);

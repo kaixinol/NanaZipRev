@@ -29,9 +29,10 @@
 #include "resourceGui.h"
 #include "VaultDialogRes.h"
 
-#include <HelloGate.h>
+#include <KeyGate.h>
 #include <Session.h>
 #include <Settings.h>
+#include <VaultKey.h>
 #include <VaultStore.h>
 #include <VaultCore.h>
 
@@ -392,6 +393,13 @@ void CVaultEntryDialog::OnOK()
     {
         UString Text;
         GetItemText(IDE_VAULT_ENTRY_PASSWORD, Text);
+        if (Text.IsEmpty())
+        {
+            // An entry sealed from an empty password decrypts to nothing the
+            // store can hand back, so it could never be read or edited again.
+            ShowMessage((HWND)*this, IDS_VAULT_PASSWORD_EMPTY, MB_ICONWARNING);
+            return;
+        }
         Password = WideFromUString(Text);
     }
 
@@ -1144,17 +1152,19 @@ winrt::fire_and_forget CVaultDialog::PromptUnlock()
         co_return;
     }
 
-    bool Verified = false;
+    // The key file, the Hello prompt and the session unlock all happen
+    // inside; the status says how far it got.
+    NanaZip::Vault::KeyGateStatus Status =
+        NanaZip::Vault::KeyGateStatus::Failed;
     try
     {
-        Verified = co_await NanaZip::Vault::HelloGate::VerifyAsync(
-            (HWND)*this,
-            WideFromUString(LangString(IDS_VAULT_PROMPT_UNLOCK)));
+        Status = static_cast<NanaZip::Vault::KeyGateStatus>(
+            co_await NanaZip::Vault::KeyGate::UnlockAsync());
     }
     catch (...)
     {
         // A prompt that cannot be shown is a refusal like any other.
-        Verified = false;
+        Status = NanaZip::Vault::KeyGateStatus::Failed;
     }
 
     // The dialog may have closed while the prompt was up, so `this` is only
@@ -1168,16 +1178,20 @@ winrt::fire_and_forget CVaultDialog::PromptUnlock()
         UpdateState();
         co_return;
     }
-    if (!Verified)
+    switch (Status)
     {
+    case NanaZip::Vault::KeyGateStatus::Unlocked:
+        break;
+    case NanaZip::Vault::KeyGateStatus::Declined:
         SetStatus(LangString(IDS_VAULT_HELLO_FAILED));
         co_return;
-    }
-
-    // Hello proved the user, but the session is only as unlocked as the key
-    // it got: a generator failure says so instead of showing an empty list.
-    if (!GetSession().Unlock())
-    {
+    case NanaZip::Vault::KeyGateStatus::KeyLost:
+        SetStatus(LangString(IDS_VAULT_KEY_LOST));
+        co_return;
+    case NanaZip::Vault::KeyGateStatus::Incompatible:
+        SetStatus(LangString(IDS_VAULT_INCOMPATIBLE));
+        co_return;
+    default:
         SetStatus(LangString(IDS_VAULT_UNLOCK_FAILED));
         co_return;
     }
@@ -1216,7 +1230,7 @@ void CVaultDialog::CopySelectedPassword()
         NanaZip::Vault::VaultStore::PasswordField);
     if (!Secret.has_value())
     {
-        // Missing or written by another account, as after a password reset.
+        // Missing, damaged, or sealed with a key that no longer matches.
         SetStatus(LangString(IDS_VAULT_DECRYPT_FAILED));
         return;
     }
@@ -1325,7 +1339,10 @@ void CVaultDialog::SaveEntry(_In_ const CVaultEntryDialog& Source)
         UpdateState();
         return;
     }
-    if (!GetSession().IsUnlocked())
+    // The key is copied before the buffer is built: a lock can land between
+    // any two statements, and a save without it would seal nothing.
+    NanaZip::Vault::VaultKey Key;
+    if (!GetSession().CopyKey(Key))
     {
         ShowMessage((HWND)*this, IDS_VAULT_LOCKED, MB_ICONWARNING);
         RefreshList();
@@ -1345,7 +1362,8 @@ void CVaultDialog::SaveEntry(_In_ const CVaultEntryDialog& Source)
     if (!GetStore()->UpsertEntry(
         Meta,
         NanaZip::Vault::VaultStore::PasswordField,
-        Buffer))
+        Buffer,
+        Key))
     {
         ::MessageBoxW(
             (HWND)*this,
@@ -1437,6 +1455,30 @@ bool NanaZip::FileManager::VaultDialog::RequestEnable(
             MB_ICONWARNING);
         return false;
     }
+
+    // Enabling is where the key is born: the credential is created and the
+    // key file written here, so the vault opens without another gesture.
+    NanaZip::Vault::KeyGateStatus Status =
+        NanaZip::Vault::KeyGate::UnlockOnUiThread(ParentWindowHandle);
+    if (Status != NanaZip::Vault::KeyGateStatus::Unlocked)
+    {
+        // A dismissed prompt is an answer, not a failure to report.
+        if (Status != NanaZip::Vault::KeyGateStatus::Declined)
+        {
+            UINT Message = IDS_VAULT_ENABLE_FAILED;
+            if (Status == NanaZip::Vault::KeyGateStatus::KeyLost)
+            {
+                Message = IDS_VAULT_KEY_LOST;
+            }
+            else if (Status == NanaZip::Vault::KeyGateStatus::Incompatible)
+            {
+                Message = IDS_VAULT_INCOMPATIBLE;
+            }
+            ShowMessage(ParentWindowHandle, Message, MB_ICONWARNING);
+        }
+        return false;
+    }
+
     NanaZip::Vault::VaultSettings Settings =
         NanaZip::Vault::VaultSettings::Load();
     Settings.Enabled = true;
@@ -1448,8 +1490,8 @@ static void ShowDialog(_In_opt_ HWND ParentWindowHandle)
 {
     ShowGuard Guard;
 
-    // WinRT must be up before the dialog's unlock coroutine calls Hello;
-    // the file manager is already an STA, where this is a no-op.
+    // WinRT must be up before the dialog's unlock coroutine calls the key
+    // gate; the file manager is already an STA, where this is a no-op.
     winrt::init_apartment(winrt::apartment_type::single_threaded);
 
     NanaZip::Vault::VaultSettings Settings =

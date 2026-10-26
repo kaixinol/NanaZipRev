@@ -1241,22 +1241,17 @@
   <data name="Resource4128" xml:space="preserve">
     <value>代码页(&amp;C)</value>
   </data>
-  <data name="Resource4130" xml:space="preserve">
-    <value>解锁 NanaZip 密码库以使用此密码</value>
-  </data>
-  <data name="Resource4131" xml:space="preserve">
-    <value>将密码保存到 NanaZip 密码库</value>
-  </data>
   <data name="Resource4132" xml:space="preserve">
     <value>启用密码库？</value>
   </data>
   <data name="Resource4133" xml:space="preserve">
-    <value>Windows Hello 在这里只是一种便利，而不是数据锁：
+    <value>密码库由 Windows Hello 保护，密钥只有在通过验证后才会出现：
 
-1. 任何以你的身份运行的程序都能在不使用 Hello 的情况下读取密码库文件。真正的防护边界是你的 Windows 登录和 DPAPI。
-2. 任何能够物理接触到已解锁会话的人都能读取密码库。
-3. 如果管理员重置了你的 Windows 密码，密码库中的数据将无法恢复；备份的密码库文件夹同样无法解密。
-4. 密码库在解锁时要求 Hello 验证，之后会保持解锁直到计时器将其锁定或应用关闭；在此期间读取或复制条目不会再次要求验证，而这些都并非绝对安全。</value>
+1. 任何以你的身份运行的程序都可以要求 Hello 释放该密钥。验证提示不会显示是哪个程序发起的请求，因此只应批准你自己发起的提示。
+2. 密码库解锁期间密钥位于内存中，任何以你的身份运行的程序都可以使用它。
+3. 重置 Hello PIN 或 Windows 密码，或者清除 TPM，都会销毁该密钥。条目以及任何备份都将无法恢复。
+4. 没有 TPM 的设备将密钥保存在软件中，安全性弱于 TPM。
+5. 密码库在解锁时要求 Hello 验证，之后会保持解锁直到计时器将其锁定或应用关闭。</value>
   </data>
   <data name="Resource4134" xml:space="preserve">
     <value>此设备上没有 Windows Hello。请在设置应用中设置 PIN 或 Windows Hello，然后重试。</value>
@@ -1285,14 +1280,11 @@
   <data name="Resource4142" xml:space="preserve">
     <value>{0} 个条目</value>
   </data>
-  <data name="Resource4143" xml:space="preserve">
-    <value>解锁 NanaZip 密码库</value>
-  </data>
   <data name="Resource4146" xml:space="preserve">
     <value>Windows Hello 未通过验证。密码库保持锁定。</value>
   </data>
   <data name="Resource4147" xml:space="preserve">
-    <value>无法读取该机密。写入它的 Windows 帐户可能已更改。</value>
+    <value>无法读取该机密。其条目可能已损坏，或者密码库密钥与其不再匹配。</value>
   </data>
   <data name="Resource4148" xml:space="preserve">
     <value>密码已复制到剪贴板。它将被自动清除。</value>
@@ -1320,6 +1312,18 @@
   </data>
   <data name="Resource4157" xml:space="preserve">
     <value>无法清空剪贴板。密码可能仍留在剪贴板上。</value>
+  </data>
+  <data name="Resource4158" xml:space="preserve">
+    <value>Windows Hello 不再持有保护此密码库的凭据，或者该凭据已被重置。条目无法打开。</value>
+  </data>
+  <data name="Resource4159" xml:space="preserve">
+    <value>密码库文件夹中有条目，但没有密码库密钥。数据可能来自旧版本，或者密钥文件已被删除；无论哪种情况，条目都无法打开。</value>
+  </data>
+  <data name="Resource4160" xml:space="preserve">
+    <value>无法设置密码库：密钥文件无法写入，或者 Windows Hello 未能完成其步骤。密码库保持关闭。</value>
+  </data>
+  <data name="Resource4161" xml:space="preserve">
+    <value>密码不能为空。</value>
   </data>
   <data name="Resource6000" xml:space="preserve">
     <value>复制</value>

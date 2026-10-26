@@ -10,6 +10,7 @@
 
 #include "Settings.h"
 
+#include <cstdio>
 #include <optional>
 #include <KnownFolders.h>
 #include <shlobj.h>
@@ -172,6 +173,65 @@ void NanaZip::Vault::VaultSettings::Save() const
     ::WriteValue(
         L"SavePasswordByDefault",
         this->SavePasswordByDefault ? 1 : 0);
+}
+
+void NanaZip::Vault::VaultSettings::WriteAudit(_In_ char const* Event)
+{
+    if (!::ReadFlag(L"Audit", false))
+    {
+        return;
+    }
+    std::filesystem::path Root = RootDir();
+    if (Root.empty())
+    {
+        return;
+    }
+    std::error_code ErrorCode;
+    std::filesystem::create_directories(Root, ErrorCode);
+    if (ErrorCode)
+    {
+        return;
+    }
+
+    SYSTEMTIME Now;
+    ::GetSystemTime(&Now);
+    char Line[128] = {};
+    // The event tokens are ASCII, so the log is readable in any editor.
+    int Length = ::sprintf_s(
+        Line,
+        "%04u-%02u-%02uT%02u:%02u:%02uZ %s\r\n",
+        Now.wYear,
+        Now.wMonth,
+        Now.wDay,
+        Now.wHour,
+        Now.wMinute,
+        Now.wSecond,
+        Event);
+    if (Length <= 0)
+    {
+        return;
+    }
+
+    HANDLE File = ::CreateFileW(
+        (Root / L"audit.log").c_str(),
+        FILE_APPEND_DATA,
+        FILE_SHARE_READ,
+        nullptr,
+        OPEN_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr);
+    if (File == INVALID_HANDLE_VALUE)
+    {
+        return;
+    }
+    DWORD Written = 0;
+    ::WriteFile(
+        File,
+        Line,
+        static_cast<DWORD>(Length),
+        &Written,
+        nullptr);
+    ::CloseHandle(File);
 }
 
 std::filesystem::path NanaZip::Vault::VaultSettings::RootDir()

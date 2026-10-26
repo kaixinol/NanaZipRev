@@ -810,7 +810,7 @@ void NanaZipInitialize()
         return Result;
     };
 
-    // Reveals the chosen entry's secret, prompting Hello when locked.
+    // Reveals the chosen entry's secret, unlocking with Hello when locked.
     g_VaultRevealHook = [](const std::wstring& EntryId, HWND Window,
         std::wstring& Out) -> bool
     {
@@ -820,7 +820,6 @@ void NanaZipInitialize()
         }
         auto Pwd = ::NanaZip::Vault::VaultCore::RevealSuggestionPassword(
             EntryId,
-            std::wstring(LangString(IDS_VAULT_PROMPT_USE).Ptr()),
             Window);
         if (!Pwd.has_value())
         {
@@ -851,7 +850,6 @@ void NanaZipInitialize()
             ArchivePath,
             Label,
             Password,
-            std::wstring(LangString(IDS_VAULT_PROMPT_SAVE).Ptr()),
             Window);
     };
 }

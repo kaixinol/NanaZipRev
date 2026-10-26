@@ -20,6 +20,7 @@
 
 #include "SecureBuffer.h"
 #include "Settings.h"
+#include "VaultKey.h"
 
 namespace NanaZip::Vault
 {
@@ -36,7 +37,7 @@ namespace NanaZip::Vault
         std::wstring Path;
     };
 
-    // The vault on disk: a plaintext index plus one DPAPI blob per secret,
+    // The vault on disk: a plaintext index plus one AES-GCM blob per secret,
     // so one damaged entry does not take the vault down with it.
     class VaultStore
     {
@@ -45,8 +46,8 @@ namespace NanaZip::Vault
         // of the blob, so it is part of the on-disk format.
         static constexpr wchar_t const* PasswordField = L"password";
 
-        // Opens, creating if needed. No Hello: nothing here is readable
-        // without the Windows account that wrote it.
+        // Opens, creating if needed. No Hello: the index is plaintext, and
+        // the blobs are only useful with the session key.
         static std::optional<VaultStore> Open();
 
         // The entries in index order. An index that exists but cannot be
@@ -59,7 +60,8 @@ namespace NanaZip::Vault
         bool UpsertEntry(
             _Inout_ EntryMeta& Meta,
             _In_ std::wstring const& Field,
-            _In_ SecureBuffer const& Plaintext);
+            _In_ SecureBuffer const& Plaintext,
+            _In_ VaultKey const& Key);
 
         // Replaces the path text of one entry and nothing else: an archive
         // that moved is not a password that changed.
@@ -69,11 +71,12 @@ namespace NanaZip::Vault
 
         bool DeleteEntry(_In_ std::wstring const& Id);
 
-        // The decrypted secret, or nothing when the blob is missing or the
-        // Windows account that wrote it is no longer the one reading it.
+        // The decrypted secret, or nothing when the blob is missing or its
+        // authentication tag does not match the key.
         std::optional<SecureBuffer> GetSecret(
             _In_ std::wstring const& Id,
-            _In_ std::wstring const& Field) const;
+            _In_ std::wstring const& Field,
+            _In_ VaultKey const& Key) const;
 
         // A new entry id: 128 random bits as hex. Nothing when the entropy
         // source fails, because an all-zero id would collide with the next.
@@ -81,9 +84,15 @@ namespace NanaZip::Vault
 
     private:
         std::optional<std::vector<std::uint8_t>> Protect(
-            _In_ SecureBuffer const& Plaintext) const;
+            _In_ std::wstring const& Id,
+            _In_ std::wstring const& Field,
+            _In_ SecureBuffer const& Plaintext,
+            _In_ VaultKey const& Key) const;
         std::optional<SecureBuffer> Unprotect(
-            _In_ std::vector<std::uint8_t> const& Blob) const;
+            _In_ std::wstring const& Id,
+            _In_ std::wstring const& Field,
+            _In_ std::vector<std::uint8_t> const& Blob,
+            _In_ VaultKey const& Key) const;
 
         // The entries in index order, or nothing when the index is there but
         // could not be read. Only a rewrite needs the difference.
@@ -102,7 +111,6 @@ namespace NanaZip::Vault
             _In_ std::wstring const& Field) const;
 
         std::filesystem::path m_Root;
-        bool m_Audit = false;
     };
 }
 

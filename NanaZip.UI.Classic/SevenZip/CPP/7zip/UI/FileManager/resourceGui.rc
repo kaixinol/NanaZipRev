@@ -26,18 +26,11 @@ BEGIN
   // **************** NanaZip Modification End ****************
 
   // **************** NanaZip Modification Start ****************
-  // The Hello consent lines for the password dialog's vault buttons; the
-  // core library carries no resources of its own.
-  IDS_VAULT_PROMPT_USE  "Unlock the NanaZip vault to use this password"
-  IDS_VAULT_PROMPT_SAVE "Save password to the NanaZip vault"
-  // **************** NanaZip Modification End ****************
-
-  // **************** NanaZip Modification Start ****************
   // Vault strings. The warning states the threat model: what Hello does and
   // does not protect. \n breaks a line; there is no \" escape, so the delete
   // confirmation uses single quotes.
   IDS_VAULT_ENABLE_TITLE   "Enable the vault?"
-  IDS_VAULT_ENABLE_WARNING "Windows Hello is a convenience here, not a data lock:\n\n1. Any program running as you can read the vault files without Hello. The real boundary is your Windows sign-in and DPAPI.\n2. Anyone with physical access to an unlocked session can read the vault.\n3. If an administrator resets your Windows password, the vault data cannot be recovered; a backup of the vault folder cannot be decrypted either.\n4. The vault asks for Hello when it unlocks, then stays unlocked until a timer locks it or the app closes; reading or copying an entry while unlocked is not asked again, and none of this is absolute security."
+  IDS_VAULT_ENABLE_WARNING "Windows Hello seals the vault, and its key only exists after Hello verifies you:\n\n1. Any program running as you can ask Hello to release the key. The prompt does not say which program asked, so approve only prompts you started.\n2. While the vault is unlocked the key is in memory, and anything running as you can use it.\n3. Resetting your Hello PIN or Windows password, or clearing the TPM, destroys the key. The entries and any backup become unrecoverable.\n4. A device without a TPM keeps the key in software, which is weaker than a TPM.\n5. The vault asks for Hello when it unlocks, then stays unlocked until a timer locks it or the app closes."
   IDS_VAULT_HELLO_UNAVAILABLE "Windows Hello is not available on this device. Set up a PIN or Windows Hello in the Settings app, then try again."
   IDS_VAULT_OPEN_FAILED "The vault storage could not be opened."
   IDS_VAULT_SAVE_FAILED "The entry could not be saved."
@@ -47,9 +40,8 @@ BEGIN
   IDS_VAULT_COLUMN_ARCHIVE "Archive"
   IDS_VAULT_COLUMN_LABEL "Label"
   IDS_VAULT_ENTRY_COUNT "{0} entry(s)"
-  IDS_VAULT_PROMPT_UNLOCK "Unlock the NanaZip vault"
   IDS_VAULT_HELLO_FAILED "Windows Hello did not verify. The vault stays locked."
-  IDS_VAULT_DECRYPT_FAILED "The secret could not be read. The Windows account that wrote it may have changed."
+  IDS_VAULT_DECRYPT_FAILED "The secret could not be read. Its entry may be damaged, or the vault key may no longer match it."
   IDS_VAULT_COPIED "The password was copied to the clipboard. It will be cleared automatically."
   IDS_VAULT_CLIPBOARD_CLEARED "The clipboard was cleared."
   IDS_VAULT_CLIPBOARD_CLEAR_FAILED "The clipboard could not be cleared. The password may still be on it."
@@ -61,5 +53,9 @@ BEGIN
   // other Classic dialog, so only the rejection message is needed from here.
   IDS_VAULT_SETTINGS_INVALID "Each timer needs a whole number of seconds inside the range the vault allows. The two lock timers also accept 0, which keeps the vault unlocked until NanaZip exits; the clipboard timer does not."
   IDS_VAULT_UNLOCK_FAILED "The vault could not be unlocked. Nothing was read or written; try again."
+  IDS_VAULT_KEY_LOST "Windows Hello no longer holds the credential this vault was sealed with, or the credential was reset. The entries cannot be opened."
+  IDS_VAULT_INCOMPATIBLE "The vault folder holds entries but no vault key. The data may come from an older version, or the key file was deleted; either way the entries cannot be opened."
+  IDS_VAULT_ENABLE_FAILED "The vault could not be set up: the key file could not be written or Windows Hello did not complete its part. The vault stays off."
+  IDS_VAULT_PASSWORD_EMPTY "The password cannot be empty."
   // **************** NanaZip Modification End ****************
 END

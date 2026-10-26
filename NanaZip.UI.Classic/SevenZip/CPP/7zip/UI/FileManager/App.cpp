@@ -291,7 +291,6 @@ void CApp::ReloadToolbars()
   _buttonsImageList.Destroy();
   _toolBar.Destroy();
 
-
   if (ShowArchiveToolbar || ShowStandardToolbar)
   {
     CreateToolbar(_window, _buttonsImageList, _toolBar, LargeButtons);

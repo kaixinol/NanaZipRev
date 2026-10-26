@@ -13,50 +13,10 @@
 #include <cstdint>
 #include <vector>
 
+#include "Crypto.h"
+
 namespace
 {
-    // CryptoAPI rather than BCrypt, so the vault keeps one hash provider.
-    bool Sha256(
-        _In_reads_bytes_(Size) std::uint8_t const* Data,
-        _In_ size_t Size,
-        _Out_writes_bytes_all_(32) std::uint8_t* Output)
-    {
-        HCRYPTPROV Provider = 0;
-        HCRYPTHASH Hash = 0;
-        if (!::CryptAcquireContextW(
-            &Provider,
-            nullptr,
-            MS_ENH_RSA_AES_PROV_W,
-            PROV_RSA_AES,
-            CRYPT_VERIFYCONTEXT))
-        {
-            return false;
-        }
-        if (!::CryptCreateHash(Provider, CALG_SHA_256, 0, 0, &Hash))
-        {
-            ::CryptReleaseContext(Provider, 0);
-            return false;
-        }
-        bool Succeeded = ::CryptHashData(
-            Hash,
-            const_cast<BYTE*>(Data),
-            static_cast<DWORD>(Size),
-            0);
-        if (Succeeded)
-        {
-            DWORD HashSize = 32;
-            Succeeded = (TRUE == ::CryptGetHashParam(
-                Hash,
-                HP_HASHVAL,
-                Output,
-                &HashSize,
-                0)) && (HashSize == 32);
-        }
-        ::CryptDestroyHash(Hash);
-        ::CryptReleaseContext(Provider, 0);
-        return Succeeded;
-    }
-
     bool ReadRange(
         _In_ HANDLE File,
         _In_ std::uint64_t Offset,
@@ -138,7 +98,10 @@ NanaZip::Vault::ArchiveKey::Compute(_In_ std::wstring const& FilePath)
             ::CloseHandle(File);
             return std::nullopt;
         }
-        Succeeded = Sha256(Buffer.data(), Buffer.size(), Digest);
+        Succeeded = NanaZip::Vault::Crypto::Sha256(
+            Buffer.data(),
+            Buffer.size(),
+            Digest);
     }
     else
     {
@@ -169,7 +132,10 @@ NanaZip::Vault::ArchiveKey::Compute(_In_ std::wstring const& FilePath)
                     (static_cast<std::uint64_t>(Size.QuadPart) >>
                         (Index * 8)) & 0xFF);
         }
-        Succeeded = Sha256(Buffer.data(), Buffer.size(), Digest);
+        Succeeded = NanaZip::Vault::Crypto::Sha256(
+            Buffer.data(),
+            Buffer.size(),
+            Digest);
     }
 
     ::CloseHandle(File);

@@ -151,6 +151,8 @@ STDMETHODIMP COpenArchiveCallback::CryptoGetTextPassword(BSTR *password)
       {
         Password = AutoPwd.c_str();
         PasswordIsDefined = true;
+        // Password holds its own copy; this one must not linger on the stack.
+        ::SecureZeroMemory(AutoPwd.data(), AutoPwd.size() * sizeof(wchar_t));
         return StringToBstr(Password, password);
       }
     }

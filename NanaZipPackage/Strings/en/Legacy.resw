@@ -1244,22 +1244,17 @@ Do you want to update it in the archive?</value>
   <data name="Resource4128" xml:space="preserve">
     <value>&amp;Code page</value>
   </data>
-  <data name="Resource4130" xml:space="preserve">
-    <value>Unlock the NanaZip vault to use this password</value>
-  </data>
-  <data name="Resource4131" xml:space="preserve">
-    <value>Save password to the NanaZip vault</value>
-  </data>
   <data name="Resource4132" xml:space="preserve">
     <value>Enable the vault?</value>
   </data>
   <data name="Resource4133" xml:space="preserve">
-    <value>Windows Hello is a convenience here, not a data lock:
+    <value>Windows Hello protects the vault. Its key appears only after you verify:
 
-1. Any program running as you can read the vault files without Hello. The real boundary is your Windows sign-in and DPAPI.
-2. Anyone with physical access to an unlocked session can read the vault.
-3. If an administrator resets your Windows password, the vault data cannot be recovered; a backup of the vault folder cannot be decrypted either.
-4. The vault asks for Hello when it unlocks, then stays unlocked until a timer locks it or the app closes; reading or copying an entry while unlocked is not asked again, and none of this is absolute security.</value>
+1. Any program running as you can ask Hello to release the key. The prompt does not say which program asked, so approve only prompts you started.
+2. While the vault is unlocked the key is in memory, and anything running as you can use it.
+3. Resetting your Hello PIN or Windows password, or clearing the TPM, destroys the key. The entries and any backup become unrecoverable.
+4. A device without a TPM keeps the key in software, which is weaker than a TPM.
+5. The vault asks for Hello when it unlocks, then stays unlocked until a timer locks it or the app closes.</value>
   </data>
   <data name="Resource4134" xml:space="preserve">
     <value>Windows Hello is not available on this device. Set up a PIN or Windows Hello in the Settings app, then try again.</value>
@@ -1288,14 +1283,11 @@ Do you want to update it in the archive?</value>
   <data name="Resource4142" xml:space="preserve">
     <value>{0} entry(s)</value>
   </data>
-  <data name="Resource4143" xml:space="preserve">
-    <value>Unlock the NanaZip vault</value>
-  </data>
   <data name="Resource4146" xml:space="preserve">
     <value>Windows Hello did not verify. The vault stays locked.</value>
   </data>
   <data name="Resource4147" xml:space="preserve">
-    <value>The secret could not be read. The Windows account that wrote it may have changed.</value>
+    <value>The secret could not be read. Its entry may be damaged, or the vault key may no longer match it.</value>
   </data>
   <data name="Resource4148" xml:space="preserve">
     <value>The password was copied to the clipboard. It will be cleared automatically.</value>
@@ -1323,6 +1315,18 @@ Do you want to update it in the archive?</value>
   </data>
   <data name="Resource4157" xml:space="preserve">
     <value>The clipboard could not be cleared. The password may still be on it.</value>
+  </data>
+  <data name="Resource4158" xml:space="preserve">
+    <value>Windows Hello no longer holds the credential protecting this vault, or the credential was reset. The entries cannot be opened.</value>
+  </data>
+  <data name="Resource4159" xml:space="preserve">
+    <value>The vault folder holds entries but no vault key. The data may come from an older version, or the key file was deleted; either way the entries cannot be opened.</value>
+  </data>
+  <data name="Resource4160" xml:space="preserve">
+    <value>The vault could not be set up: the key file could not be written or Windows Hello did not complete its part. The vault stays off.</value>
+  </data>
+  <data name="Resource4161" xml:space="preserve">
+    <value>The password cannot be empty.</value>
   </data>
   <data name="Resource6000" xml:space="preserve">
     <value>Copy</value>

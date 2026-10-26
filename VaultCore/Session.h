@@ -16,11 +16,14 @@
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <vector>
 
 #include "Keystream.h"
+#include "SecureBuffer.h"
 #include "Settings.h"
+#include "VaultKey.h"
 
 namespace NanaZip::Vault
 {
@@ -45,11 +48,15 @@ namespace NanaZip::Vault
         // Launches the monitor thread. Calling it again does nothing.
         void Start();
 
-        // Installs a fresh key, keeping old sessions' buffers unreadable;
-        // reports false, still locked, when key generation fails.
-        bool Unlock();
+        // Installs a fresh keystream and keeps the data key scrambled under
+        // it; reports false, still locked, when either step fails.
+        bool Unlock(_In_ VaultKey const& Key);
 
-        // Locks and wipes the keystream master key.
+        // A plaintext copy of the data key while unlocked. False when the
+        // session is not, so nothing can be read or written past a lock.
+        bool CopyKey(_Out_ VaultKey& Key) const;
+
+        // Locks and wipes both the data key and the keystream master key.
         void Lock();
 
         bool IsUnlocked() const;
@@ -80,6 +87,7 @@ namespace NanaZip::Vault
 
         VaultSettings m_Settings;
         mutable std::mutex m_Mutex;
+        std::optional<SecureBuffer> m_Key;
         bool m_Unlocked = false;
         bool m_Running = false;
         bool m_Stop = false;

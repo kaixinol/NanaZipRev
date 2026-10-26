@@ -24,15 +24,8 @@
 // **************** NanaZip Modification End ****************
 
 // **************** NanaZip Modification Start ****************
-/* The Hello consent lines the password dialog passes down, since the core
-   library holds no resources. They start at 4130, right after the code page
-   block (4108..4128), which was verified free in every shipped language. */
-#define IDS_VAULT_PROMPT_USE            4130
-#define IDS_VAULT_PROMPT_SAVE           4131
-// **************** NanaZip Modification End ****************
-
-// **************** NanaZip Modification Start ****************
-/* Vault dialog strings, continuing the consent block at 4132. */
+/* Vault dialog strings. They start at 4132, right after the code page block
+   (4108..4128), which was verified free in every shipped language. */
 #define IDS_VAULT_ENABLE_TITLE         4132
 #define IDS_VAULT_ENABLE_WARNING       4133
 #define IDS_VAULT_HELLO_UNAVAILABLE    4134
@@ -44,7 +37,6 @@
 #define IDS_VAULT_COLUMN_ARCHIVE       4140
 #define IDS_VAULT_COLUMN_LABEL         4141
 #define IDS_VAULT_ENTRY_COUNT          4142
-#define IDS_VAULT_PROMPT_UNLOCK        4143
 #define IDS_VAULT_HELLO_FAILED         4146
 #define IDS_VAULT_DECRYPT_FAILED       4147
 #define IDS_VAULT_COPIED               4148
@@ -59,8 +51,8 @@
 // **************** NanaZip Modification End ****************
 
 // **************** NanaZip Modification Start ****************
-/* Hello succeeded but the session key could not be generated, so the
-   vault stays locked and says so. */
+/* The generic failure: a key file, a credential, a signature or the session
+   could not be completed, so the vault stays locked. */
 #define IDS_VAULT_UNLOCK_FAILED         4153
 // **************** NanaZip Modification End ****************
 
@@ -70,4 +62,19 @@
 #define IDS_VAULT_DELETE_FAILED         4155
 #define IDS_VAULT_DISABLED              4156
 #define IDS_VAULT_CLIPBOARD_CLEAR_FAILED 4157
+// **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
+/* What the key gate reports when the vault can no longer be opened: the
+   credential is gone or replaced, the entries predate the key file, or the
+   enable step could not create the key. */
+#define IDS_VAULT_KEY_LOST             4158
+#define IDS_VAULT_INCOMPATIBLE         4159
+#define IDS_VAULT_ENABLE_FAILED        4160
+// **************** NanaZip Modification End ****************
+
+// **************** NanaZip Modification Start ****************
+/* What the entry dialog refuses: an entry sealed from an empty password
+   decrypts to nothing the store can hand back. */
+#define IDS_VAULT_PASSWORD_EMPTY       4161
 // **************** NanaZip Modification End ****************

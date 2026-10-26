@@ -14,8 +14,8 @@
 #include <processthreadsapi.h>
 #include <werapi.h>
 
+#include "KeyGate.h"
 #include "Keystream.h"
-#include "HelloGate.h"
 #include "SecureBuffer.h"
 #include "Session.h"
 #include "Settings.h"
@@ -40,102 +40,6 @@ namespace
         return Found;
     }
 
-    // Re-enables the owner window that VerifyOnUiThread disabled, however
-    // the wait leaves: without it a throw would strand the owner.
-    class DisabledOwnerGuard
-    {
-    public:
-        DisabledOwnerGuard(HWND Window) :
-            m_Window(Window),
-            m_WasEnabled(Window ? ::IsWindowEnabled(Window) : FALSE)
-        {
-            if (this->m_Window)
-            {
-                ::EnableWindow(this->m_Window, FALSE);
-            }
-        }
-
-        ~DisabledOwnerGuard()
-        {
-            if (this->m_Window)
-            {
-                ::EnableWindow(this->m_Window, this->m_WasEnabled);
-            }
-        }
-
-    private:
-        HWND m_Window;
-        BOOL m_WasEnabled;
-    };
-
-    // Classic never brings WinRT up, and init_apartment is a no-op when
-    // the thread is already STA from the file manager's OleInitialize.
-    bool InitApartment()
-    {
-        try
-        {
-            winrt::init_apartment(winrt::apartment_type::single_threaded);
-            return true;
-        }
-        catch (...)
-        {
-            // A conflicting apartment mode is a refusal, not a crash.
-            return false;
-        }
-    }
-
-    // Pumps messages until the operation completes: the Hello broker needs
-    // the UI thread's foreground lock, and get() would block its STA.
-    bool PumpUntilDone(
-        _In_ winrt::Windows::Foundation::IAsyncOperation<bool> const& Op)
-    {
-        while (Op.Status() == winrt::Windows::Foundation::AsyncStatus::Started)
-        {
-            MSG Msg;
-            while (::PeekMessageW(&Msg, nullptr, 0, 0, PM_REMOVE))
-            {
-                // Dispatching WM_QUIT here would consume the one-shot quit
-                // flag and strand WinMain2's GetMessage loop forever.
-                if (Msg.message == WM_QUIT)
-                {
-                    ::PostQuitMessage(static_cast<int>(Msg.wParam));
-                    continue;
-                }
-                ::TranslateMessage(&Msg);
-                ::DispatchMessageW(&Msg);
-            }
-            ::Sleep(10);
-        }
-
-        try
-        {
-            return Op.GetResults();
-        }
-        catch (...)
-        {
-            // A prompt that cannot be shown is a refusal like any other.
-            return false;
-        }
-    }
-
-    // Runs HelloGate::VerifyAsync on the calling thread.
-    bool VerifyOnUiThread(
-        _In_opt_ HWND Window,
-        _In_ std::wstring const& Message)
-    {
-        if (!InitApartment())
-        {
-            return false;
-        }
-
-        // The consent window takes the foreground, but every other window
-        // of this thread stays live. On the deferred-save path the owner
-        // sits in its own WM_CREATE chain, so disabling gives modality.
-        DisabledOwnerGuard OwnerGuard(Window);
-
-        return PumpUntilDone(
-            NanaZip::Vault::HelloGate::VerifyAsync(Window, Message));
-    }
 }
 
 LONG WINAPI NanaZip::Vault::VaultCore::CrashFilter(
@@ -204,12 +108,7 @@ void NanaZip::Vault::VaultCore::Initialize()
 
 bool NanaZip::Vault::VaultCore::IsHelloAvailableOnUiThread()
 {
-    if (!InitApartment())
-    {
-        return false;
-    }
-    return PumpUntilDone(
-        NanaZip::Vault::HelloGate::IsAvailableAsync());
+    return NanaZip::Vault::KeyGate::IsAvailableOnUiThread();
 }
 
 NanaZip::Vault::Session& NanaZip::Vault::VaultCore::GetSession()
@@ -244,12 +143,13 @@ NanaZip::Vault::VaultCore::ReadSecret(
 {
     // The unlock is the gate on every secret, so it sits beside the read
     // instead of in each caller's memory.
-    if (!NanaZip::Vault::VaultCore::GetSession().IsUnlocked())
+    VaultKey Key;
+    if (!NanaZip::Vault::VaultCore::GetSession().CopyKey(Key))
     {
         return std::nullopt;
     }
 
-    std::optional<SecureBuffer> Blob = Store.GetSecret(Id, Field);
+    std::optional<SecureBuffer> Blob = Store.GetSecret(Id, Field, Key);
     if (!Blob.has_value())
     {
         return std::nullopt;
@@ -395,7 +295,6 @@ bool NanaZip::Vault::VaultCore::SavePassword(
     _In_ std::wstring const& ArchivePath,
     _In_ std::wstring const& Label,
     _In_ std::wstring const& Password,
-    _In_ std::wstring const& ConsentMessage,
     _In_opt_ HWND Window)
 {
     VaultSettings Settings = VaultSettings::Load();
@@ -419,21 +318,27 @@ bool NanaZip::Vault::VaultCore::SavePassword(
         return true;
     }
 
+    // An entry sealed from an empty password decrypts to nothing the store
+    // can hand back, so this path refuses one as the entry dialog does.
+    if (Password.empty())
+    {
+        return false;
+    }
+
     // A genuine new save. Writing a password is a trust gesture, so Hello
     // gates it; a session already warm from this process skips the prompt.
     Session& Shared = NanaZip::Vault::VaultCore::GetSession();
-    if (!Shared.IsUnlocked())
+    VaultKey Key;
+    if (!Shared.CopyKey(Key))
     {
-        bool Verified = VerifyOnUiThread(
-            Window,
-            ConsentMessage);
-
-        if (!Verified)
+        if (NanaZip::Vault::KeyGate::UnlockOnUiThread(Window)
+            != NanaZip::Vault::KeyGateStatus::Unlocked)
         {
             return false;
         }
-        // No key means no unlock: writing past it would store no keystream.
-        if (!Shared.Unlock())
+        // The unlock above hands the key to the session, so the copy that
+        // follows is what the store call spends.
+        if (!Shared.CopyKey(Key))
         {
             return false;
         }
@@ -454,13 +359,13 @@ bool NanaZip::Vault::VaultCore::SavePassword(
     return Store->UpsertEntry(
         Meta,
         VaultStore::PasswordField,
-        Buffer);
+        Buffer,
+        Key);
 }
 
 std::optional<std::wstring>
 NanaZip::Vault::VaultCore::RevealSuggestionPassword(
     _In_ std::wstring const& Id,
-    _In_ std::wstring const& ConsentMessage,
     _In_opt_ HWND Window)
 {
     VaultSettings Settings = VaultSettings::Load();
@@ -473,17 +378,9 @@ NanaZip::Vault::VaultCore::RevealSuggestionPassword(
     if (!Shared.IsUnlocked())
     {
         // The button click is the trust gesture, so this is where Hello
-        // fires. VerifyOnUiThread keeps the consent UI in the foreground.
-        bool Verified = VerifyOnUiThread(
-            Window,
-            ConsentMessage);
-
-        if (!Verified)
-        {
-            return std::nullopt;
-        }
-        // No key means no unlock: reading past it would rest plaintext.
-        if (!Shared.Unlock())
+        // fires. UnlockOnUiThread keeps the owner disabled while it is up.
+        if (NanaZip::Vault::KeyGate::UnlockOnUiThread(Window)
+            != NanaZip::Vault::KeyGateStatus::Unlocked)
         {
             return std::nullopt;
         }

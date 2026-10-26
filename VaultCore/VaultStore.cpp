@@ -10,11 +10,13 @@
 
 #include "VaultStore.h"
 
+#include "Crypto.h"
 #include "Keystream.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
-#include <dpapi.h>
+#include <cstring>
 #include <fstream>
 #include <iterator>
 #include <system_error>
@@ -105,11 +107,30 @@ namespace
     // The blob field the path used to live in, kept only so deleting an
     // entry also clears what an older version wrote next to it.
     constexpr wchar_t const* LegacyPathField = L"path";
+
+    // Blob layout: magic, nonce, tag, ciphertext. The magic is what tells
+    // these apart from the DPAPI blobs an older version wrote.
+    constexpr std::uint8_t BlobMagic[4] = { 'N', 'Z', 'V', '2' };
+    constexpr std::size_t BlobHeaderSize =
+        4
+        + NanaZip::Vault::Crypto::GcmNonceSize
+        + NanaZip::Vault::Crypto::GcmTagSize;
+
+    // The blob is bound to its name, so a blob copied onto another entry is
+    // refused instead of decrypting under the new name.
+    std::string AadText(
+        _In_ std::wstring const& Id,
+        _In_ std::wstring const& Field)
+    {
+        std::string Text = ToUtf8(Id);
+        Text += '|';
+        Text += ToUtf8(Field);
+        return Text;
+    }
 }
 
 std::optional<NanaZip::Vault::VaultStore> NanaZip::Vault::VaultStore::Open()
 {
-    VaultSettings Settings = VaultSettings::Load();
     VaultStore Store;
     Store.m_Root = VaultSettings::RootDir();
     if (Store.m_Root.empty())
@@ -119,7 +140,6 @@ std::optional<NanaZip::Vault::VaultStore> NanaZip::Vault::VaultStore::Open()
         // the store would look healthy while its index goes nowhere stable.
         return std::nullopt;
     }
-    Store.m_Audit = Settings.Audit;
     std::error_code ErrorCode;
     std::filesystem::create_directories(Store.m_Root / L"secrets", ErrorCode);
     if (ErrorCode)
@@ -162,82 +182,112 @@ std::optional<std::wstring> NanaZip::Vault::VaultStore::NewEntryId()
     return Text;
 }
 
-// Zeroes and frees a DPAPI output blob on every path out, because the copy
-// into a SecureBuffer can throw and leaked plaintext is not an option.
-class LocalBlobGuard
-{
-public:
-    explicit LocalBlobGuard(DATA_BLOB* Blob) :
-        m_Blob(Blob)
-    {
-    }
-
-    ~LocalBlobGuard()
-    {
-        ::SecureZeroMemory(this->m_Blob->pbData, this->m_Blob->cbData);
-        ::LocalFree(this->m_Blob->pbData);
-    }
-
-private:
-    DATA_BLOB* m_Blob;
-};
-
-// ---- DPAPI ----
+// ---- encryption ----
 
 std::optional<std::vector<std::uint8_t>>
-NanaZip::Vault::VaultStore::Protect(_In_ SecureBuffer const& Plaintext) const
+NanaZip::Vault::VaultStore::Protect(
+    _In_ std::wstring const& Id,
+    _In_ std::wstring const& Field,
+    _In_ SecureBuffer const& Plaintext,
+    _In_ VaultKey const& Key) const
 {
+    // A lock can land between the caller's key copy and this read. The buffer
+    // then has no keystream to restore it, reads empty, and sealing that
+    // would store a blank secret under a valid tag. The size is the tell.
+    std::size_t const Expected = Plaintext.Size();
     SecureBuffer::Reader Reader = Plaintext.Read();
-    DATA_BLOB In;
-    In.cbData = static_cast<DWORD>(Reader.Size());
-    In.pbData = const_cast<BYTE*>(
-        reinterpret_cast<BYTE const*>(Reader.Data()));
-    DATA_BLOB Out = {};
-    DWORD Flags = CRYPTPROTECT_UI_FORBIDDEN;
-    if (this->m_Audit)
-    {
-        Flags |= CRYPTPROTECT_AUDIT;
-    }
-    if (!::CryptProtectData(
-        &In,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        Flags,
-        &Out))
+    if (Reader.Size() != Expected)
     {
         return std::nullopt;
     }
-    std::vector<std::uint8_t> Blob(Out.pbData, Out.pbData + Out.cbData);
-    ::LocalFree(Out.pbData);
+    std::string Aad = AadText(Id, Field);
+
+    std::vector<std::uint8_t> Blob(BlobHeaderSize + Reader.Size(), 0);
+    std::memcpy(Blob.data(), BlobMagic, sizeof(BlobMagic));
+    std::uint8_t* Nonce = Blob.data() + 4;
+    std::uint8_t* Tag = Nonce + NanaZip::Vault::Crypto::GcmNonceSize;
+    std::uint8_t* Ciphertext = Tag + NanaZip::Vault::Crypto::GcmTagSize;
+
+    if (!NanaZip::Vault::Keystream::RandomBytes(
+        Nonce,
+        NanaZip::Vault::Crypto::GcmNonceSize))
+    {
+        return std::nullopt;
+    }
+    if (!NanaZip::Vault::Crypto::AesGcmEncrypt(
+        Key.Bytes,
+        Nonce,
+        Tag,
+        reinterpret_cast<std::uint8_t const*>(Aad.data()),
+        Aad.size(),
+        Reader.Data(),
+        Reader.Size(),
+        Ciphertext))
+    {
+        return std::nullopt;
+    }
     return Blob;
 }
 
 std::optional<NanaZip::Vault::SecureBuffer>
 NanaZip::Vault::VaultStore::Unprotect(
-    _In_ std::vector<std::uint8_t> const& Blob) const
+    _In_ std::wstring const& Id,
+    _In_ std::wstring const& Field,
+    _In_ std::vector<std::uint8_t> const& Blob,
+    _In_ VaultKey const& Key) const
 {
-    DATA_BLOB In;
-    In.cbData = static_cast<DWORD>(Blob.size());
-    In.pbData = const_cast<BYTE*>(Blob.data());
-    DATA_BLOB Out = {};
-    if (!::CryptUnprotectData(
-        &In,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        CRYPTPROTECT_UI_FORBIDDEN,
-        &Out))
+    if (Blob.size() < BlobHeaderSize
+        || 0 != std::memcmp(Blob.data(), BlobMagic, sizeof(BlobMagic)))
     {
-        // The Windows password was reset, or another account wrote the blob.
         return std::nullopt;
     }
-    // The plaintext inside the DPAPI output is dead once the SecureBuffer
-    // holds its own scrambled copy; the guard frees it on every path out.
-    LocalBlobGuard Guard(&Out);
-    return SecureBuffer::FromBytes(Out.pbData, Out.cbData);
+    std::uint8_t const* Nonce = Blob.data() + 4;
+    std::uint8_t const* Tag =
+        Nonce + NanaZip::Vault::Crypto::GcmNonceSize;
+    std::uint8_t const* Ciphertext =
+        Tag + NanaZip::Vault::Crypto::GcmTagSize;
+    std::size_t CiphertextSize = Blob.size() - BlobHeaderSize;
+    std::string Aad = AadText(Id, Field);
+
+    // The plaintext lands in a local buffer first: a failed decrypt leaves
+    // its output undefined, and the SecureBuffer copy can throw.
+    std::vector<std::uint8_t> Plaintext(CiphertextSize, 0);
+    if (!NanaZip::Vault::Crypto::AesGcmDecrypt(
+        Key.Bytes,
+        Nonce,
+        Tag,
+        reinterpret_cast<std::uint8_t const*>(Aad.data()),
+        Aad.size(),
+        Ciphertext,
+        CiphertextSize,
+        Plaintext.data()))
+    {
+        if (!Plaintext.empty())
+        {
+            ::SecureZeroMemory(Plaintext.data(), Plaintext.size());
+        }
+        // A tag mismatch means a different key or a damaged file, which is
+        // exactly what the audit log is for.
+        VaultSettings::WriteAudit("entry-unreadable");
+        return std::nullopt;
+    }
+
+    std::optional<SecureBuffer> Result;
+    try
+    {
+        Result = SecureBuffer::FromBytes(
+            Plaintext.data(),
+            Plaintext.size());
+    }
+    catch (...)
+    {
+        Result = std::nullopt;
+    }
+    if (!Plaintext.empty())
+    {
+        ::SecureZeroMemory(Plaintext.data(), Plaintext.size());
+    }
+    return Result;
 }
 
 // ---- index ----
@@ -532,7 +582,8 @@ bool NanaZip::Vault::VaultStore::WriteIndex(
 bool NanaZip::Vault::VaultStore::UpsertEntry(
     _Inout_ EntryMeta& Meta,
     _In_ std::wstring const& Field,
-    _In_ SecureBuffer const& Plaintext)
+    _In_ SecureBuffer const& Plaintext,
+    _In_ VaultKey const& Key)
 {
     // One read-modify-write of the index: the mutex keeps a second file
     // manager from landing its own entry between the list and the write.
@@ -555,7 +606,7 @@ bool NanaZip::Vault::VaultStore::UpsertEntry(
         Meta.Id = *Generated;
     }
     std::optional<std::vector<std::uint8_t>> Blob =
-        this->Protect(Plaintext);
+        this->Protect(Meta.Id, Field, Plaintext, Key);
     if (!Blob)
     {
         return false;
@@ -599,7 +650,12 @@ bool NanaZip::Vault::VaultStore::UpsertEntry(
     {
         Entries.push_back(Meta);
     }
-    return this->WriteIndex(Entries);
+    bool Written = this->WriteIndex(Entries);
+    if (Written)
+    {
+        VaultSettings::WriteAudit("entry-saved");
+    }
+    return Written;
 }
 
 bool NanaZip::Vault::VaultStore::SetEntryPath(
@@ -639,7 +695,8 @@ bool NanaZip::Vault::VaultStore::SetEntryPath(
 std::optional<NanaZip::Vault::SecureBuffer>
 NanaZip::Vault::VaultStore::GetSecret(
     _In_ std::wstring const& Id,
-    _In_ std::wstring const& Field) const
+    _In_ std::wstring const& Field,
+    _In_ VaultKey const& Key) const
 {
     std::ifstream File(this->SecretFile(Id, Field), std::ios::binary);
     if (!File)
@@ -653,7 +710,7 @@ NanaZip::Vault::VaultStore::GetSecret(
     {
         return std::nullopt;
     }
-    return this->Unprotect(Blob);
+    return this->Unprotect(Id, Field, Blob, Key);
 }
 
 bool NanaZip::Vault::VaultStore::DeleteEntry(_In_ std::wstring const& Id)
@@ -698,5 +755,6 @@ bool NanaZip::Vault::VaultStore::DeleteEntry(_In_ std::wstring const& Id)
     std::filesystem::remove(
         this->SecretFile(Id, LegacyPathField),
         ErrorCode);
+    VaultSettings::WriteAudit("entry-deleted");
     return true;
 }
