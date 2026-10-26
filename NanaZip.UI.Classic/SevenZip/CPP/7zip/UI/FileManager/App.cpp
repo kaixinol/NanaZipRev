@@ -28,6 +28,8 @@
 // CAgent::g_DefaultCodePage carries the remembered filename code page down to
 // the Agent layer, which must not read the registry itself.
 #include "../Agent/Agent.h"
+// The vault toolbar button follows the vault setting.
+#include <Settings.h>
 // **************** NanaZip Modification End ****************
 #include "RegistryUtils.h"
 #include "ViewSettings.h"
@@ -291,6 +293,12 @@ void CApp::ReloadToolbars()
   _buttonsImageList.Destroy();
   _toolBar.Destroy();
 
+  // **************** NanaZip Modification Start ****************
+  // The button follows the setting: an off vault leaves no padlock on the
+  // toolbar. The Tools menu entry stays, because it is the way back on.
+  VaultButtonShown = ::NanaZip::Vault::VaultSettings::Load().Enabled;
+  // **************** NanaZip Modification End ****************
+
   if (ShowArchiveToolbar || ShowStandardToolbar)
   {
     CreateToolbar(_window, _buttonsImageList, _toolBar, LargeButtons);
@@ -300,11 +308,28 @@ void CApp::ReloadToolbars()
         AddButton(_buttonsImageList, _toolBar, g_ArchiveButtons[i], ShowButtonsLables, LargeButtons);
     if (ShowStandardToolbar)
       for (i = 0; i < ARRAY_SIZE(g_StandardButtons); i++)
-        AddButton(_buttonsImageList, _toolBar, g_StandardButtons[i], ShowButtonsLables, LargeButtons);
+        // **************** NanaZip Modification Start ****************
+        // AddButton(_buttonsImageList, _toolBar, g_StandardButtons[i], ShowButtonsLables, LargeButtons);
+        if (VaultButtonShown || g_StandardButtons[i].CommandID != IDM_VAULT)
+          AddButton(_buttonsImageList, _toolBar, g_StandardButtons[i], ShowButtonsLables, LargeButtons);
+        // **************** NanaZip Modification End ****************
 
     _toolBar.AutoSize();
   }
 }
+
+// **************** NanaZip Modification Start ****************
+void CApp::SyncVaultButton()
+{
+  // The setting can move from the vault dialog, the settings page or the
+  // other file manager; only the toolbar has to catch up, and only when the
+  // setting actually moved.
+  if (VaultButtonShown == ::NanaZip::Vault::VaultSettings::Load().Enabled)
+    return;
+  ReloadToolbars();
+  MoveSubWindows();
+}
+// **************** NanaZip Modification End ****************
 
 void CApp::SaveToolbarChanges()
 {

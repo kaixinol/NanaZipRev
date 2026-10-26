@@ -259,6 +259,7 @@ namespace winrt
     using Windows::UI::Xaml::Controls::AppBarButton;
     using Windows::UI::Xaml::Controls::ToolTipService;
     using Windows::UI::Xaml::Media::GeneralTransform;
+    using Windows::UI::Xaml::Visibility;
 }
 
 namespace
@@ -277,8 +278,8 @@ namespace
             Options = 900,
             Benchmark = 901,
             // Vault, with the id the classic tree uses so the same window
-            // procedure dispatches it in both trees.
-            Vault = 983,
+            // procedure dispatches it in both trees; equals IDM_VAULT.
+            Vault = 982,
             About = 961
         };
     }
@@ -534,6 +535,16 @@ namespace winrt::NanaZip::Modern::implementation
                 ToolBarCommandID::Vault,
                 BN_CLICKED),
             0);
+    }
+
+    void MainWindowToolBarPage::SetVaultButtonVisibility(
+        _In_ bool Visible)
+    {
+        // Collapsed, not Hidden: an off vault leaves no gap in the tool bar.
+        this->VaultButton().Visibility(
+            Visible
+            ? winrt::Visibility::Visible
+            : winrt::Visibility::Collapsed);
     }
 
     void MainWindowToolBarPage::BenchmarkButtonClick(

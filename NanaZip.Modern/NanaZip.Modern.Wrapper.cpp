@@ -428,3 +428,30 @@ EXTERN_C HRESULT WINAPI K7ModernRefreshTheme(
 
     return E_NOINTERFACE;
 }
+
+EXTERN_C HRESULT WINAPI K7ModernSetMainWindowToolBarVaultButtonVisibility(
+    _In_opt_ HWND WindowHandle,
+    _In_ BOOL Visible)
+{
+    using ProcType =
+        decltype(::K7ModernSetMainWindowToolBarVaultButtonVisibility)*;
+
+    static ProcType ProcAddress = reinterpret_cast<ProcType>([]() -> FARPROC
+    {
+        HMODULE ModuleHandle = ::GetNanaZipModernModuleHandle();
+        if (ModuleHandle)
+        {
+            return ::GetProcAddress(
+                ModuleHandle,
+                "K7ModernSetMainWindowToolBarVaultButtonVisibility");
+        }
+        return nullptr;
+    }());
+
+    if (ProcAddress)
+    {
+        return ProcAddress(WindowHandle, Visible);
+    }
+
+    return E_NOINTERFACE;
+}

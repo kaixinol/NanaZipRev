@@ -323,4 +323,20 @@ EXTERN_C LPVOID WINAPI K7ModernCreateMainWindowToolBarPage(
     _In_ HWND ParentWindowHandle,
     _In_ HMENU MoreMenuHandle);
 
+/**
+ * @brief Show or hide the vault button of the main window toolbar.
+ * @param WindowHandle The handle to the toolbar control which
+ *                     K7ModernCreateMainWindowToolBarPage created the content
+ *                     for.
+ * @param Visible TRUE to show the button, FALSE to hide it.
+ * @return If the function succeeds, it returns S_OK. Otherwise, it returns an
+ *         HRESULT error code.
+ * @remark The caller reads the vault setting and passes it in, because this
+ *         library does not link the vault core. Call this after creating the
+ *         toolbar and whenever the setting changes.
+ */
+EXTERN_C HRESULT WINAPI K7ModernSetMainWindowToolBarVaultButtonVisibility(
+    _In_opt_ HWND WindowHandle,
+    _In_ BOOL Visible);
+
 #endif // !NANAZIP_MODERN_EXPERIENCE

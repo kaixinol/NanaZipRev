@@ -1193,6 +1193,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       g_App.SetFocusToLastItem();
       break;
 
+    // **************** NanaZip Modification Start ****************
+    case WM_ACTIVATE:
+    {
+      // Activation returns when a vault or settings dialog closes, and either
+      // can have moved the vault setting the padlock button follows.
+      if (LOWORD(wParam) != WA_INACTIVE)
+        g_App.SyncVaultButton();
+      break;
+    }
+    // **************** NanaZip Modification End ****************
+
     /*
     case WM_ACTIVATE:
     {

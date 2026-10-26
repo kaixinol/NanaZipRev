@@ -26,6 +26,8 @@
 // CAgent::g_DefaultCodePage carries the remembered filename code page down to
 // the Agent layer, which must not read the registry itself.
 #include "../Agent/Agent.h"
+// The vault button of the XAML tool bar follows the vault setting.
+#include <Settings.h>
 // **************** NanaZip Modification End ****************
 #include "LangUtils.h"
 #include "MyLoadMenu.h"
@@ -168,6 +170,18 @@ HRESULT CApp::CreateOnePanel(int panelIndex, const UString &mainPath, const UStr
       openRes);
 }
 
+// **************** NanaZip Modification Start ****************
+void CApp::SyncVaultButton()
+{
+  // The setting can move from the vault dialog, the settings page or the other
+  // file manager; only the tool bar has to catch up. This tree reads it
+  // because NanaZip.Modern does not link the vault core.
+  ::K7ModernSetMainWindowToolBarVaultButtonVisibility(
+      this->m_ToolBar,
+      ::NanaZip::Vault::VaultSettings::Load().Enabled ? TRUE : FALSE);
+}
+// **************** NanaZip Modification End ****************
+
 HRESULT CApp::Create(HWND hwnd, const UString &mainPath, const UString &arcFormat, int xSizes[2], bool needOpenArc, COpenResult &openRes)
 {
   _window.Attach(hwnd);
@@ -225,6 +239,12 @@ HRESULT CApp::Create(HWND hwnd, const UString &mainPath, const UString &arcForma
       // and the status bar are covered by the same call on the panel, which
       // is a child of this window.
       ::K7ModernRefreshTheme(this->m_ToolBar);
+      // **************** NanaZip Modification End ****************
+
+      // **************** NanaZip Modification Start ****************
+      // A newly created tool bar shows every button, so the vault one has to
+      // be told whether the vault is on.
+      this->SyncVaultButton();
       // **************** NanaZip Modification End ****************
 
       XamlSource.TakeFocusRequested(

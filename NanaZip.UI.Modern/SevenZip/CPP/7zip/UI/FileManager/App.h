@@ -332,6 +332,9 @@ public:
   void RefreshTitleAlways() { RefreshTitle(true); }
   void RefreshTitlePanel(unsigned panelIndex, bool always = false);
 
+  // **************** NanaZip Modification Start ****************
+  void SyncVaultButton();
+  // **************** NanaZip Modification End ****************
   void MoveSubWindows();
 };
 

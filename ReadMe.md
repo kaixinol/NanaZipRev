@@ -45,7 +45,7 @@ Uninstall:
   - Passwords are matched to an archive by a fingerprint of its content, so moving or renaming the archive keeps the match.
   - Windows Hello unlocks the vault; until it re-locks, passwords are revealed and filled without another prompt. The re-lock happens 15 minutes after unlocking or 5 minutes after the last action in the vault window, whichever comes first; both timers are configurable and either can be turned off.
   - The archive password dialog offers the stored passwords, and fills the matching one silently while the vault is unlocked.
-  - Both File Managers have a toolbar button for the vault, which lists, edits, deletes and copies entries; a copied password leaves the clipboard after 30 seconds by default.
+  - Both File Managers show a vault button on the toolbar while the vault is on; it lists, edits, deletes and copies entries, and a copied password leaves the clipboard after 30 seconds by default. The Classic File Manager also keeps its Tools menu entry either way, because it is how a vault that is off gets turned back on.
   - The vault is off by default, and the settings page of either File Manager turns it on.
 - A theme selector offering *Follow the system*, *Always light*, and *Always dark*, stored per user and applied live to the windows that are already open, including the hosted XAML islands.
 - A code page submenu on the archive file list, which re-decodes entry names stored in a legacy encoding on demand. The choice is remembered per archive, survives navigating between folders, applies to the archive comment as well, and is dimmed where no code page applies.

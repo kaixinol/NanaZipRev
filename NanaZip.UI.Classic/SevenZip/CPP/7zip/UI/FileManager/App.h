@@ -121,6 +121,11 @@ public:
   bool ShowArchiveToolbar;
   bool ShowButtonsLables;
   bool LargeButtons;
+  // **************** NanaZip Modification Start ****************
+  // What ReloadToolbars last saw in the vault setting, so the button is only
+  // rebuilt when the setting moved.
+  bool VaultButtonShown = false;
+  // **************** NanaZip Modification End ****************
 
   CAppState AppState;
   CPanelCallbackImp m_PanelCallbackImp[kNumPanelsMax];
@@ -311,6 +316,9 @@ public:
   void SetBookmark(int index) { GetFocusedPanel().SetBookmark(index); }
 
   void ReloadToolbars();
+  // **************** NanaZip Modification Start ****************
+  void SyncVaultButton();
+  // **************** NanaZip Modification End ****************
   void ReadToolbar()
   {
     UInt32 mask = ReadToolbarsMask();

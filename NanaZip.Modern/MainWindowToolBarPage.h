@@ -82,6 +82,11 @@ namespace winrt::NanaZip::Modern::implementation
             winrt::IInspectable const& sender,
             winrt::RoutedEventArgs const& e);
 
+        // Follows the vault setting, which the file manager reads and hands
+        // over: this library does not link the vault core.
+        void SetVaultButtonVisibility(
+            _In_ bool Visible);
+
     private:
 
         HWND m_WindowHandle;

@@ -21,6 +21,7 @@
 #include "InformationPage.h"
 #include "ProgressPage.h"
 #include "CopyLocationPage.h"
+#include "MainWindowToolBarPage.h"
 
 #pragma comment(lib, "comctl32.lib")
 
@@ -1018,4 +1019,35 @@ EXTERN_C LPCWSTR WINAPI K7ModernGetCopyLocationDialogPath(
         return nullptr;
     }
     return winrt::get_self<Implementation>(InstanceObject)->GetPath();
+}
+
+EXTERN_C HRESULT WINAPI K7ModernSetMainWindowToolBarVaultButtonVisibility(
+    _In_opt_ HWND WindowHandle,
+    _In_ BOOL Visible)
+{
+    if (!WindowHandle)
+    {
+        return E_INVALIDARG;
+    }
+
+    winrt::DesktopWindowXamlSource XamlSource =
+        ::K7ModernGetDesktopWindowXamlSource(WindowHandle);
+    if (!XamlSource)
+    {
+        return E_FAIL;
+    }
+
+    using Interface =
+        winrt::NanaZip::Modern::MainWindowToolBarPage;
+    using Implementation =
+        winrt::NanaZip::Modern::implementation::MainWindowToolBarPage;
+    Interface InstanceObject = XamlSource.Content().as<Interface>();
+    if (!InstanceObject)
+    {
+        return E_FAIL;
+    }
+    winrt::get_self<Implementation>(InstanceObject)->SetVaultButtonVisibility(
+        FALSE != Visible);
+
+    return S_OK;
 }
