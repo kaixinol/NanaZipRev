@@ -268,10 +268,12 @@ bool CExtractDialog::OnInit()
 #ifndef Z7_SFX
 void CExtractDialog::UpdatePasswordControl()
 {
+  // NanaZip Modification Start
+  // EM_SETPASSWORDCHAR does not always repaint, which made the toggle feel
+  // laggy; force a repaint instead of a GetText/SetText round-trip.
   _passwordControl.SetPasswordChar(IsShowPasswordChecked() ? 0 : TEXT('*'));
-  UString password;
-  _passwordControl.GetText(password);
-  _passwordControl.SetText(password);
+  ::InvalidateRect(_passwordControl, NULL, TRUE);
+  // NanaZip Modification End
 }
 #endif
 

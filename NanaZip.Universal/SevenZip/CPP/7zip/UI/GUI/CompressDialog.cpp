@@ -577,13 +577,14 @@ void CCompressDialog::UpdatePasswordControl()
 {
   const bool showPassword = IsShowPasswordChecked();
   const TCHAR c = showPassword ? (TCHAR)0: TEXT('*');
+  // NanaZip Modification Start
+  // EM_SETPASSWORDCHAR does not always repaint, which made the toggle feel
+  // laggy; force a repaint instead of a GetText/SetText round-trip.
   _password1Control.SetPasswordChar((WPARAM)c);
   _password2Control.SetPasswordChar((WPARAM)c);
-  UString password;
-  _password1Control.GetText(password);
-  _password1Control.SetText(password);
-  _password2Control.GetText(password);
-  _password2Control.SetText(password);
+  ::InvalidateRect(_password1Control, NULL, TRUE);
+  ::InvalidateRect(_password2Control, NULL, TRUE);
+  // NanaZip Modification End
 
   ShowItem_Bool(IDT_PASSWORD_REENTER, !showPassword);
   _password2Control.Show_Bool(!showPassword);
