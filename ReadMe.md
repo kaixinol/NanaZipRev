@@ -41,12 +41,19 @@ Uninstall:
 
 <details>
 
+- A password vault for encrypted archives:
+  - Passwords are matched to an archive by a fingerprint of its content, so moving or renaming the archive keeps the match.
+  - Windows Hello unlocks the vault; until it re-locks, passwords are revealed and filled without another prompt. The re-lock happens 15 minutes after unlocking or 5 minutes after the last action in the vault window, whichever comes first; both timers are configurable and either can be turned off.
+  - The archive password dialog offers the stored passwords, and fills the matching one silently while the vault is unlocked.
+  - Both File Managers have a toolbar button for the vault, which lists, edits, deletes and copies entries; a copied password leaves the clipboard after 30 seconds by default.
+  - The vault is off by default, and the settings page of either File Manager turns it on.
 - A theme selector offering *Follow the system*, *Always light*, and *Always dark*, stored per user and applied live to the windows that are already open, including the hosted XAML islands.
 - A code page submenu on the archive file list, which re-decodes entry names stored in a legacy encoding on demand. The choice is remembered per archive, survives navigating between folders, applies to the archive comment as well, and is dimmed where no code page applies.
 - A *Show file size units* setting, which formats file sizes with the IEC binary prefixes instead of an exact byte count. It is off by default. ([M2Team#1007](https://github.com/M2Team/NanaZip/pull/1007), Rejected)
 - A language selector on the settings page of the Modern File Manager, which offers the languages the modern experience library was built with. ([M2Team#1006](https://github.com/M2Team/NanaZip/pull/1006))
 - A warning when a compression method the upstream 7-Zip has no built-in support for, such as a 7-Zip ZS one, is selected for the 7z format, because upstream 7-Zip and most other archive software cannot read those archives.
 - A <kbd>Ctrl</kbd>+<kbd>W</kbd> shortcut for closing the File Manager window. ([M2Team#1005](https://github.com/M2Team/NanaZip/pull/1005))
+- Mouse back and forward navigation in the File Manager, driven by the thumb buttons.
 - A sort direction arrow on the column the file list is sorted by, redrawn whenever the column, the direction or the visible columns change. ([M2Team#1026](https://github.com/M2Team/NanaZip/pull/1026))
 - A denser path tree in the Modern File Manager, whose rows no longer inherit a minimum height meant for a full icon and label. ([M2Team#1025](https://github.com/M2Team/NanaZip/pull/1025))
 - An extract dialog with:
