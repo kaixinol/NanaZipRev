@@ -1160,6 +1160,21 @@
   <data name="Resource4096" xml:space="preserve">
     <value>啟用密碼庫(&amp;V)</value>
   </data>
+  <data name="Resource4098" xml:space="preserve">
+    <value>顯示檔案大小單位(&amp;F)</value>
+  </data>
+  <data name="Resource4101" xml:space="preserve">
+    <value>主題(&amp;T)：</value>
+  </data>
+  <data name="Resource4103" xml:space="preserve">
+    <value>跟隨系統</value>
+  </data>
+  <data name="Resource4104" xml:space="preserve">
+    <value>始終淺色</value>
+  </data>
+  <data name="Resource4105" xml:space="preserve">
+    <value>始終深色</value>
+  </data>
   <data name="Resource4106" xml:space="preserve">
     <value>警告：上游 7-Zip 及大多數其他壓縮軟件都不支援 {0}。</value>
   </data>

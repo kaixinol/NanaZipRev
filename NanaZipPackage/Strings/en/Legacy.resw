@@ -1163,6 +1163,9 @@ Do you want to update it in the archive?</value>
   <data name="Resource4096" xml:space="preserve">
     <value>Enable &amp;vault</value>
   </data>
+  <data name="Resource4098" xml:space="preserve">
+    <value>Show &amp;file size units</value>
+  </data>
   <data name="Resource4101" xml:space="preserve">
     <value>&amp;Theme:</value>
   </data>
