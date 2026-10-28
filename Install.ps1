@@ -21,8 +21,9 @@
 
   A published package carries no signature, so one is made on the machine,
   the package is signed with it and it is trusted. Its private key stays in
-  Cert:\CurrentUser\My and can never be exported. A package that already
-  carries a signature keeps it, and its certificate is trusted here instead.
+  Cert:\CurrentUser\My and is created non-exportable, so the standard export
+  tools cannot copy it. A package that already carries a signature keeps it,
+  and its certificate is trusted here instead.
 
   Where the package comes from, first hit wins:
     1. -LocalPath
@@ -78,7 +79,11 @@
 .NOTES
   The signing certificate is a local test one. It is created on demand, reused
   while it is in Cert:\CurrentUser\My, and rebuilt and re-signed whenever it is
-  gone. Its private key is created non-exportable and never leaves the store.
+  gone or its key is exportable. Its private key is created non-exportable, so
+  the standard export tools cannot copy it. That is an API policy, not hardware
+  protection: an administrator can still export a software key, and any
+  process running as this user can sign with it without exporting. A
+  TPM-backed key would keep the key material out of software.
 
   Deploying a package this script signed itself needs sideloading, so either
   developer mode or the Allow sideloading of apps policy. Runs on Windows
@@ -223,6 +228,77 @@ function Remove-StoreEntry {
     Start-Sleep -Milliseconds 200
   }
   Write-Warn "$path still holds $Thumbprint"
+}
+
+function Get-PrivateKeyInfo {
+  param(
+    [Security.Cryptography.X509Certificates.X509Certificate2]$Certificate
+  )
+
+  $key = [Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey(
+    $Certificate)
+  if (-not $key) { return $null }
+  try {
+    if ($key -is [Security.Cryptography.RSACng]) {
+      return [pscustomobject]@{
+        Exportable  = ($key.Key.ExportPolicy -band
+          [Security.Cryptography.CngExportPolicies]::AllowExport) -ne 0
+        CngKeyName  = $key.Key.KeyName
+        CngProvider = $key.Key.Provider.Provider
+      }
+    }
+    return [pscustomobject]@{
+      Exportable  = $key.CspKeyContainerInfo.Exportable
+      CngKeyName  = $null
+      CngProvider = $null
+    }
+  }
+  finally { $key.Dispose() }
+}
+
+function Remove-CngKey {
+  param(
+    [string]$KeyName,
+    [string]$Provider,
+    [bool]$Apply = $true
+  )
+
+  if (-not $Apply) {
+    Write-Note "WhatIf: delete private key container $KeyName"
+    return
+  }
+  try {
+    $cngProvider = [Security.Cryptography.CngProvider]::new($Provider)
+    $key = [Security.Cryptography.CngKey]::Open($KeyName, $cngProvider)
+    try { $key.Delete() }
+    finally { $key.Dispose() }
+  }
+  catch {
+    Write-Warn "could not delete private key container $KeyName : $($_.Exception.Message)"
+  }
+}
+
+function Remove-CertificateAndKey {
+  # certutil -delstore removes the certificate but keeps its key container.
+  param(
+    [Security.Cryptography.X509Certificates.X509Certificate2]$Certificate,
+    [bool]$Apply = $true
+  )
+
+  $keyInfo = Get-PrivateKeyInfo -Certificate $Certificate
+  $thumbprint = $Certificate.Thumbprint
+
+  Write-Step "removing certificate $thumbprint"
+  Remove-StoreEntry -Thumbprint $thumbprint -Store 'My' -UserScope -Apply $Apply
+  Remove-StoreEntry -Thumbprint $thumbprint -Store 'Root' -UserScope -Apply $Apply
+  if (Test-IsAdmin) {
+    Remove-StoreEntry -Thumbprint $thumbprint -Store 'Root' -Apply $Apply
+    Remove-StoreEntry -Thumbprint $thumbprint -Store 'TrustedPeople' -Apply $Apply
+  }
+  if ($keyInfo -and $keyInfo.CngKeyName) {
+    Remove-CngKey -KeyName $keyInfo.CngKeyName -Provider $keyInfo.CngProvider `
+      -Apply $Apply
+  }
 }
 
 function Invoke-ProvisionedPackageCleanup {
@@ -796,13 +872,20 @@ function Get-OrCreateCertificate {
     if ($existing.NotAfter -lt (Get-Date)) {
       Write-Warn ("certificate $($existing.Thumbprint) expired " +
         "$($existing.NotAfter.ToString('u')); recreating it")
-      # Drop the expired one so the lookup above cannot pick it again.
-      Remove-StoreEntry -Thumbprint $existing.Thumbprint -Store 'My' `
-        -UserScope -Apply:$Apply
+      # Drop the old one so the lookup above cannot pick it again.
+      Remove-CertificateAndKey -Certificate $existing -Apply $Apply
     }
     else {
-      Write-Step "reusing certificate $($existing.Thumbprint)"
-      return $existing
+      $keyInfo = Get-PrivateKeyInfo -Certificate $existing
+      if ($keyInfo -and $keyInfo.Exportable -and (Test-KeyExportPolicy)) {
+        Write-Warn ("certificate $($existing.Thumbprint) has an exportable " +
+          'private key; recreating it')
+        Remove-CertificateAndKey -Certificate $existing -Apply $Apply
+      }
+      else {
+        Write-Step "reusing certificate $($existing.Thumbprint)"
+        return $existing
+      }
     }
   }
 
@@ -829,7 +912,6 @@ function Get-OrCreateCertificate {
   }
   $cert = New-SelfSignedCertificate @certParams
 
-  # The private key is never exported and cannot be exported.
   return $cert
 }
 
@@ -914,8 +996,15 @@ function Remove-LegacyInstallerData {
       $userScope = $store.StartsWith('Cert:\CurrentUser\',
         [StringComparison]::OrdinalIgnoreCase)
       $storeName = $store.Substring($store.LastIndexOf('\') + 1)
+      $keyInfo = if ($userScope -and $storeName -eq 'My') {
+        Get-PrivateKeyInfo -Certificate $hits[0]
+      }
       Remove-StoreEntry -Thumbprint $thumbprint -Store $storeName `
         -UserScope:$userScope -Apply $Apply
+      if ($keyInfo -and $keyInfo.CngKeyName) {
+        Remove-CngKey -KeyName $keyInfo.CngKeyName -Provider $keyInfo.CngProvider `
+          -Apply $Apply
+      }
     }
   }
 
@@ -969,17 +1058,7 @@ function Remove-TrustedCertificate {
       })
 
   foreach ($cert in $certs) {
-    Write-Step "removing certificate $($cert.Thumbprint)"
-    Remove-StoreEntry -Thumbprint $cert.Thumbprint -Store 'My' `
-      -UserScope -Apply $Apply
-    Remove-StoreEntry -Thumbprint $cert.Thumbprint -Store 'Root' `
-      -UserScope -Apply $Apply
-    if (Test-IsAdmin) {
-      Remove-StoreEntry -Thumbprint $cert.Thumbprint -Store 'Root' `
-        -Apply $Apply
-      Remove-StoreEntry -Thumbprint $cert.Thumbprint -Store 'TrustedPeople' `
-        -Apply $Apply
-    }
+    Remove-CertificateAndKey -Certificate $cert -Apply $Apply
   }
 }
 function Stop-PackageProcesses {
