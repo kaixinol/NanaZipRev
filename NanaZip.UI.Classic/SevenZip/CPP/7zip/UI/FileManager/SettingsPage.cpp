@@ -121,6 +121,9 @@ bool CSettingsPage::OnInit()
 {
   _wasChanged = false;
   _largePages_wasChanged = false;
+  // **************** NanaZip Modification Start ****************
+  _wasChanged_ThemeMode = false;
+  // **************** NanaZip Modification End ****************
   /*
   _wasChanged_MemLimit = false;
   _memLimitStrings.Clear();
@@ -336,26 +339,30 @@ LONG CSettingsPage::OnApply()
   #endif
 
   // **************** NanaZip Modification Start ****************
-  NWindows::NControl::CComboBox ThemeModeComboBox;
-  ThemeModeComboBox.Attach(GetItem(IDC_SETTINGS_THEME_MODE));
-  int const SelectedThemeMode = ThemeModeComboBox.GetCurSel();
-  // The combo box is empty when the page is not created yet, and the stored
-  // setting should be kept in that case.
-  if (SelectedThemeMode >= 0)
+  if (_wasChanged_ThemeMode)
   {
-    SaveRegThemeMode(static_cast<UInt32>(SelectedThemeMode));
+    _wasChanged_ThemeMode = false;
+    NWindows::NControl::CComboBox ThemeModeComboBox;
+    ThemeModeComboBox.Attach(GetItem(IDC_SETTINGS_THEME_MODE));
+    int const SelectedThemeMode = ThemeModeComboBox.GetCurSel();
+    // The combo box is empty when the page is not created yet, and the stored
+    // setting should be kept in that case.
+    if (SelectedThemeMode >= 0)
+    {
+      SaveRegThemeMode(static_cast<UInt32>(SelectedThemeMode));
 
-    // Apply the new theme to the windows which are already open. The
-    // ImmersiveColorSet notification re-evaluates the effective theme,
-    // re-themes the window tree and repaints it, so raising it is enough and
-    // no second refresh path is needed.
-    HWND MainWindow = g_App._window;
-    ::K7UserRefreshTheme();
-    ::SendMessageW(
-      MainWindow,
-      WM_SETTINGCHANGE,
-      0,
-      reinterpret_cast<LPARAM>(L"ImmersiveColorSet"));
+      // Apply the new theme to the windows which are already open. The
+      // ImmersiveColorSet notification re-evaluates the effective theme,
+      // re-themes the window tree and repaints it, so raising it is enough and
+      // no second refresh path is needed.
+      HWND MainWindow = g_App._window;
+      ::K7UserRefreshTheme();
+      ::SendMessageW(
+        MainWindow,
+        WM_SETTINGCHANGE,
+        0,
+        reinterpret_cast<LPARAM>(L"ImmersiveColorSet"));
+    }
   }
   // **************** NanaZip Modification End ****************
 
@@ -421,24 +428,24 @@ LONG CSettingsPage::OnApply()
   return PSNRET_NOERROR;
 }
 
-/*
+// **************** NanaZip Modification Start ****************
 bool CSettingsPage::OnCommand(int code, int itemID, LPARAM param)
 {
   if (code == CBN_SELCHANGE)
   {
     switch (itemID)
     {
-      case IDC_SETTINGS_MEM:
-      {
-        _wasChanged_MemLimit = true;
+      // The theme mode selector is a fork addition on this page; a change to it
+      // must mark the page dirty so the Apply button enables.
+      case IDC_SETTINGS_THEME_MODE:
+        _wasChanged_ThemeMode = true;
         Changed();
         break;
-      }
     }
   }
   return CPropertyPage::OnCommand(code, itemID, param);
 }
-*/
+// **************** NanaZip Modification End ****************
 
 bool CSettingsPage::OnButtonClicked(int buttonID, HWND buttonHWND)
 {

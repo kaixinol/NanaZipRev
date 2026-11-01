@@ -11,6 +11,9 @@ class CSettingsPage: public NWindows::NControl::CPropertyPage
 {
   bool _wasChanged;
   bool _largePages_wasChanged;
+  // **************** NanaZip Modification Start ****************
+  bool _wasChanged_ThemeMode;
+  // **************** NanaZip Modification End ****************
   /*
   bool _wasChanged_MemLimit;
   NWindows::NControl::CComboBox _memCombo;
@@ -22,7 +25,9 @@ class CSettingsPage: public NWindows::NControl::CPropertyPage
   */
 
   // void EnableSubItems();
-  // bool OnCommand(int code, int itemID, LPARAM param);
+  // **************** NanaZip Modification Start ****************
+  bool OnCommand(int code, int itemID, LPARAM param);
+  // **************** NanaZip Modification End ****************
   bool OnButtonClicked(int buttonID, HWND buttonHWND);
   virtual bool OnInit();
   virtual LONG OnApply();
