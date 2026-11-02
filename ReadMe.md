@@ -66,7 +66,8 @@ Uninstall:
     - Close the File Manager that started the extraction.
   - Archives that cannot be moved are reported instead of being erased.
 - A percentage beside the progress bar, redrawn only when the value changes.
-
+- A fix for file names vanishing from the file list of an archive whose entry names are encrypted, while the password prompt is open. ([M2Team#1040](https://github.com/M2Team/NanaZip/pull/1040))
+- A fix for combo box dropdowns painting the selected and hovered item white in light mode, where the highlight was invisible. The selection now uses the system highlight color. (See issue [M2Team/NanaZip#1032](https://github.com/M2Team/NanaZip/issues/1032))
 </details>
 
 ## Why NanaZip Rev is not available on the Microsoft Store
