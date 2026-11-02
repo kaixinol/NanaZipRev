@@ -1240,7 +1240,7 @@ namespace
         _In_ int iPropId,
         _Out_ COLORREF* pColor)
     {
-        if (!g_GlobalInitialized || !::ShouldAppsUseDarkMode())
+        if (!g_GlobalInitialized)
         {
             return ::OriginalGetThemeColor(
                 hTheme,
@@ -1267,26 +1267,28 @@ namespace
             ClassName,
             MO_ARRAY_SIZE(ClassName)))
         {
+            // Task dialog text is only redirected while the app is in dark mode.
             if (0 == ::_wcsicmp(ClassName, VSCLASS_TASKDIALOGSTYLE))
             {
-                if (TMT_TEXTCOLOR == iPropId)
+                if (::ShouldAppsUseDarkMode() && TMT_TEXTCOLOR == iPropId)
                 {
                     *pColor = g_DarkModeForegroundColor;
                 }
             }
-            // The dropdown list of a combo box paints its selected item from
-            // the theme data of the "Listbox" class as soon as the list box
-            // itself is told to use dark mode. That class has no dark variant
-            // in the theme file, so the fill of the selected item resolves to
-            // the light theme value, which is white, and the previewed
-            // selection turns into a white block on the black list. The
-            // selection has to keep the classic highlight color instead, which
-            // is what a list box uses when it paints that item itself.
+            // The combo box dropdown list has no theme variant for the active
+            // theme, so its selected and hovered items resolve to white and
+            // become invisible on the list. Force the system highlight color
+            // (correct in both light and dark themes) for every selection and
+            // hover state. The previous fix (see 46398159) only covered
+            // SELECTED/SELECTEDNOTFOCUS under the dark-mode guard.
+            // See M2Team/NanaZip#1032
             else if (0 == ::_wcsicmp(ClassName, VSCLASS_LISTBOX))
             {
                 if (TMT_FILLCOLOR == iPropId &&
                     LBCP_ITEM == iPartId &&
-                    (LBPSI_SELECTED == iStateId ||
+                    (LBPSI_HOT == iStateId ||
+                        LBPSI_HOTSELECTED == iStateId ||
+                        LBPSI_SELECTED == iStateId ||
                         LBPSI_SELECTEDNOTFOCUS == iStateId))
                 {
                     *pColor = ::OriginalGetSysColor(COLOR_HIGHLIGHT);
