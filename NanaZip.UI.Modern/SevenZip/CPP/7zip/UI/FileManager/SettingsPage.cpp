@@ -19,6 +19,7 @@
 
 // **************** NanaZip Modification Start ****************
 #include "App.h"
+#include "MyLoadMenu.h"
 #include "VaultDialog.h"
 #include <K7User.h>
 #include <NanaZip.Modern.h>
@@ -383,6 +384,14 @@ LONG CSettingsPage::OnApply()
       {
         SaveRegLang(UString(LanguageTag));
         ReloadLang();
+        // Apply has to show the new language while the sheet is still open;
+        // waiting for the sheet to close leaves the main window stale.
+        MyLoadMenu();
+        extern HMENU g_MoreMenu;
+        ::K7ModernRefreshMainWindowToolBarPageLanguage(
+            g_App.m_ToolBar,
+            g_MoreMenu);
+        g_App.RefreshAllPanels();
       }
     }
   }

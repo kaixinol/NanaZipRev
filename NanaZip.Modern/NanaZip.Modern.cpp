@@ -1051,3 +1051,34 @@ EXTERN_C HRESULT WINAPI K7ModernSetMainWindowToolBarVaultButtonVisibility(
 
     return S_OK;
 }
+
+EXTERN_C HRESULT WINAPI K7ModernRefreshMainWindowToolBarPageLanguage(
+    _In_opt_ HWND WindowHandle,
+    _In_ HMENU MoreMenuHandle)
+{
+    if (!WindowHandle)
+    {
+        return E_INVALIDARG;
+    }
+
+    winrt::DesktopWindowXamlSource XamlSource =
+        ::K7ModernGetDesktopWindowXamlSource(WindowHandle);
+    if (!XamlSource)
+    {
+        return E_FAIL;
+    }
+
+    using Interface =
+        winrt::NanaZip::Modern::MainWindowToolBarPage;
+    using Implementation =
+        winrt::NanaZip::Modern::implementation::MainWindowToolBarPage;
+    Interface InstanceObject = XamlSource.Content().as<Interface>();
+    if (!InstanceObject)
+    {
+        return E_FAIL;
+    }
+    winrt::get_self<Implementation>(InstanceObject)->ReloadLanguage(
+        MoreMenuHandle);
+
+    return S_OK;
+}

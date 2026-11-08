@@ -311,6 +311,22 @@ namespace winrt::NanaZip::Modern::implementation
     {
         MainWindowToolBarPageT::InitializeComponent();
 
+        this->RefreshButtonLabels();
+
+        this->m_DispatcherQueue =
+            winrt::DispatcherQueue::GetForCurrentThread();
+
+        std::wstring sponsorButtonLabel = L"[";
+        sponsorButtonLabel += Mile::WinRT::GetLocalizedString(
+            L"NanaZip.Modern/MainWindowToolBarPage/SponsorButton/AcquireText",
+            L"Sponsor NanaZip");
+        sponsorButtonLabel += L"]";
+
+        this->SponsorButton().Content(winrt::box_value(sponsorButtonLabel));
+    }
+
+    void MainWindowToolBarPage::RefreshButtonLabels()
+    {
         winrt::AppBarButton ToolBarButtons[10] =
         {
             this->AddButton(),
@@ -368,17 +384,16 @@ namespace winrt::NanaZip::Modern::implementation
         winrt::ToolTipService::SetToolTip(
             this->VaultButton(),
             winrt::box_value(VaultResource));
+    }
 
-        this->m_DispatcherQueue =
-            winrt::DispatcherQueue::GetForCurrentThread();
+    void MainWindowToolBarPage::ReloadLanguage(
+        _In_ HMENU MoreMenu)
+    {
+        this->m_MoreMenu = MoreMenu;
 
-        std::wstring sponsorButtonLabel = L"[";
-        sponsorButtonLabel += Mile::WinRT::GetLocalizedString(
-            L"NanaZip.Modern/MainWindowToolBarPage/SponsorButton/AcquireText",
-            L"Sponsor NanaZip");
-        sponsorButtonLabel += L"]";
+        this->RefreshButtonLabels();
 
-        this->SponsorButton().Content(winrt::box_value(sponsorButtonLabel));
+        this->RefreshSponsorButtonContent();
     }
 
     void MainWindowToolBarPage::PageLoaded(

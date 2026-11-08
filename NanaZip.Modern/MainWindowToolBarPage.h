@@ -87,6 +87,11 @@ namespace winrt::NanaZip::Modern::implementation
         void SetVaultButtonVisibility(
             _In_ bool Visible);
 
+        // The page caches the menu handle and the button labels, so both have
+        // to be refreshed together when the language changes.
+        void ReloadLanguage(
+            _In_ HMENU MoreMenu);
+
     private:
 
         HWND m_WindowHandle;
@@ -97,6 +102,8 @@ namespace winrt::NanaZip::Modern::implementation
         bool CheckSponsorEditionLicense();
 
         void RefreshSponsorButtonContent();
+
+        void RefreshButtonLabels();
     };
 }
 

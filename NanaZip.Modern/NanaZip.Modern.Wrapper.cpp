@@ -455,3 +455,30 @@ EXTERN_C HRESULT WINAPI K7ModernSetMainWindowToolBarVaultButtonVisibility(
 
     return E_NOINTERFACE;
 }
+
+EXTERN_C HRESULT WINAPI K7ModernRefreshMainWindowToolBarPageLanguage(
+    _In_opt_ HWND WindowHandle,
+    _In_ HMENU MoreMenuHandle)
+{
+    using ProcType =
+        decltype(::K7ModernRefreshMainWindowToolBarPageLanguage)*;
+
+    static ProcType ProcAddress = reinterpret_cast<ProcType>([]() -> FARPROC
+    {
+        HMODULE ModuleHandle = ::GetNanaZipModernModuleHandle();
+        if (ModuleHandle)
+        {
+            return ::GetProcAddress(
+                ModuleHandle,
+                "K7ModernRefreshMainWindowToolBarPageLanguage");
+        }
+        return nullptr;
+    }());
+
+    if (ProcAddress)
+    {
+        return ProcAddress(WindowHandle, MoreMenuHandle);
+    }
+
+    return E_NOINTERFACE;
+}

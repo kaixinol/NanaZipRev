@@ -339,4 +339,21 @@ EXTERN_C HRESULT WINAPI K7ModernSetMainWindowToolBarVaultButtonVisibility(
     _In_opt_ HWND WindowHandle,
     _In_ BOOL Visible);
 
+/**
+ * @brief Reread the language-dependent content of the main window toolbar.
+ * @param WindowHandle The handle to the toolbar control which
+ *                     K7ModernCreateMainWindowToolBarPage created the content
+ *                     for.
+ * @param MoreMenuHandle The menu handle for the "More" menu, rebuilt after the
+ *                       language change.
+ * @return If the function succeeds, it returns S_OK. Otherwise, it returns an
+ *         HRESULT error code.
+ * @remark Call this after the language override changed. The toolbar page
+ *         cached the menu handle and the labels it was created with, so both
+ *         the new menu and the new strings have to be handed over together.
+ */
+EXTERN_C HRESULT WINAPI K7ModernRefreshMainWindowToolBarPageLanguage(
+    _In_opt_ HWND WindowHandle,
+    _In_ HMENU MoreMenuHandle);
+
 #endif // !NANAZIP_MODERN_EXPERIENCE
