@@ -513,6 +513,8 @@ namespace
         return false;
     }
 
+    static void RefreshWindowThemeTree(_In_ HWND ParentWindow);
+
     LRESULT CALLBACK WindowSubclassCallback(
         _In_ HWND hWnd,
         _In_ UINT uMsg,
@@ -595,17 +597,7 @@ namespace
                 }
                 ::DwmExtendFrameIntoClientArea(hWnd, &Margins);
 
-                ::EnumChildWindows(
-                    hWnd,
-                    [](
-                        _In_ HWND hWnd,
-                        _In_ LPARAM lParam) -> BOOL
-                {
-                    UNREFERENCED_PARAMETER(lParam);
-                    ::RefreshWindowTheme(hWnd);
-                    return TRUE;
-                },
-                    0);
+                ::RefreshWindowThemeTree(hWnd);
 
                 ::InvalidateRect(hWnd, nullptr, TRUE);
             }
@@ -954,6 +946,31 @@ namespace
         }
 
         return false;
+    }
+
+    static void RefreshWindowThemeTree(
+        _In_ HWND ParentWindow)
+    {
+        ::EnumChildWindows(
+            ParentWindow,
+            [](
+                _In_ HWND hWnd,
+                _In_ LPARAM lParam) -> BOOL
+            {
+                UNREFERENCED_PARAMETER(lParam);
+
+                ::RefreshWindowTheme(hWnd);
+
+                // Islands take their colors from RequestedTheme and hold no
+                // Win32 control below them, so the walk stops at them.
+                if (!::IsModernizedWindow(hWnd))
+                {
+                    ::RefreshWindowThemeTree(hWnd);
+                }
+
+                return TRUE;
+            },
+            0);
     }
 
     static LRESULT CALLBACK CallWndProcCallback(

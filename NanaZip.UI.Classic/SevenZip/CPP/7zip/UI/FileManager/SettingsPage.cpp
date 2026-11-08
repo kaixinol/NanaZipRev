@@ -355,13 +355,23 @@ LONG CSettingsPage::OnApply()
       // ImmersiveColorSet notification re-evaluates the effective theme,
       // re-themes the window tree and repaints it, so raising it is enough and
       // no second refresh path is needed.
-      HWND MainWindow = g_App._window;
       ::K7UserRefreshTheme();
-      ::SendMessageW(
-        MainWindow,
-        WM_SETTINGCHANGE,
-        0,
-        reinterpret_cast<LPARAM>(L"ImmersiveColorSet"));
+      // Owned top-level windows never receive a message addressed to the main
+      // window, so the options sheet and the other dialogs would keep the
+      // colors of the previous theme.
+      ::EnumThreadWindows(
+          ::GetCurrentThreadId(),
+          [](HWND Window, LPARAM Param) -> BOOL
+          {
+            UNREFERENCED_PARAMETER(Param);
+            ::SendMessageW(
+                Window,
+                WM_SETTINGCHANGE,
+                0,
+                reinterpret_cast<LPARAM>(L"ImmersiveColorSet"));
+            return TRUE;
+          },
+          0);
     }
   }
   // **************** NanaZip Modification End ****************
