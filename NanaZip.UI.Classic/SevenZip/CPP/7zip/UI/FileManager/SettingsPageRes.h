@@ -31,6 +31,14 @@
 #define IDS_SETTINGS_THEME_MODE_DARK         4105
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+// The wrap and memory switches are application wide; the console reads them.
+// The opening one only affects the file manager, and buffering defaults off.
+#define IDX_SETTINGS_TAR_AUTO_OPEN          4162
+#define IDX_SETTINGS_TAR_AUTO_WRAP          4163
+#define IDX_SETTINGS_TAR_MEMORY_BUFFER      4165
+// **************** NanaZip Modification End ****************
+
 
 // #define IDT_SETTINGS_MEM     100
 // #define IDC_SETTINGS_MEM     101

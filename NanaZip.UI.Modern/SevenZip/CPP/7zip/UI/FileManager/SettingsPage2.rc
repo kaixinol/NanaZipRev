@@ -20,14 +20,17 @@ BEGIN
   CONTROL  "Use Lowercase Hashes", IDX_SETTINGS_LOWERCASE_HASHES,     MY_CHECKBOX, m, 196, xc, 10
   CONTROL  "Show &file size units", IDX_SETTINGS_SHOW_FILE_SIZE_UNITS, MY_CHECKBOX, m, 210, xc, 10
   CONTROL  "Enable &vault", IDX_SETTINGS_VAULT_ENABLED, MY_CHECKBOX, m, 224, xc, 10
+  CONTROL  "&Open the tar inside a single-stream archive", IDX_SETTINGS_TAR_AUTO_OPEN, MY_CHECKBOX, m, 238, xc, 10
+  CONTROL  "&Wrap in a tar for single-stream formats", IDX_SETTINGS_TAR_AUTO_WRAP, MY_CHECKBOX, m, 252, xc, 10
+  CONTROL  "&Buffer the tar in memory", IDX_SETTINGS_TAR_MEMORY_BUFFER, MY_CHECKBOX, m, 266, xc, 10
   // **************** NanaZip Modification End ****************
 
   // **************** NanaZip Modification Start ****************
-  LTEXT     "Language:",           IDT_SETTINGS_LANGUAGE,             m, 238, xc, 8
-  COMBOBOX                         IDC_SETTINGS_LANGUAGE,             m, 250, xc, 48, MY_COMBO
+  LTEXT     "Language:",           IDT_SETTINGS_LANGUAGE,             m, 280, xc, 8
+  COMBOBOX                         IDC_SETTINGS_LANGUAGE,             m, 292, xc, 48, MY_COMBO
 
-  LTEXT     "&Theme:",             IDT_SETTINGS_THEME_MODE,            m, 272, xc, 8
-  COMBOBOX                         IDC_SETTINGS_THEME_MODE,            m, 284, xc, 48, MY_COMBO
+  LTEXT     "&Theme:",             IDT_SETTINGS_THEME_MODE,            m, 314, xc, 8
+  COMBOBOX                         IDC_SETTINGS_THEME_MODE,            m, 326, xc, 48, MY_COMBO
   // **************** NanaZip Modification End ****************
 
   // LTEXT     "Memory usage for Compressing:", IDT_COMPRESS_MEMORY, m, 140, xc, 8

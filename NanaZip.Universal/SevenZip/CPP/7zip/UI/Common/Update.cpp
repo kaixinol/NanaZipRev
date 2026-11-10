@@ -32,6 +32,9 @@
 #include "SetProperties.h"
 #include "TempFiles.h"
 #include "UpdateCallback.h"
+// **************** NanaZip Modification Start ****************
+#include "UpdateTar.h"
+// **************** NanaZip Modification End ****************
 
 static const char * const kUpdateIsNotSupoorted =
   "update operations are not supported for this archive";
@@ -850,7 +853,17 @@ static HRESULT Compress(
     volStreamSpec->MTime_Defined = true;
   }
 
-  HRESULT result = outArchive->UpdateItems(tailStream, updatePairs2.Size(), updateCallback);
+  // **************** NanaZip Modification Start ****************
+  // HRESULT result = outArchive->UpdateItems(tailStream, updatePairs2.Size(), updateCallback);
+  HRESULT result;
+  if (NeedTarWrapping(codecs, options, dirItems, arc != NULL))
+    result = UpdateArchiveTarWrapped(
+        codecs, outArchive, tailStream, updatePairs2.Size(),
+        updateCallback, callback, dirItems);
+  else
+    result = outArchive->UpdateItems(
+        tailStream, updatePairs2.Size(), updateCallback);
+  // **************** NanaZip Modification End ****************
   // callback->Finalize();
   RINOK(result)
 
@@ -1118,6 +1131,22 @@ struct C_CopyFileProgress_to_IUpdateCallbackUI2 Z7_final:
     // , Disable_Break(false)
     {}
 };
+
+
+// **************** NanaZip Modification Start ****************
+static void AddTarPrefixToExtension(CArchivePath &path)
+{
+  // An empty BaseExtension is an exact archive name chosen by the user.
+  if (path.BaseExtension.IsEmpty())
+    return;
+  const int dotPos = path.Name.ReverseFind_Dot();
+  if (dotPos >= 0 &&
+      StringsAreEqualNoCase_Ascii(path.Name.Ptr((unsigned)(dotPos + 1)), "tar"))
+    return;
+  path.BaseExtension.Insert(0, L"tar.");
+  path.VolExtension.Insert(0, L"tar.");
+}
+// **************** NanaZip Modification End ****************
 
 
 HRESULT UpdateArchive(
@@ -1439,6 +1468,16 @@ HRESULT UpdateArchive(
     }
   }
 
+  // **************** NanaZip Modification Start ****************
+  if (needSetPath &&
+      NeedTarWrapping(codecs, options, dirItems, thereIsInArchive))
+  {
+    AddTarPrefixToExtension(options.ArchivePath);
+    FOR_VECTOR (i, options.Commands)
+      AddTarPrefixToExtension(options.Commands[i].ArchivePath);
+    arcPath = options.ArchivePath.GetFinalPath();
+  }
+  // **************** NanaZip Modification End ****************
   FString tempDirPrefix;
   bool usesTempDir = false;
   

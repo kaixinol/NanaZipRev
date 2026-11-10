@@ -19,6 +19,10 @@
 #include "../../Common/FileStreams.h"
 #include "../../Common/StreamObjects.h"
 
+// **************** NanaZip Modification Start ****************
+#include "../Agent/Agent.h"
+// **************** NanaZip Modification End ****************
+
 #include "../Common/ExtractingFilePath.h"
 
 #include "App.h"
@@ -621,6 +625,9 @@ HRESULT CPanel::OpenAsArc_Index(int index, const wchar_t *type
     RefreshTitle(true); // in case of error we must refresh changed title of 7zFM
     return res;
   }
+  // **************** NanaZip Modification Start ****************
+  AutoOpenInnerTar();
+  // **************** NanaZip Modification End ****************
   RefreshListCtrl();
   return S_OK;
 }
@@ -1623,6 +1630,62 @@ static HRESULT GetTime(IFolderFolder *folder, UInt32 index, PROPID propID, FILET
   return S_OK;
 }
 */
+
+
+// **************** NanaZip Modification Start ****************
+/* A single-stream compressor holds one item, so a tar inside it is the content
+   the user asked for. This is the same step a double click takes. */
+void CPanel::AutoOpenInnerTar()
+{
+  if (!_folder || !ReadRegTarAutoOpen())
+    return;
+
+  CMyComPtr<IArchiveFolderInternal> archiveFolderInternal;
+  if (_folder.QueryInterface(IID_IArchiveFolderInternal,
+      &archiveFolderInternal) != S_OK
+      || !archiveFolderInternal)
+    return;
+
+  CAgentFolder *agentFolder;
+  if (archiveFolderInternal->GetAgentFolder(&agentFolder) != S_OK
+      || agentFolder == NULL
+      || agentFolder->_agentSpec == NULL)
+    return;
+
+  const CObjectVector<CArc> &arcs = agentFolder->_agentSpec->_archiveLink.Arcs;
+  if (arcs.Size() != 1 || arcs[0].FormatIndex < 0)
+    return;
+  const CArcInfoEx &ai = g_CodecsObj->Formats[(unsigned)arcs[0].FormatIndex];
+  if (!ai.Flags_KeepName() || ai.Flags_HashHandler())
+    return;
+
+  UInt32 numItems = 0;
+  if (_folder->GetNumberOfItems(&numItems) != S_OK || numItems != 1)
+    return;
+
+  NCOM::CPropVariant prop;
+  if (_folder->GetProperty(0, kpidIsDir, &prop) != S_OK
+      || (prop.vt == VT_BOOL && prop.boolVal != VARIANT_FALSE))
+    return;
+  prop.Clear();
+  // The raw handler only reports a path when the stream header carries a name,
+  // so the proxy name is the one the list shows and the tar suffix lives in.
+  if (_folder->GetProperty(0, kpidName, &prop) != S_OK || prop.vt != VT_BSTR)
+    return;
+  const UString path = prop.bstrVal;
+  const int dotPos = path.ReverseFind_Dot();
+  if (dotPos < 0
+      || !StringsAreEqualNoCase_Ascii(path.Ptr((unsigned)(dotPos + 1)), "tar"))
+    return;
+
+  const unsigned levelCount = _parentFolders.Size();
+  OpenItemInArchive(0, true, false, false, false, NULL);
+  // Mark the level the drill-down pushed: going up then leaves the archive at
+  // once, and the address bar shows the archive itself instead of the tar.
+  if (_parentFolders.Size() == levelCount + 1)
+    _parentFolders.Back().AutoOpened = true;
+}
+// **************** NanaZip Modification End ****************
 
 
 /*

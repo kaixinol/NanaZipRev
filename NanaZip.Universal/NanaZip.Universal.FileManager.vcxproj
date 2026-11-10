@@ -120,6 +120,7 @@
     <ClInclude Include="SevenZip\CPP\7zip\UI\Common\UpdateCallback.h" />
     <ClInclude Include="SevenZip\CPP\7zip\UI\Common\UpdatePair.h" />
     <ClInclude Include="SevenZip\CPP\7zip\UI\Common\UpdateProduce.h" />
+    <ClInclude Include="SevenZip\CPP\7zip\UI\Common\UpdateTar.h" />
     <ClInclude Include="SevenZip\CPP\7zip\UI\Common\WorkDir.h" />
     <ClInclude Include="SevenZip\CPP\7zip\UI\Common\ZipRegistry.h" />
     <ClInclude Include="SevenZip\CPP\7zip\UI\Explorer\MyMessages.h" />
@@ -280,6 +281,7 @@
     <ClCompile Include="SevenZip\CPP\7zip\UI\Common\UpdateCallback.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\Common\UpdatePair.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\Common\UpdateProduce.cpp" />
+    <ClCompile Include="SevenZip\CPP\7zip\UI\Common\UpdateTar.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\Common\WorkDir.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\Common\ZipRegistry.cpp" />
     <ClCompile Include="SevenZip\CPP\7zip\UI\Explorer\MyMessages.cpp" />

@@ -1325,6 +1325,15 @@
   <data name="Resource4161" xml:space="preserve">
     <value>密码不能为空。</value>
   </data>
+  <data name="Resource4162" xml:space="preserve">
+    <value>自动打开单文件流压缩包内的 tar(&amp;O)</value>
+  </data>
+  <data name="Resource4163" xml:space="preserve">
+    <value>单文件流格式自动打包为 tar(&amp;W)</value>
+  </data>
+  <data name="Resource4165" xml:space="preserve">
+    <value>在内存中暂存 tar(&amp;B)</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>复制</value>
   </data>

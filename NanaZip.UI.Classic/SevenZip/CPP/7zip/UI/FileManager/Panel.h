@@ -165,13 +165,19 @@ struct CFolderLink: public CTempFileInfo
   bool UsePassword;
   UString Password;
   bool IsVirtual;
+  // **************** NanaZip Modification Start ****************
+  bool AutoOpened; // entered by the automatic tar drill-down, not by the user
+  // **************** NanaZip Modification End ****************
 
   UString VirtualPath; // without tail slash
   // **************** NanaZip Modification Start ****************
   // Backported from 24.09.
   CByteBuffer ZoneBuf; // ZoneBuf for virtaul stream (IsVirtual)
   // **************** NanaZip Modification End ****************
-  CFolderLink(): UsePassword(false), IsVirtual(false) {}
+  // **************** NanaZip Modification Start ****************
+  // CFolderLink(): UsePassword(false), IsVirtual(false) {}
+  CFolderLink(): UsePassword(false), IsVirtual(false), AutoOpened(false) {}
+  // **************** NanaZip Modification End ****************
 
   bool WasChanged(const NWindows::NFile::NFind::CFileInfo &newFileInfo) const
   {
@@ -845,6 +851,12 @@ public:
   /* Whether the open archive has entry names a code page applies to, which is
      what decides whether the Code page submenu is enabled at all. */
   bool CanChangeCodePage() const;
+// **************** NanaZip Modification End ****************
+
+  // **************** NanaZip Modification Start ****************
+  /* Drills into the tar inside a single-stream archive right after an open, so
+     the panel shows the files instead of the lone tar entry. */
+  void AutoOpenInnerTar();
 // **************** NanaZip Modification End ****************
 
   void OpenFocusedItemAsInternal(const wchar_t *type = NULL);

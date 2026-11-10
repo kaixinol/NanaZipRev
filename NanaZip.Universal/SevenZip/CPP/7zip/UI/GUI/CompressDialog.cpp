@@ -27,6 +27,10 @@
 
 #include "../Explorer/MyMessages.h"
 
+// **************** NanaZip Modification Start ****************
+#include "../Common/UpdateTar.h"
+// **************** NanaZip Modification End ****************
+
 #include "../Common/ZipRegistry.h"
 
 #include "CompressDialog.h"
@@ -1505,6 +1509,10 @@ void CCompressDialog::SetArchiveName2(bool prevWasSFX)
     else
     {
       prevExtension.Add_Dot();
+      // **************** NanaZip Modification Start ****************
+      if (Info.KeepName && IsTarWrapFormat(prevArchiverInfo))
+        prevExtension += "tar.";
+      // **************** NanaZip Modification End ****************
       prevExtension += prevArchiverInfo.GetMainExt();
     }
     const unsigned prevExtensionLen = prevExtension.Len();
@@ -1527,7 +1535,13 @@ void CCompressDialog::SetArchiveName(const UString &name)
   m_PrevFormat = Info.FormatIndex;
   if (ai.Flags_KeepName())
   {
-    fileName = OriginalFileName;
+    // **************** NanaZip Modification Start ****************
+    // A tar wrapped selection keeps the name the caller chose, not the first
+    // file's name.
+    // fileName = OriginalFileName;
+    if (!Info.KeepName || !IsTarWrapFormat(ai))
+      fileName = OriginalFileName;
+    // **************** NanaZip Modification End ****************
   }
   else
   {
@@ -1545,6 +1559,10 @@ void CCompressDialog::SetArchiveName(const UString &name)
   {
     fileName.Add_Dot();
     UString ext = ai.GetMainExt();
+    // **************** NanaZip Modification Start ****************
+    if (Info.KeepName && IsTarWrapFormat(ai))
+      ext.Insert(0, L"tar.");
+    // **************** NanaZip Modification End ****************
     if (ai.Flags_HashHandler())
     {
       UString estimatedName;

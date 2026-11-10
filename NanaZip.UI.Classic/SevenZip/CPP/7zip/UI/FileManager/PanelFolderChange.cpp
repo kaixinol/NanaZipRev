@@ -336,6 +336,10 @@ HRESULT CPanel::BindToPathAndRefresh(const UString &path)
   #endif
 
   HRESULT res = BindToPath(s, UString(), openRes);
+  // **************** NanaZip Modification Start ****************
+  if (res == S_OK)
+    AutoOpenInnerTar();
+  // **************** NanaZip Modification End ****************
   RefreshListCtrl();
   return res;
 }
@@ -456,8 +460,15 @@ void CPanel::LoadFullPath()
     const CFolderLink &folderLink = _parentFolders[i];
     _currentFolderPrefix += folderLink.ParentFolderPath;
         // GetFolderPath(folderLink.ParentFolder);
-    _currentFolderPrefix += folderLink.RelPath;
-    _currentFolderPrefix.Add_PathSepar();
+    // **************** NanaZip Modification Start ****************
+    // The level the automatic tar drill-down added is not a step of the path
+    // the user walked, so it is left out of the address.
+    if (!folderLink.AutoOpened)
+    {
+      _currentFolderPrefix += folderLink.RelPath;
+      _currentFolderPrefix.Add_PathSepar();
+    }
+    // **************** NanaZip Modification End ****************
   }
   if (_folder)
     _currentFolderPrefix += GetFolderPath(_folder);
@@ -919,7 +930,19 @@ void CPanel::OpenParentFolder()
         parentFolderPrefix = link.ParentFolderPath;
         focusedName = link.RelPath;
       }
+      // **************** NanaZip Modification Start ****************
+      // A level the automatic tar drill-down added was never asked for, so
+      // leaving it means leaving the whole archive in one step.
+      const bool autoOpened = _parentFolders.Back().AutoOpened;
       CloseOneLevel();
+      if (autoOpened && !_parentFolders.IsEmpty())
+      {
+        const CFolderLink &link = _parentFolders.Back();
+        parentFolderPrefix = link.ParentFolderPath;
+        focusedName = link.RelPath;
+        CloseOneLevel();
+      }
+      // **************** NanaZip Modification End ****************
       needSetFolder = (!_folder);
     }
     

@@ -11,6 +11,10 @@
 #include "../../../Windows/FileName.h"
 #include "../../../Windows/Thread.h"
 
+// **************** NanaZip Modification Start ****************
+#include "../Common/UpdateTar.h"
+// **************** NanaZip Modification End ****************
+
 #include "../Common/WorkDir.h"
 
 #include "../Explorer/MyMessages.h"
@@ -403,8 +407,13 @@ static HRESULT ShowDialog(
     const CArcInfoEx &ai = codecs->Formats[i];
     if (!ai.UpdateEnabled)
       continue;
-    if (!oneFile && ai.Flags_KeepName())
+    // **************** NanaZip Modification Start ****************
+    // A single-stream format can still take the whole selection: it gets
+    // wrapped into a tar first.
+    // if (!oneFile && ai.Flags_KeepName())
+    if (!oneFile && ai.Flags_KeepName() && !IsTarWrapFormat(ai))
       continue;
+    // **************** NanaZip Modification End ****************
     if ((int)i != di.FormatIndex)
     {
       if (ai.Flags_HashHandler())

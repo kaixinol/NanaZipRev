@@ -1328,6 +1328,15 @@ Do you want to update it in the archive?</value>
   <data name="Resource4161" xml:space="preserve">
     <value>The password cannot be empty.</value>
   </data>
+  <data name="Resource4162" xml:space="preserve">
+    <value>&amp;Open the tar inside a single-stream archive</value>
+  </data>
+  <data name="Resource4163" xml:space="preserve">
+    <value>&amp;Wrap in a tar for single-stream formats</value>
+  </data>
+  <data name="Resource4165" xml:space="preserve">
+    <value>&amp;Buffer the tar in memory</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>Copy</value>
   </data>

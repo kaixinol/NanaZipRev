@@ -40,6 +40,19 @@ void SaveRegThemeMode(UInt32 themeMode);
 UInt32 ReadRegThemeMode();
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+/* These sit in the application key rather than in CFmSettings because the
+   console reads the wrap and memory switches too. */
+void SaveRegTarAutoOpen(bool enable);
+bool ReadRegTarAutoOpen();
+
+void SaveRegTarAutoWrap(bool enable);
+bool ReadRegTarAutoWrap();
+
+void SaveRegTarMemoryBuffer(bool enable);
+bool ReadRegTarMemoryBuffer();
+// **************** NanaZip Modification End ****************
+
 struct CFmSettings
 {
   bool ShowDots;

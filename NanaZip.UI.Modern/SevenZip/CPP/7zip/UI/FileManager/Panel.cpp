@@ -128,6 +128,12 @@ HRESULT CPanel::Create(HWND mainWindow, HWND parentWindow, UINT id,
     return E_FAIL;
   PanelCreated = true;
 
+  // **************** NanaZip Modification Start ****************
+  // Startup binds the archive before the window exists, so the later hooks
+  // never see it; catch it here once the list view is live.
+  AutoOpenInnerTar();
+  // **************** NanaZip Modification End ****************
+
   return S_OK;
 }
 

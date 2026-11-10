@@ -18,6 +18,8 @@
 #include "SettingsPageRes.h"
 
 // **************** NanaZip Modification Start ****************
+#include <CommCtrl.h>
+
 #include "App.h"
 #include "VaultDialog.h"
 #include <K7User.h>
@@ -45,6 +47,9 @@ static const UInt32 kLangIDs[] =
   // **************** NanaZip Modification Start ****************
   IDX_SETTINGS_SHOW_FILE_SIZE_UNITS,
   IDX_SETTINGS_VAULT_ENABLED,
+  IDX_SETTINGS_TAR_AUTO_OPEN,
+  IDX_SETTINGS_TAR_AUTO_WRAP,
+  IDX_SETTINGS_TAR_MEMORY_BUFFER,
   IDT_SETTINGS_THEME_MODE,
   // **************** NanaZip Modification End ****************
   // , IDT_COMPRESS_MEMORY
@@ -160,6 +165,9 @@ bool CSettingsPage::OnInit()
   CheckButton(
       IDX_SETTINGS_VAULT_ENABLED,
       ::NanaZip::Vault::VaultSettings::Load().Enabled);
+  CheckButton(IDX_SETTINGS_TAR_AUTO_OPEN, ReadRegTarAutoOpen());
+  CheckButton(IDX_SETTINGS_TAR_AUTO_WRAP, ReadRegTarAutoWrap());
+  CheckButton(IDX_SETTINGS_TAR_MEMORY_BUFFER, ReadRegTarMemoryBuffer());
 
   NWindows::NControl::CComboBox ThemeModeComboBox;
   ThemeModeComboBox.Attach(GetItem(IDC_SETTINGS_THEME_MODE));
@@ -275,6 +283,12 @@ LONG CSettingsPage::OnApply()
 
     st.Save();
     _wasChanged = false;
+
+    // **************** NanaZip Modification Start ****************
+    SaveRegTarAutoOpen(IsButtonCheckedBool(IDX_SETTINGS_TAR_AUTO_OPEN));
+    SaveRegTarAutoWrap(IsButtonCheckedBool(IDX_SETTINGS_TAR_AUTO_WRAP));
+    SaveRegTarMemoryBuffer(IsButtonCheckedBool(IDX_SETTINGS_TAR_MEMORY_BUFFER));
+    // **************** NanaZip Modification End ****************
 
     // **************** NanaZip Modification Start ****************
     // The vault switch keeps its own registry key because the vault core owns
@@ -480,6 +494,9 @@ bool CSettingsPage::OnButtonClicked(int buttonID, HWND buttonHWND)
     // **************** NanaZip Modification Start ****************
     case IDX_SETTINGS_SHOW_FILE_SIZE_UNITS:
     case IDX_SETTINGS_VAULT_ENABLED:
+    case IDX_SETTINGS_TAR_AUTO_OPEN:
+    case IDX_SETTINGS_TAR_AUTO_WRAP:
+    case IDX_SETTINGS_TAR_MEMORY_BUFFER:
     // **************** NanaZip Modification End ****************
       _wasChanged = true;
       break;

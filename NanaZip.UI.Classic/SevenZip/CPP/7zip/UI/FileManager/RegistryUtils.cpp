@@ -69,6 +69,12 @@ static LPCTSTR const kCodePage = TEXT("CodePage");
 static LPCTSTR const kThemeMode = TEXT("ThemeMode");
 // **************** NanaZip Modification End ****************
 
+// **************** NanaZip Modification Start ****************
+static LPCTSTR const kTarAutoOpen = TEXT("TarAutoOpen");
+static LPCTSTR const kTarAutoWrap = TEXT("TarAutoWrap");
+static LPCTSTR const kTarMemoryBuffer = TEXT("TarMemoryBuffer");
+// **************** NanaZip Modification End ****************
+
 static void SaveCuString(LPCTSTR keyPath, LPCWSTR valuePath, LPCWSTR value)
 {
   CKey key;
@@ -291,6 +297,24 @@ void CFmSettings::Load()
 
 void SaveLockMemoryEnable(bool enable) { Save7ZipOption(kLargePages, enable); }
 bool ReadLockMemoryEnable() { return Read7ZipOption(kLargePages, false); }
+
+// **************** NanaZip Modification Start ****************
+void SaveRegTarAutoOpen(bool enable) { Save7ZipOption(kTarAutoOpen, enable); }
+bool ReadRegTarAutoOpen() { return Read7ZipOption(kTarAutoOpen, false); }
+
+void SaveRegTarAutoWrap(bool enable) { Save7ZipOption(kTarAutoWrap, enable); }
+bool ReadRegTarAutoWrap() { return Read7ZipOption(kTarAutoWrap, false); }
+
+void SaveRegTarMemoryBuffer(bool enable)
+{
+  Save7ZipOption(kTarMemoryBuffer, enable);
+}
+
+bool ReadRegTarMemoryBuffer()
+{
+  return Read7ZipOption(kTarMemoryBuffer, false);
+}
+// **************** NanaZip Modification End ****************
 
 bool WantArcHistory() { return ReadFMOption(kArcHistory); }
 bool WantPathHistory() { return ReadFMOption(kPathHistory); }

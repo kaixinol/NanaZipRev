@@ -323,6 +323,9 @@
     <ClCompile Include="SevenZip\CPP\7zip\UI\Common\UpdateProduce.cpp">
       <Filter>SevenZip\CPP\7zip\UI\Common</Filter>
     </ClCompile>
+    <ClCompile Include="SevenZip\CPP\7zip\UI\Common\UpdateTar.cpp">
+      <Filter>SevenZip\CPP\7zip\UI\Common</Filter>
+    </ClCompile>
     <ClCompile Include="SevenZip\CPP\7zip\UI\Common\ArchiveCommandLine.cpp">
       <Filter>SevenZip\CPP\7zip\UI\Common</Filter>
     </ClCompile>
@@ -710,6 +713,9 @@
       <Filter>SevenZip\CPP\7zip\UI\Common</Filter>
     </ClInclude>
     <ClInclude Include="SevenZip\CPP\7zip\UI\Common\UpdateProduce.h">
+      <Filter>SevenZip\CPP\7zip\UI\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SevenZip\CPP\7zip\UI\Common\UpdateTar.h">
       <Filter>SevenZip\CPP\7zip\UI\Common</Filter>
     </ClInclude>
     <ClInclude Include="SevenZip\CPP\7zip\UI\Common\ArchiveCommandLine.h">
