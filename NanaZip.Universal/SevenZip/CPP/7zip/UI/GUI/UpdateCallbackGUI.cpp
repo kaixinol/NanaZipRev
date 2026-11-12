@@ -13,6 +13,17 @@
 #include "../FileManager/resourceGui.h"
 
 #include "resource2.h"
+// **************** NanaZip Modification Start ****************
+#include "resource3.h"
+// 7-Zip's Precomp.h pins _WIN32_WINNT to 0x0503 on x64, which keeps
+// NTDDI_VERSION below NTDDI_VISTA and hides the Task Dialog declarations
+// in CommCtrl.h. Raise it for that header only, then restore it.
+#pragma push_macro("NTDDI_VERSION")
+#undef NTDDI_VERSION
+#define NTDDI_VERSION NTDDI_VISTA
+#include <commctrl.h>
+#pragma pop_macro("NTDDI_VERSION")
+// **************** NanaZip Modification End ****************
 
 #include "UpdateCallbackGUI.h"
 
@@ -27,6 +38,54 @@ void CUpdateCallbackGUI::Init()
 }
 
 void OpenResult_GUI(UString &s, const CCodecs *codecs, const CArchiveLink &arcLink, const wchar_t *name, HRESULT result);
+
+// **************** NanaZip Modification Start ****************
+HRESULT CUpdateCallbackGUI::AskExistingArchive(
+    const wchar_t *path, Int32 *choice)
+{
+  *choice = 0;
+  if (this->ExistingArchiveHandled)
+  {
+    *choice = 2;
+    return S_OK;
+  }
+  UString Content = LangString(IDS_OVERWRITE_MESSAGE);
+  Content += L"\n";
+  Content += path;
+  UString Title = LangString(IDS_OVERWRITE_TITLE);
+  UString Overwrite = LangString(IDS_OVERWRITE_BTN_OVERWRITE);
+  UString Add = LangString(IDS_OVERWRITE_BTN_ADD);
+  TASKDIALOG_BUTTON Buttons[2];
+  // Custom IDs must stay clear of IDOK/IDCANCEL: the common Cancel button
+  // reports IDCANCEL (2), which used to be mistaken for "Add".
+  Buttons[0].nButtonID = 100;
+  Buttons[0].pszButtonText = Overwrite.Ptr();
+  Buttons[1].nButtonID = 101;
+  Buttons[1].pszButtonText = Add.Ptr();
+  TASKDIALOGCONFIG Config = {};
+  Config.cbSize = sizeof(Config);
+  Config.dwFlags = TDF_ALLOW_DIALOG_CANCELLATION;
+  Config.dwCommonButtons = TDCBF_CANCEL_BUTTON;
+  Config.pszWindowTitle = Title.Ptr();
+  Config.pszContent = Content.Ptr();
+  Config.cButtons = 2;
+  Config.pButtons = Buttons;
+  ProgressDialog->WaitCreating();
+  Config.hwndParent = (HWND)*ProgressDialog;
+  int Button = 0;
+  RINOK(::TaskDialogIndirect(&Config, &Button, NULL, NULL))
+  *choice = (Button == 100) ? 1 : (Button == 101) ? 2 : 0;
+  if (*choice == 2)
+  {
+    // A silent shell invocation has no password source. Abort quietly
+    // and let UpdateGUI rerun with the full compress dialog, where the
+    // user can supply the password of the existing archive.
+    this->NeedFullDialog = true;
+    return E_ABORT;
+  }
+  return S_OK;
+}
+// **************** NanaZip Modification End ****************
 
 HRESULT CUpdateCallbackGUI::OpenResult(
     const CCodecs *codecs, const CArchiveLink &arcLink, const wchar_t *name, HRESULT result)

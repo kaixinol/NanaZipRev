@@ -1334,6 +1334,18 @@
   <data name="Resource4165" xml:space="preserve">
     <value>在記憶體中暫存 tar(&amp;B)</value>
   </data>
+  <data name="Resource4170" xml:space="preserve">
+    <value>壓縮包已存在</value>
+  </data>
+  <data name="Resource4171" xml:space="preserve">
+    <value>壓縮包已存在。要新建並覆蓋，還是把這些檔案新增到現有壓縮包？</value>
+  </data>
+  <data name="Resource4172" xml:space="preserve">
+    <value>覆蓋(&amp;O)</value>
+  </data>
+  <data name="Resource4173" xml:space="preserve">
+    <value>新增到現有壓縮包(&amp;A)</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>複製</value>
   </data>

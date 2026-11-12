@@ -186,6 +186,7 @@ Z7_PURE_INTERFACES_BEGIN
 // INTERFACE_IUpdateCallbackUI(x)
 // INTERFACE_IDirItemsCallback(x)
 
+// **************** NanaZip Modification Start ****************
 #define Z7_IFACEN_IUpdateCallbackUI2(x) \
   virtual HRESULT OpenResult(const CCodecs *codecs, const CArchiveLink &arcLink, const wchar_t *name, HRESULT result) x \
   virtual HRESULT StartScanning() x \
@@ -198,6 +199,8 @@ Z7_PURE_INTERFACES_BEGIN
   virtual HRESULT MoveArc_Start(const wchar_t *srcTempPath, const wchar_t *destFinalPath, UInt64 size, Int32 updateMode) x \
   virtual HRESULT MoveArc_Progress(UInt64 total, UInt64 current) x \
   virtual HRESULT MoveArc_Finish() x \
+  virtual HRESULT AskExistingArchive(const wchar_t *path, Int32 *choice) x
+// **************** NanaZip Modification End ****************
 
 DECLARE_INTERFACE(IUpdateCallbackUI2):
     public IUpdateCallbackUI,

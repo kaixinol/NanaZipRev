@@ -8,3 +8,10 @@
 
 #define IDS_PROGRESS_DELETE     3326
 #define IDS_PROGRESS_HEADER     3327
+
+// **************** NanaZip Modification Start ****************
+#define IDS_OVERWRITE_TITLE        4170
+#define IDS_OVERWRITE_MESSAGE      4171
+#define IDS_OVERWRITE_BTN_OVERWRITE 4172
+#define IDS_OVERWRITE_BTN_ADD      4173
+// **************** NanaZip Modification End ****************

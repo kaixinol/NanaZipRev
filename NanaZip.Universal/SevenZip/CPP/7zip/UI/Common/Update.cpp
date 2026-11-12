@@ -1232,6 +1232,23 @@ HRESULT UpdateArchive(
   
   UString arcPath = options.ArchivePath.GetFinalPath();
 
+  // **************** NanaZip Modification Start ****************
+  bool OverwriteExisting = false;
+  if (!options.StdOutMode && !renameMode)
+  {
+    NFind::CFileInfo Existing;
+    if (Existing.Find_FollowLink(us2fs(arcPath)) &&
+        !Existing.IsDir())
+    {
+      Int32 Choice = 2;
+      RINOK(callback->AskExistingArchive(arcPath, &Choice))
+      if (Choice == 0)
+        return E_ABORT;
+      OverwriteExisting = (Choice == 1);
+    }
+  }
+  // **************** NanaZip Modification End ****************
+
   if (!options.VolumesSizes.IsEmpty())
   {
     arcPath = options.ArchivePath.GetFinalVolPath();
@@ -1310,6 +1327,10 @@ HRESULT UpdateArchive(
       op.stream = NULL;
       op.filePath = arcPath;
 
+      // **************** NanaZip Modification Start ****************
+      if (!OverwriteExisting)
+      {
+      // **************** NanaZip Modification End ****************
       RINOK(callback->StartOpenArchive(arcPath))
 
       HRESULT result = arcLink.Open_Strict(op, openCallback);
@@ -1354,6 +1375,9 @@ HRESULT UpdateArchive(
         if (!options.SetArcPath(codecs, cmdArcPath2))
           return E_NOTIMPL;
       }
+      // **************** NanaZip Modification Start ****************
+      }
+      // **************** NanaZip Modification End ****************
     }
   }
 
@@ -1501,7 +1525,13 @@ HRESULT UpdateArchive(
     CArchivePath &ap = options.Commands[0].ArchivePath;
     ap = options.ArchivePath;
     // if ((archive != 0 && !usesTempDir) || !options.WorkingDir.IsEmpty())
-    if ((thereIsInArchive || !options.WorkingDir.IsEmpty()) && !usesTempDir && options.VolumesSizes.Size() == 0)
+    // **************** NanaZip Modification Start ****************
+    // if ((thereIsInArchive || !options.WorkingDir.IsEmpty()) &&
+    //     !usesTempDir && options.VolumesSizes.Size() == 0)
+    if ((thereIsInArchive || OverwriteExisting ||
+        !options.WorkingDir.IsEmpty()) && !usesTempDir &&
+        options.VolumesSizes.Size() == 0)
+    // **************** NanaZip Modification End ****************
     {
       createTempFile = true;
       ap.Temp = true;
@@ -1667,7 +1697,10 @@ HRESULT UpdateArchive(
       const FString &tempPath = ap.GetTempPath();
       
       // DWORD attrib = 0;
-      if (thereIsInArchive)
+      // **************** NanaZip Modification Start ****************
+      // if (thereIsInArchive)
+      if (thereIsInArchive || OverwriteExisting)
+      // **************** NanaZip Modification End ****************
       {
         // attrib = NFind::GetFileAttrib(us2fs(arcPath));
         if (!DeleteFileAlways(us2fs(arcPath)))

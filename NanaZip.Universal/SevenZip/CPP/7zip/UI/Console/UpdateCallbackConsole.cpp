@@ -17,6 +17,16 @@
 #include "UserInputUtils.h"
 #include "UpdateCallbackConsole.h"
 
+// **************** NanaZip Modification Start ****************
+HRESULT CUpdateCallbackConsole::AskExistingArchive(
+    const wchar_t *path, Int32 *choice)
+{
+  UNREFERENCED_PARAMETER(path);
+  *choice = 2;
+  return S_OK;
+}
+// **************** NanaZip Modification End ****************
+
 using namespace NWindows;
 
 #ifndef Z7_ST

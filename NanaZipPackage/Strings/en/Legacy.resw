@@ -1337,6 +1337,18 @@ Do you want to update it in the archive?</value>
   <data name="Resource4165" xml:space="preserve">
     <value>&amp;Buffer the tar in memory</value>
   </data>
+  <data name="Resource4170" xml:space="preserve">
+    <value>Archive already exists</value>
+  </data>
+  <data name="Resource4171" xml:space="preserve">
+    <value>The archive already exists. Create a new one, or add these files to the existing archive?</value>
+  </data>
+  <data name="Resource4172" xml:space="preserve">
+    <value>&amp;Overwrite</value>
+  </data>
+  <data name="Resource4173" xml:space="preserve">
+    <value>&amp;Add to the existing archive</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>Copy</value>
   </data>

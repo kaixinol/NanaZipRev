@@ -22,6 +22,13 @@ public:
   bool AskPassword;
   FStringVector FailedFiles;
 
+  // **************** NanaZip Modification Start ****************
+  // "Add" on an existing archive needs the full compress dialog to
+  // supply a password, so the caller reruns UpdateGUI with showDialog.
+  bool NeedFullDialog = false;
+  bool ExistingArchiveHandled = false;
+  // **************** NanaZip Modification End ****************
+
   CUpdateCallbackGUI():
       AskPassword(false)
       {}

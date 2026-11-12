@@ -12,4 +12,11 @@ BEGIN
 
   IDS_PROGRESS_DELETE     "Deleting"
   IDS_PROGRESS_HEADER     "Header creating"
+
+  // **************** NanaZip Modification Start ****************
+  IDS_OVERWRITE_TITLE          "Archive already exists"
+  IDS_OVERWRITE_MESSAGE        "The archive already exists. Create a new one, or add these files to the existing archive?"
+  IDS_OVERWRITE_BTN_OVERWRITE  "&Overwrite"
+  IDS_OVERWRITE_BTN_ADD       "&Add to the existing archive"
+  // **************** NanaZip Modification End ****************
 END

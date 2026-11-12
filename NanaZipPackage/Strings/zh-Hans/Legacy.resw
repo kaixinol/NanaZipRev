@@ -1334,6 +1334,18 @@
   <data name="Resource4165" xml:space="preserve">
     <value>在内存中暂存 tar(&amp;B)</value>
   </data>
+  <data name="Resource4170" xml:space="preserve">
+    <value>压缩包已存在</value>
+  </data>
+  <data name="Resource4171" xml:space="preserve">
+    <value>压缩包已存在。要新建并覆盖，还是把这些文件添加到现有压缩包？</value>
+  </data>
+  <data name="Resource4172" xml:space="preserve">
+    <value>覆盖(&amp;O)</value>
+  </data>
+  <data name="Resource4173" xml:space="preserve">
+    <value>添加到现有压缩包(&amp;A)</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>复制</value>
   </data>

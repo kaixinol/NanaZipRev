@@ -461,6 +461,39 @@ static int Main2()
         messageWasDisplayed,
         &callback);
 
+    // **************** NanaZip Modification Start ****************
+    if (callback.NeedFullDialog)
+    {
+      callback.NeedFullDialog = false;
+      callback.ExistingArchiveHandled = true;
+      // Force Smart-mode reparse before rerunning UpdateGUI. The shell
+      // context menu (kCompressTo7z) passes -sae (Exact mode), which
+      // leaves ArchivePath.Name carrying the archive extension and
+      // ArchivePath.BaseExtension empty. UpdateGUI(showDialog=true)
+      // still uses Smart mode internally in ShowDialog, but reparsing
+      // up front removes any ambiguity for the second UpdateArchive
+      // entry, where needSetPath is false and SetArcPath is skipped.
+      {
+        CArchivePath &ap = options.UpdateOptions.ArchivePath;
+        const int formatIndex = options.UpdateOptions.MethodMode.Type.FormatIndex;
+        const UString mainExt = (formatIndex >= 0)
+            ? codecs->Formats[(unsigned)formatIndex].GetMainExt()
+            : UString("7z");
+        ap.VolExtension = mainExt;
+        ap.BaseExtension = mainExt;
+        ap.ParseFromPath(options.ArchiveName, k_ArcNameMode_Smart);
+      }
+      result = UpdateGUI(
+          codecs, formatIndices,
+          options.ArchiveName,
+          options.Censor,
+          options.UpdateOptions,
+          true,
+          messageWasDisplayed,
+          &callback);
+    }
+    // **************** NanaZip Modification End ****************
+
     if (result != S_OK)
     {
       if (result != E_ABORT && messageWasDisplayed)
