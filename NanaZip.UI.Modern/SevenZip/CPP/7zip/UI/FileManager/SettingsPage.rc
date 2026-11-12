@@ -4,8 +4,7 @@
 #define xc 240
 // **************** NanaZip Modification Start ****************
 // #define yc 250
-// #define yc 290
-#define yc 378
+#define yc 330
 // **************** NanaZip Modification End ****************
 
 IDD_SETTINGS  MY_PAGE
