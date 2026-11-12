@@ -190,9 +190,10 @@ bool CPasswordDialog::OnInit()
         rc.top - dyBtn * pxPerDlu, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 
     ::GetWindowRect(*this, &rc);
+    // Do not activate again: WM_INITDIALOG already set the foreground.
     ::SetWindowPos(*this, NULL, 0, 0, rc.right - rc.left,
         (rc.bottom - rc.top) - dHeight * pxPerDlu,
-        SWP_NOMOVE | SWP_NOZORDER);
+        SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
   }
 
   VaultTracking = VaultActive;
@@ -243,6 +244,26 @@ bool CPasswordDialog::OnMessage(UINT message, WPARAM wParam, LPARAM lParam)
 bool CPasswordDialog::OnDestroy()
 {
 #ifndef _SFX
+  // DialogBoxParam re-enables owners but never promises to reactivate
+  // them. Give the foreground back before this dialog dies, or Windows
+  // hands it to an unrelated window and the owner sinks.
+  DWORD ForegroundProcessId = 0;
+  ::GetWindowThreadProcessId(
+      ::GetForegroundWindow(), &ForegroundProcessId);
+  HWND Top = ::GetWindow((HWND)*this, GW_OWNER);
+  if (Top && ForegroundProcessId == ::GetCurrentProcessId())
+  {
+    HWND Next = ::GetWindow(Top, GW_OWNER);
+    while (Next)
+    {
+      Top = Next;
+      Next = ::GetWindow(Top, GW_OWNER);
+    }
+    // Owners are disabled during the modal loop; DialogBoxParam enables
+    // them again on its way out, so the final state is unchanged.
+    ::EnableWindow(Top, TRUE);
+    ::SetForegroundWindow(Top);
+  }
   if (VaultTracking)
   {
     ::NanaZip::Vault::VaultCore::GetSession().RemoveNotifyWindow((HWND)*this);
