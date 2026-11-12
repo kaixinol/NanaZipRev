@@ -50,7 +50,14 @@ Uninstall:
 - A theme selector offering *Follow the system*, *Always light*, and *Always dark*, stored per user and applied live to the windows that are already open, including the hosted XAML islands.
 - A code page submenu on the archive file list, which re-decodes entry names stored in a legacy encoding on demand. The choice is remembered per archive, survives navigating between folders, applies to the archive comment as well, and is dimmed where no code page applies.
 - A *Show file size units* setting, which formats file sizes with the IEC binary prefixes instead of an exact byte count. It is off by default. ([M2Team#1007](https://github.com/M2Team/NanaZip/pull/1007), Rejected)
-- A language selector on the settings page of the Modern File Manager, which offers the languages the modern experience library was built with. ([M2Team#1006](https://github.com/M2Team/NanaZip/pull/1006))
+- A language selector on the settings page of the Modern File Manager, which offers the languages the modern experience library was built with, and applies the choice without closing the Options sheet. ([M2Team#1006](https://github.com/M2Team/NanaZip/pull/1006))
+- Automatic tar handling for single-stream formats such as gzip, bzip2 and xz, which hold exactly one item:
+  - *Wrap in a tar for single-stream formats* offers those formats in the compress dialog when creating a new archive from a multi-file selection or a folder, and collects the selection into a tar before compressing it. The archive is named `name.tar.gz` and keeps the name you chose instead of the first file's. The console honors the same switch. (See issue [M2Team/NanaZip#138](https://github.com/M2Team/NanaZip/issues/138))
+  - *Buffer the tar in memory* is off by default, so the tar is collected in a temporary file. Turning it on keeps the tar in memory up to a quarter of the available physical memory, which is faster but competes with the compressor for the same memory.
+  - *Open the tar inside a single-stream archive* drills into the tar when such an archive holds one, so the panel lists the files instead of a single entry. Going up then leaves the archive at once, and the address bar shows the archive rather than the tar. (See issue [M2Team/NanaZip#77](https://github.com/M2Team/NanaZip/issues/77); related: [M2Team#844](https://github.com/M2Team/NanaZip/pull/844))
+  - All three switches are off by default, and the settings page of either File Manager turns them on.
+- A prompt when the target archive already exists, offering *Overwrite*, *Add to the existing archive*, or cancel. *Overwrite* builds the new archive in a temporary file and replaces the old one only after success, so the old archive's password is never asked for; *Add to the existing archive* reopens the full compress dialog so you can supply the existing archive's password, then takes the incremental update path. The console and scripted runs never prompt and keep the current behavior. (See issues [M2Team/NanaZip#1024](https://github.com/M2Team/NanaZip/issues/1024) and [M2Team/NanaZip#842](https://github.com/M2Team/NanaZip/issues/842))
+  - When the existing archive cannot be opened on the second pass, such as with a wrong password or a corrupt archive, the error names that cause and the archive instead of reporting *The parameter is incorrect.*
 - A warning when a compression method the upstream 7-Zip has no built-in support for, such as a 7-Zip ZS one, is selected for the 7z format, because upstream 7-Zip and most other archive software cannot read those archives.
 - A <kbd>Ctrl</kbd>+<kbd>W</kbd> shortcut for closing the File Manager window. ([M2Team#1005](https://github.com/M2Team/NanaZip/pull/1005))
 - Mouse back and forward navigation in the File Manager, driven by the thumb buttons.
@@ -66,8 +73,10 @@ Uninstall:
     - Close the File Manager that started the extraction.
   - Archives that cannot be moved are reported instead of being erased.
 - A percentage beside the progress bar, redrawn only when the value changes.
+- A fix for a rejected password on an encrypted archive being handed to the shell, which relaunched NanaZip or asked which app to use. The password is asked for again in the same window, and the vault does not refill the one that was rejected.
 - A fix for file names vanishing from the file list of an archive whose entry names are encrypted, while the password prompt is open. ([M2Team#1040](https://github.com/M2Team/NanaZip/pull/1040))
 - A fix for combo box dropdowns painting the selected and hovered item white in light mode, where the highlight was invisible. The selection now uses the system highlight color. (See issue [M2Team/NanaZip#1032](https://github.com/M2Team/NanaZip/issues/1032))
+- A fix for the File Manager falling behind other applications after the archive password dialog is cancelled: the dialog hands the foreground back to the main window while it is still being destroyed. (See issue [M2Team/NanaZip#1039](https://github.com/M2Team/NanaZip/issues/1039))
 </details>
 
 ## Why NanaZip Rev is not available on the Microsoft Store
