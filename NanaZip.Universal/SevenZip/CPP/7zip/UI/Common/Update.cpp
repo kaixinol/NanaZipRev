@@ -1344,7 +1344,17 @@ HRESULT UpdateArchive(
         return E_FAIL;
       */
       RINOK(res2)
-      RINOK(result)
+      // **************** NanaZip Modification Start ****************
+      // RINOK(result)
+      if (result != S_OK)
+      {
+        errorInfo.Message =
+            "Cannot open the existing archive to add files to it; "
+            "choose Overwrite instead, or supply its password";
+        errorInfo.FileNames.Add(us2fs(arcPath));
+        return result;
+      }
+      // **************** NanaZip Modification End ****************
 
       if (arcLink.VolumePaths.Size() > 1)
       {
