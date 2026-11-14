@@ -1240,8 +1240,55 @@ HRESULT UpdateArchive(
     if (Existing.Find_FollowLink(us2fs(arcPath)) &&
         !Existing.IsDir())
     {
+      bool hasPassword = false;
+      // Probe whether the existing archive is encrypted without
+      // popping up any password dialog.
+      {
+        #ifndef Z7_NO_CRYPTO
+        struct CProbeOpenCallback Z7_final: public IOpenCallbackUI
+        {
+          bool PasswordWasAsked;
+          CProbeOpenCallback(): PasswordWasAsked(false) {}
+          HRESULT Open_CheckBreak() override { return S_OK; }
+          HRESULT Open_SetTotal(const UInt64 *, const UInt64 *) override
+          { return S_OK; }
+          HRESULT Open_SetCompleted(const UInt64 *, const UInt64 *) override
+          { return S_OK; }
+          HRESULT Open_Finished() override { return S_OK; }
+          HRESULT Open_CryptoGetTextPassword(BSTR *) override
+          { PasswordWasAsked = true; return E_ABORT; }
+        };
+        CProbeOpenCallback probeCB;
+        CArchiveLink arcLink2;
+        COpenOptions op2;
+        #ifndef Z7_SFX
+        op2.props = NULL;
+        #endif
+        op2.codecs = codecs;
+        op2.types = &types;
+        op2.filePath = arcPath;
+        HRESULT probeRes = arcLink2.Open3(op2, &probeCB);
+        IInArchive *archive = (probeRes == S_OK) ?
+            arcLink2.GetArchive() : NULL;
+        if (archive)
+        {
+          UInt32 numItems = 0;
+          archive->GetNumberOfItems(&numItems);
+          for (UInt32 i = 0; i < numItems; i++)
+          {
+            bool encrypted = false;
+            if (Archive_GetItemBoolProp(archive, i, kpidEncrypted,
+                    encrypted) == S_OK && encrypted)
+            { hasPassword = true; break; }
+          }
+          arcLink2.Close();
+        }
+        else if (probeCB.PasswordWasAsked)
+          hasPassword = true;
+        #endif
+      }
       Int32 Choice = 2;
-      RINOK(callback->AskExistingArchive(arcPath, &Choice))
+      RINOK(callback->AskExistingArchive(arcPath, hasPassword, &Choice))
       if (Choice == 0)
         return E_ABORT;
       OverwriteExisting = (Choice == 1);

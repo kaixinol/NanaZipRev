@@ -41,7 +41,7 @@ void OpenResult_GUI(UString &s, const CCodecs *codecs, const CArchiveLink &arcLi
 
 // **************** NanaZip Modification Start ****************
 HRESULT CUpdateCallbackGUI::AskExistingArchive(
-    const wchar_t *path, Int32 *choice)
+    const wchar_t *path, bool hasPassword, Int32 *choice)
 {
   *choice = 0;
   if (this->ExistingArchiveHandled)
@@ -52,6 +52,11 @@ HRESULT CUpdateCallbackGUI::AskExistingArchive(
   UString Content = LangString(IDS_OVERWRITE_MESSAGE);
   Content += L"\n";
   Content += path;
+  if (hasPassword)
+  {
+    Content += L"\n\n";
+    Content += LangString(IDS_OVERWRITE_ENCRYPTED_HINT);
+  }
   UString Title = LangString(IDS_OVERWRITE_TITLE);
   UString Overwrite = LangString(IDS_OVERWRITE_BTN_OVERWRITE);
   UString Add = LangString(IDS_OVERWRITE_BTN_ADD);
@@ -75,7 +80,7 @@ HRESULT CUpdateCallbackGUI::AskExistingArchive(
   int Button = 0;
   RINOK(::TaskDialogIndirect(&Config, &Button, NULL, NULL))
   *choice = (Button == 100) ? 1 : (Button == 101) ? 2 : 0;
-  if (*choice == 2)
+  if (*choice == 2 && hasPassword)
   {
     // A silent shell invocation has no password source. Abort quietly
     // and let UpdateGUI rerun with the full compress dialog, where the

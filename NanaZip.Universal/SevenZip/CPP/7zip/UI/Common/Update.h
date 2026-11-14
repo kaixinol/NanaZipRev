@@ -199,7 +199,8 @@ Z7_PURE_INTERFACES_BEGIN
   virtual HRESULT MoveArc_Start(const wchar_t *srcTempPath, const wchar_t *destFinalPath, UInt64 size, Int32 updateMode) x \
   virtual HRESULT MoveArc_Progress(UInt64 total, UInt64 current) x \
   virtual HRESULT MoveArc_Finish() x \
-  virtual HRESULT AskExistingArchive(const wchar_t *path, Int32 *choice) x
+  virtual HRESULT AskExistingArchive(const wchar_t *path, \
+      bool hasPassword, Int32 *choice) x
 // **************** NanaZip Modification End ****************
 
 DECLARE_INTERFACE(IUpdateCallbackUI2):

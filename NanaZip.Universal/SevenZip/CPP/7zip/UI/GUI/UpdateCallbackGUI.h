@@ -23,8 +23,8 @@ public:
   FStringVector FailedFiles;
 
   // **************** NanaZip Modification Start ****************
-  // "Add" on an existing archive needs the full compress dialog to
-  // supply a password, so the caller reruns UpdateGUI with showDialog.
+  // "Add" on an encrypted archive needs the full compress dialog to
+  // supply a password; unencrypted archives are updated in place.
   bool NeedFullDialog = false;
   bool ExistingArchiveHandled = false;
   // **************** NanaZip Modification End ****************

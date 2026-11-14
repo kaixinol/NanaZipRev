@@ -18,5 +18,6 @@ BEGIN
   IDS_OVERWRITE_MESSAGE        "The archive already exists. Create a new one, or add these files to the existing archive?"
   IDS_OVERWRITE_BTN_OVERWRITE  "&Overwrite"
   IDS_OVERWRITE_BTN_ADD       "&Add to the existing archive"
+  IDS_OVERWRITE_ENCRYPTED_HINT "Note: this archive is encrypted. Choose 'Add to the existing archive' to supply its password."
   // **************** NanaZip Modification End ****************
 END

@@ -14,4 +14,5 @@
 #define IDS_OVERWRITE_MESSAGE      4171
 #define IDS_OVERWRITE_BTN_OVERWRITE 4172
 #define IDS_OVERWRITE_BTN_ADD      4173
+#define IDS_OVERWRITE_ENCRYPTED_HINT 4174
 // **************** NanaZip Modification End ****************

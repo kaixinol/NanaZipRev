@@ -19,9 +19,10 @@
 
 // **************** NanaZip Modification Start ****************
 HRESULT CUpdateCallbackConsole::AskExistingArchive(
-    const wchar_t *path, Int32 *choice)
+    const wchar_t *path, bool hasPassword, Int32 *choice)
 {
   UNREFERENCED_PARAMETER(path);
+  UNREFERENCED_PARAMETER(hasPassword);
   *choice = 2;
   return S_OK;
 }

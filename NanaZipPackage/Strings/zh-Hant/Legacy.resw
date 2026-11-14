@@ -1346,6 +1346,9 @@
   <data name="Resource4173" xml:space="preserve">
     <value>新增到現有壓縮包(&amp;A)</value>
   </data>
+  <data name="Resource4174" xml:space="preserve">
+    <value>注意：此壓縮包已加密。請選擇「新增到現有壓縮包」以提供其密碼。</value>
+  </data>
   <data name="Resource6000" xml:space="preserve">
     <value>複製</value>
   </data>
