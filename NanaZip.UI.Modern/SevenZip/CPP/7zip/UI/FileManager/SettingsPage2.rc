@@ -18,7 +18,7 @@ BEGIN
   CONTROL  "Want CopyHistory",   IDX_SETTINGS_WANT_COPY_HISTORY,      MY_CHECKBOX, m, 168, xc, 10
   CONTROL  "Want FolderHistory", IDX_SETTINGS_WANT_FOLDER_HISTORY,    MY_CHECKBOX, m, 182, xc, 10
   CONTROL  "Use Lowercase Hashes", IDX_SETTINGS_LOWERCASE_HASHES,     MY_CHECKBOX, m, 196, xc, 10
-  CONTROL  "Show &file size units", IDX_SETTINGS_SHOW_FILE_SIZE_UNITS, MY_CHECKBOX, m, 210, xc, 10
+  CONTROL  "Show human-readable &file sizes", IDX_SETTINGS_SHOW_FILE_SIZE_UNITS, MY_CHECKBOX, m, 210, xc, 10
   CONTROL  "Enable &vault", IDX_SETTINGS_VAULT_ENABLED, MY_CHECKBOX, m, 224, xc, 10
   CONTROL  "&Open the tar inside a single-stream archive", IDX_SETTINGS_TAR_AUTO_OPEN, MY_CHECKBOX, m, 238, xc, 10
   CONTROL  "&Wrap in a tar for single-stream formats", IDX_SETTINGS_TAR_AUTO_WRAP, MY_CHECKBOX, m, 252, xc, 10

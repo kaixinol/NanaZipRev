@@ -1161,7 +1161,7 @@
     <value>啟用密碼庫(&amp;V)</value>
   </data>
   <data name="Resource4098" xml:space="preserve">
-    <value>顯示檔案大小單位(&amp;F)</value>
+    <value>顯示易讀的檔案大小(&amp;F)</value>
   </data>
   <data name="Resource4101" xml:space="preserve">
     <value>主題(&amp;T)：</value>
