@@ -124,7 +124,7 @@ if ($PSVersionTable.PSEdition -eq 'Core') {
   if ($PSVersionTable.PSVersion -lt [version]'7.1') {
     throw 'PowerShell 7.1 or newer is required for the Appx compatibility layer; run this script in Windows PowerShell 5.1 instead.'
   }
-  Import-Module Appx -UseWindowsPowerShell -ErrorAction Stop
+  Import-Module Appx -UseWindowsPowerShell -WarningAction SilentlyContinue -ErrorAction Stop
 }
 
 [Net.ServicePointManager]::SecurityProtocol =
@@ -1099,7 +1099,7 @@ function Remove-PackageWithTimeout {
       -ScriptBlock {
         param($name)
         if ($PSVersionTable.PSEdition -eq 'Core') {
-          Import-Module Appx -UseWindowsPowerShell -ErrorAction Stop
+          Import-Module Appx -UseWindowsPowerShell -WarningAction SilentlyContinue -ErrorAction Stop
         }
         Remove-AppxPackage -Package $name -ErrorAction Stop
       }
