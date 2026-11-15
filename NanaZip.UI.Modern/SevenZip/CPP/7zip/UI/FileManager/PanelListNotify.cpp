@@ -826,7 +826,17 @@ void CPanel::Refresh_StatusBar()
     UInt64 totalSize = 0;
     FOR_VECTOR (i, indices)
       totalSize += GetItemSize(indices[i]);
-    ConvertSizeToString(totalSize, selectSizeString);
+    // **************** NanaZip Modification Start ****************
+    if (this->m_ShowFileSizeUnits)
+    {
+      ::K7BaseConvertByteSizeToString(
+        totalSize, selectSizeString, 32);
+    }
+    else
+    {
+      ConvertSizeToString(totalSize, selectSizeString);
+    }
+    // **************** NanaZip Modification End ****************
     // }
   }
   // _statusBar.SetText(1, selectSizeString);
@@ -842,7 +852,17 @@ void CPanel::Refresh_StatusBar()
     int realIndex = GetRealItemIndex(focusedItem);
     if (realIndex != kParentIndex)
     {
-      ConvertSizeToString(GetItemSize(realIndex), sizeString);
+      // **************** NanaZip Modification Start ****************
+      if (this->m_ShowFileSizeUnits)
+      {
+        ::K7BaseConvertByteSizeToString(
+          GetItemSize(realIndex), sizeString, 32);
+      }
+      else
+      {
+        ConvertSizeToString(GetItemSize(realIndex), sizeString);
+      }
+      // **************** NanaZip Modification End ****************
       NCOM::CPropVariant prop;
       if (_folder->GetProperty(realIndex, kpidMTime, &prop) == S_OK)
       {
