@@ -841,26 +841,17 @@ void CPanel::Refresh_StatusBar()
   _statusBar.SetText(1, selectSizeString);
 
   int focusedItem = _listView.GetFocusedItem();
-  wchar_t sizeString[32];
-  sizeString[0] = 0;
   wchar_t dateString[32];
   dateString[0] = 0;
-  if (focusedItem >= 0 && _listView.GetSelectedCount() > 0)
+  // **************** NanaZip Modification Start ****************
+  const bool showFocusedItemDate = (indices.Size() <= 1);
+  // **************** NanaZip Modification End ****************
+  if (showFocusedItemDate && focusedItem >= 0 &&
+      _listView.GetSelectedCount() > 0)
   {
     int realIndex = GetRealItemIndex(focusedItem);
     if (realIndex != kParentIndex)
     {
-      // **************** NanaZip Modification Start ****************
-      if (this->m_ShowFileSizeUnits)
-      {
-        ::K7BaseConvertByteSizeToString(
-          GetItemSize(realIndex), sizeString, 32);
-      }
-      else
-      {
-        ConvertSizeToString(GetItemSize(realIndex), sizeString);
-      }
-      // **************** NanaZip Modification End ****************
       NCOM::CPropVariant prop;
       if (_folder->GetProperty(realIndex, kpidMTime, &prop) == S_OK)
       {
@@ -877,7 +868,9 @@ void CPanel::Refresh_StatusBar()
       }
     }
   }
-  _statusBar.SetText(2, sizeString);
+  // **************** NanaZip Modification Start ****************
+  _statusBar.SetText(2, L"");
+  // **************** NanaZip Modification End ****************
   _statusBar.SetText(3, dateString);
 
   // _statusBar.SetText(4, nameString);
