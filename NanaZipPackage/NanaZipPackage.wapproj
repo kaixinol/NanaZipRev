@@ -76,4 +76,11 @@
     </ProjectReference>
   </ItemGroup>
   <Import Sdk="Mile.Project.Configurations" Project="Mile.Project.Wap.targets" />
+  <!-- **************** NanaZip Modification Start **************** -->
+  <Target Name="CopyResourcesPriToNativeOutput" AfterTargets="Build">
+    <Copy SourceFiles="$(OutputPath)resources.pri"
+          DestinationFolder="$(ProjectDir)..\Output\Binaries\$(Configuration)\$(Platform)"
+          Condition="Exists('$(OutputPath)resources.pri')" />
+  </Target>
+  <!-- **************** NanaZip Modification End **************** -->
 </Project>
