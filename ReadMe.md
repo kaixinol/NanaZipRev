@@ -1,13 +1,7 @@
 ﻿# ![NanaZip](Assets/NanaZip.png) NanaZip Rev
 
 > [!WARNING]
-> **NanaZip Rev is an unofficial community fork.** It is not affiliated with,
-> endorsed by, or supported by Kenji Mouri or the M2Team organization. It is
-> built from the NanaZip source code, which is in turn derived from the source
-> code of 7-Zip. The 7-Zip derived parts are credited in
-> [License.md](License.md), and the complete upstream documentation is
-> preserved verbatim in the [upstream ReadMe](#upstream-readme) at the end of
-> this file.
+> **NanaZip Rev is an unofficial community fork.** It is not affiliated with, endorsed by, or supported by Kenji Mouri or the M2Team organization. It is built from the NanaZip source code, which is in turn derived from the source code of 7-Zip. The 7-Zip derived parts are credited in [License.md](License.md), and the complete upstream documentation is preserved verbatim in the [upstream ReadMe](#upstream-readme) at the end of this file.
 
 [![GitHub Actions Build Status](https://github.com/kaixinol/NanaZipRev/actions/workflows/BuildBinaries.yml/badge.svg?branch=nanazip-rev&event=push)](https://github.com/kaixinol/NanaZipRev/actions/workflows/BuildBinaries.yml?query=event%3Apush+branch%3Ananazip-rev)
 [![Latest Version](https://img.shields.io/github/v/release/kaixinol/NanaZipRev?display_name=release&sort=date&color=%23a4a61d)](https://github.com/kaixinol/NanaZipRev/releases/latest)
@@ -17,18 +11,10 @@
 ![MainWindowLightMode](Documents/MainWindowLightMode.png)
 ![MainWindowDarkMode](Documents/MainWindowDarkMode.png)
 
-NanaZip Rev is a fork of NanaZip, an open source file archiver intended for the
-modern Windows experience. The fork tracks upstream and adds the changes listed
-below on top of it. Everything upstream NanaZip does, this fork does too, so
-read the [upstream ReadMe](#upstream-readme) for the full feature list, the
-system requirements, and the other installation methods.
+NanaZip Rev is a fork of NanaZip, an open source file archiver intended for the modern Windows experience. The fork tracks upstream and adds the changes listed below on top of it. Everything upstream NanaZip does, this fork does too, so read the [upstream ReadMe](#upstream-readme) for the full feature list, the system requirements, and the other installation methods.
 
 > [!NOTE]
-> This fork focuses on UX and UI fixes. Algorithm updates may lag, and several
-> updates to the same algorithm may be squashed into one: most users care more
-> about the interface than about marginal codec gains. Security fixes are the
-> exception. Given the upstream maintainers' attitude, the fork does not
-> actively contribute back upstream, least of all new features.
+> This fork focuses on UX and UI fixes. Algorithm updates may lag, and several updates to the same algorithm may be squashed into one: most users care more about the interface than about marginal codec gains. Security fixes are the exception. Given the upstream maintainers' attitude, the fork does not actively contribute back upstream, least of all new features.
 
 ## Installation
 
@@ -99,8 +85,7 @@ NanaZip Rev is distributed as an MSIX package signed with a locally trusted self
 
 ## Package identity
 
-The fork ships under its own package identity, so it is a different package
-from the one upstream NanaZip installs.
+The fork ships under its own package identity, so it is a different package from the one upstream NanaZip installs.
 
 | Field | Value |
 | --- | --- |
@@ -109,16 +94,9 @@ from the one upstream NanaZip installs.
 | PublisherDisplayName | `Kaesinol` |
 | Package Family Name | `Kaesinol.NanaZipRev_ebdn1z678t2d0` |
 
-Because the identity differs, this package and the upstream package can both be
-installed side by side. They still compete for the same shell registrations,
-though, so only one of them owns the File Explorer context menu, the file
-associations, and the `NanaZip.exe`, `NanaZipC.exe`, and `NanaZipG.exe`
-execution aliases at a time. Installing this fork over upstream replaces those
-registrations rather than adding to them.
+Because the identity differs, this package and the upstream package can both be installed side by side. They still compete for the same shell registrations, though, so only one of them owns the File Explorer context menu, the file associations, and the `NanaZip.exe`, `NanaZipC.exe`, and `NanaZipG.exe` execution aliases at a time. Installing this fork over upstream replaces those registrations rather than adding to them.
 
-Settings are kept under `HKEY_CURRENT_USER\Software\NanaZipRev` rather than
-`HKEY_CURRENT_USER\Software\NanaZip`, so the two installations never read each
-other's settings and an upgrade from upstream does not carry them over.
+Settings are kept under `HKEY_CURRENT_USER\Software\NanaZipRev` rather than `HKEY_CURRENT_USER\Software\NanaZip`, so the two installations never read each other's settings and an upgrade from upstream does not carry them over.
 
 ## Documents
 
