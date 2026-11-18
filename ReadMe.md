@@ -128,7 +128,7 @@ other's settings and an upgrade from upstream does not carry them over.
 <a name="upstream-readme"></a>
 
 <details>
-<summary>原README</summary>
+<summary>Upstream ReadMe</summary>
 
 # ![NanaZip](Assets/NanaZip.png) NanaZip
 
