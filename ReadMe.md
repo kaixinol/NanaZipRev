@@ -98,6 +98,15 @@ Because the identity differs, this package and the upstream package can both be 
 
 Settings are kept under `HKEY_CURRENT_USER\Software\NanaZipRev` rather than `HKEY_CURRENT_USER\Software\NanaZip`, so the two installations never read each other's settings and an upgrade from upstream does not carry them over.
 
+## Version numbering
+
+A fork release is labelled `<upstream version>+Rev<MMDDYYYY>`. The two halves mean different things:
+
+- Before the `+` is the upstream NanaZip version the release is built on. It moves only when the fork syncs to a new upstream version, so it says which NanaZip you are getting, not how recent the fork's own work is.
+- After the `+` is `Rev` followed by the fork's release date as month, day and year. This is the fork's own version identifier: it is what advances from one fork release to the next, and what to compare when checking whether you have the latest. Two releases built on the same upstream version are still told apart by it.
+
+The `+Rev` suffix lives on the GitHub release and its tag only. The MSIX package itself carries the four-part numeric version Windows requires, which is the part before the `+`; [Versioning](Documents/Versioning.md) describes how that number is formed.
+
 ## Documents
 
 - [Upstream Synchronization Status](Documents/UpstreamSynchronization.md)
