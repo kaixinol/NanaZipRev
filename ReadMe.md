@@ -23,6 +23,13 @@ below on top of it. Everything upstream NanaZip does, this fork does too, so
 read the [upstream ReadMe](#upstream-readme) for the full feature list, the
 system requirements, and the other installation methods.
 
+> [!NOTE]
+> This fork focuses on UX and UI fixes. Algorithm updates may lag, and several
+> updates to the same algorithm may be squashed into one: most users care more
+> about the interface than about marginal codec gains. Security fixes are the
+> exception. Given the upstream maintainers' attitude, the fork does not
+> actively contribute back upstream, least of all new features.
+
 ## Installation
 
 Install:
