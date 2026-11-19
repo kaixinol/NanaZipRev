@@ -11,7 +11,6 @@ namespace winrt::NanaZip::Modern::implementation
 
         DEPENDENCY_PROPERTY_HEADER(Text1, winrt::hstring);
         DEPENDENCY_PROPERTY_HEADER(Text2, winrt::hstring);
-        DEPENDENCY_PROPERTY_HEADER(Text3, winrt::hstring);
         DEPENDENCY_PROPERTY_HEADER(Text4, winrt::hstring);
     };
 }

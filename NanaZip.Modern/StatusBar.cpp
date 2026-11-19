@@ -19,13 +19,6 @@ DEPENDENCY_PROPERTY_SOURCE_BOX(
 );
 
 DEPENDENCY_PROPERTY_SOURCE_BOX(
-    Text3,
-    winrt::hstring,
-    StatusBar,
-    winrt::NanaZip::Modern::StatusBar
-);
-
-DEPENDENCY_PROPERTY_SOURCE_BOX(
     Text4,
     winrt::hstring,
     StatusBar,

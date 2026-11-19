@@ -872,9 +872,6 @@ void CPanel::Refresh_StatusBar()
   }
   // _statusBar.SetText(2, sizeString);
   // _statusBar.SetText(3, dateString);
-  // **************** NanaZip Modification Start ****************
-  _statusBarControl.Text3(L"");
-  // **************** NanaZip Modification End ****************
   _statusBarControl.Text4(dateString);
 
   // _statusBar.SetText(4, nameString);

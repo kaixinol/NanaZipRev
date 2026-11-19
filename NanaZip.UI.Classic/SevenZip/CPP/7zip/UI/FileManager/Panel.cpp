@@ -579,8 +579,8 @@ bool CPanel::OnCreate(CREATESTRUCT * /* createStruct */)
   _statusBar.Create(WS_CHILD | WS_VISIBLE, L"Status", (*this), _statusBarID);
   // _statusBar2.Create(WS_CHILD | WS_VISIBLE, L"Status", (*this), _statusBarID + 1);
 
-  const int sizes[] = {220, 320, 420, -1};
-  _statusBar.SetParts(4, sizes);
+  const int sizes[] = {220, 320, -1};
+  _statusBar.SetParts(3, sizes);
   // _statusBar2.SetParts(5, sizes);
 
   /*

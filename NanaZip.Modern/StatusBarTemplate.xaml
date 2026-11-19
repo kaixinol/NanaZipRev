@@ -33,9 +33,6 @@
               <ColumnDefinition Width="220" />
               <ColumnDefinition Width="Auto" />
               <ColumnDefinition Width="100" />
-              <ColumnDefinition Width="Auto" />
-              <ColumnDefinition Width="100" />
-              <ColumnDefinition Width="Auto" />
               <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <TextBlock
@@ -49,15 +46,8 @@
               VerticalAlignment="Center"
               Style="{StaticResource StatusBarTextBlockStyle}"
               Text="{x:Bind Text2, Mode=OneWay}" />
-            <Rectangle Grid.Column="3" Style="{StaticResource SeparatorRectangleStyle}" />
             <TextBlock
-              Grid.Column="4"
-              VerticalAlignment="Center"
-              Style="{StaticResource StatusBarTextBlockStyle}"
-              Text="{x:Bind Text3, Mode=OneWay}" />
-            <Rectangle Grid.Column="5" Style="{StaticResource SeparatorRectangleStyle}" />
-            <TextBlock
-              Grid.Column="6"
+              Grid.Column="3"
               VerticalAlignment="Center"
               Style="{StaticResource StatusBarTextBlockStyle}"
               Text="{x:Bind Text4, Mode=OneWay}" />
