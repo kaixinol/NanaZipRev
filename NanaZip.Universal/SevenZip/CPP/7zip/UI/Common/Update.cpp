@@ -1243,7 +1243,12 @@ HRESULT UpdateArchive(
       bool hasPassword = false;
       // Probe whether the existing archive is encrypted without
       // popping up any password dialog.
+      // Console builds do not need this: CUpdateCallbackConsole ignores
+      // hasPassword and always returns "add to archive", so running
+      // the probe (Open3 + Close on the same archive that Open_Strict
+      // is about to open) only pollutes archive state with no benefit.
       {
+        #if defined(Z7_LANG) || defined(LANG)
         #ifndef Z7_NO_CRYPTO
         struct CProbeOpenCallback Z7_final: public IOpenCallbackUI
         {
@@ -1285,6 +1290,7 @@ HRESULT UpdateArchive(
         }
         else if (probeCB.PasswordWasAsked)
           hasPassword = true;
+        #endif
         #endif
       }
       Int32 Choice = 2;
